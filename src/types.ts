@@ -22,17 +22,27 @@ export const RunSchema = z.object({
   runNumber: z.number(),
 });
 
+export const ProfileAthleteSchema = AthleteSchema.pick({
+  id: true,
+  clubName: true,
+  homeRun: true,
+}).extend({
+  fullName: z.string(),
+});
+
 export const ProfileSchema = z.object({
   schemaVersion: z.literal(1),
   generatedAt: z.string(),
-  athlete: z.object({
-    id: z.number(),
-    fullName: z.string(),
-    clubName: z.string().nullable(),
-    homeRun: z.string().nullable(),
-  }),
+  athlete: ProfileAthleteSchema,
   runs: z.array(RunSchema),
 });
+
+/** Props shared by all chart components */
+export interface ChartProps {
+  runs: Run[];
+  width?: number;
+  height?: number;
+}
 
 export type Athlete = z.infer<typeof AthleteSchema>;
 export type Run = z.infer<typeof RunSchema>;
