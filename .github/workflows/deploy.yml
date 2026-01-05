@@ -1,0 +1,32 @@
+name: Build & Deploy
+
+on:
+  schedule:
+    - cron: "0 12 * * 6"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Download data
+        env:
+          PARKRUN_ATHLETE_ID: ${{ secrets.PARKRUN_ATHLETE_ID }}
+          PARKRUN_PASSWORD: ${{ secrets.PARKRUN_PASSWORD }}
+        run: deno task download
+      - name: Build
+        run: deno task build
+      - name: Deploy to Deno Deploy
+        uses: denoland/deployctl@v1
+        with:
+          project: parkruns
+          entrypoint: https://deno.land/std/http/file_server.ts
+          root: dist

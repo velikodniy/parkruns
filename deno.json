@@ -1,0 +1,23 @@
+{
+  "tasks": {
+    "dev": "deno run -A npm:@rsbuild/core/rsbuild dev",
+    "build": "deno run -A npm:@rsbuild/core/rsbuild build",
+    "download": "deno run -A scripts/download-data.ts"
+  },
+  "imports": {
+    "react": "npm:react@^18",
+    "react-dom": "npm:react-dom@^18",
+    "react-dom/client": "npm:react-dom@^18/client",
+    "@mantine/core": "npm:@mantine/core@^7",
+    "@mantine/hooks": "npm:@mantine/hooks@^7",
+    "@rsbuild/core": "npm:@rsbuild/core",
+    "@rsbuild/plugin-react": "npm:@rsbuild/plugin-react",
+    "zod": "npm:zod@^3"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "lib": ["dom", "dom.iterable", "esnext", "deno.ns"]
+  },
+  "nodeModulesDir": "auto"
+}

@@ -1,0 +1,13 @@
+# JS/TS
+node_modules/
+dist/
+
+# Generated data
+public/data.json
+
+# Local scripts with credentials
+generate.sh
+
+# Scaffold files
+mod.ts
+mod_test.ts
