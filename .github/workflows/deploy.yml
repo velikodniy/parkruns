@@ -23,4 +23,4 @@ jobs:
       - name: Deploy to Deno Deploy
         env:
           DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
-        run: deno deploy --app parkruns --prod dist
+        run: deno deploy --org=velikodniy --app=parkruns --prod dist
