@@ -22,18 +22,15 @@ export const RunSchema = z.object({
   runNumber: z.number(),
 });
 
-export const ProfileAthleteSchema = AthleteSchema.pick({
-  id: true,
-  clubName: true,
-  homeRun: true,
-}).extend({
-  fullName: z.string(),
-});
-
 export const ProfileSchema = z.object({
   schemaVersion: z.literal(1),
   generatedAt: z.string(),
-  athlete: ProfileAthleteSchema,
+  athlete: z.object({
+    id: z.number(),
+    fullName: z.string(),
+    clubName: z.string().nullable(),
+    homeRun: z.string().nullable(),
+  }),
   runs: z.array(RunSchema),
 });
 
