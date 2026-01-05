@@ -72,6 +72,11 @@ export function App() {
       .finally(() => setLoading(false));
   }, []);
 
+  const stats = useMemo(() => {
+    if (!profile || profile.runs.length === 0) return null;
+    return computeRunStats(profile.runs);
+  }, [profile]);
+
   if (loading) {
     return (
       <Container size="lg" py="xl">
@@ -95,11 +100,6 @@ export function App() {
   if (!profile) return null;
 
   const { athlete, runs } = profile;
-
-  const stats = useMemo(() => {
-    if (runs.length === 0) return null;
-    return computeRunStats(runs);
-  }, [runs]);
 
   if (!stats) {
     return (
