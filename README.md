@@ -13,33 +13,38 @@ Static dashboard displaying your parkrun results. Data refreshed weekly via GitH
 ### Steps
 
 1. **Fork & clone**
+
    ```bash
    gh repo fork velikodniy/parkruns --clone
    cd parkruns
    ```
 
 2. **Add GitHub secrets**
+
    ```bash
    gh secret set PARKRUN_ATHLETE_ID
    gh secret set PARKRUN_PASSWORD
    gh secret set DENO_DEPLOY_TOKEN
    ```
-   Get your Deno Deploy token at https://console.deno.com → Account Settings → Access Tokens
+
+   Get your Deno Deploy token at <https://console.deno.com> → Account Settings → Access Tokens
 
 3. **Create Deno Deploy app**
-   - Go to https://console.deno.com
+   - Go to <https://console.deno.com>
    - Create new organization (or use existing)
    - Create new app named `parkruns` (or your choice)
    - Set runtime to **Static**, directory `/`, enable SPA mode
 
 4. **Update workflow** (if you changed app/org name)
-   
+
    Edit `.github/workflows/deploy.yml`:
+
    ```yaml
    run: deno deploy --org YOUR_ORG --app YOUR_APP --prod --no-wait dist
    ```
 
 5. **Trigger deploy**
+
    ```bash
    gh workflow run deploy.yml
    ```
