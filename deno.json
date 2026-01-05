@@ -20,5 +20,9 @@
     "jsxImportSource": "react",
     "lib": ["dom", "dom.iterable", "esnext", "deno.ns"]
   },
-  "nodeModulesDir": "auto"
+  "nodeModulesDir": "auto",
+  "deploy": {
+    "org": "vlcdn",
+    "app": "parkruns"
+  }
 }
