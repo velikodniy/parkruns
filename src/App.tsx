@@ -1,26 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
-  Badge,
   Card,
   Container,
   Group,
   Loader,
   Paper,
   SimpleGrid,
-  Table,
   Text,
   Title,
 } from "@mantine/core";
-import { type Profile, ProfileSchema, type Run } from "./types.ts";
+import { type Profile, ProfileSchema } from "./types.ts";
 import {
   AgeGradeChart,
   ConsistencyCalendar,
   FinishTimeChart,
   FinishTimeDistribution,
   PBProgressionChart,
+  RunsTable,
 } from "./components/index.ts";
 import { formatTime } from "./format.ts";
+import { computeRunStats } from "./stats.ts";
 
 function StatsCard(
   { label, value }: { label: string; value: string | number },
@@ -96,7 +96,12 @@ export function App() {
 
   const { athlete, runs } = profile;
 
-  if (runs.length === 0) {
+  const stats = useMemo(() => {
+    if (runs.length === 0) return null;
+    return computeRunStats(runs);
+  }, [runs]);
+
+  if (!stats) {
     return (
       <Container size="lg" py="xl">
         <Title order={1} mb="xs">
@@ -109,16 +114,6 @@ export function App() {
     );
   }
 
-  const totalRuns = runs.length;
-  const pbCount = runs.filter((r: Run) => r.wasPB).length;
-  const fastestRun = runs.reduce((a: Run, b: Run) =>
-    a.finishTimeSeconds < b.finishTimeSeconds ? a : b
-  );
-  const avgTime = Math.round(
-    runs.reduce((sum: number, r: Run) => sum + r.finishTimeSeconds, 0) /
-      totalRuns,
-  );
-
   return (
     <Container size="lg" py="xl">
       <Title order={1} mb="xs">
@@ -130,32 +125,23 @@ export function App() {
       </Text>
 
       <SimpleGrid cols={{ base: 2, sm: 4 }} mb="xl">
-        <StatsCard label="Total Runs" value={totalRuns} />
-        <StatsCard label="PBs" value={pbCount} />
-        <StatsCard
-          label="Fastest"
-          value={formatTime(fastestRun.finishTimeSeconds)}
-        />
-        <StatsCard label="Average Time" value={formatTime(avgTime)} />
+        <StatsCard label="Total Runs" value={stats.totalRuns} />
+        <StatsCard label="PBs" value={stats.pbCount} />
+        <StatsCard label="Fastest" value={formatTime(stats.fastestTime)} />
+        <StatsCard label="Average Time" value={formatTime(stats.averageTime)} />
       </SimpleGrid>
 
       <SimpleGrid cols={{ base: 2, sm: 4 }} mb="xl">
         <StatsCard
           label="Best Age Grade"
-          value={`${Math.max(...runs.map((r: Run) => r.ageGrade)).toFixed(1)}%`}
+          value={`${stats.bestAgeGrade.toFixed(1)}%`}
         />
-        <StatsCard
-          label="Best Position"
-          value={Math.min(...runs.map((r: Run) => r.position))}
-        />
+        <StatsCard label="Best Position" value={stats.bestPosition} />
         <StatsCard
           label="Latest Run"
-          value={new Date(runs[0].eventDate).toLocaleDateString()}
+          value={stats.latestRunDate.toLocaleDateString()}
         />
-        <StatsCard
-          label="Events Visited"
-          value={new Set(runs.map((r: Run) => r.eventName)).size}
-        />
+        <StatsCard label="Events Visited" value={stats.uniqueEvents} />
       </SimpleGrid>
 
       <SimpleGrid cols={{ base: 1, md: 2 }} mb="xl">
@@ -180,45 +166,7 @@ export function App() {
         <ConsistencyCalendar runs={runs} />
       </ChartCard>
 
-      <Card withBorder>
-        <Title order={3} mb="md">
-          All Runs
-        </Title>
-        <Table striped highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>#</Table.Th>
-              <Table.Th>Date</Table.Th>
-              <Table.Th>Event</Table.Th>
-              <Table.Th>Time</Table.Th>
-              <Table.Th>Pos</Table.Th>
-              <Table.Th>Age Grade</Table.Th>
-              <Table.Th />
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {runs.map((run: Run) => (
-              <Table.Tr key={`${run.eventDate}-${run.eventId}`}>
-                <Table.Td>{run.runNumber}</Table.Td>
-                <Table.Td>
-                  {new Date(run.eventDate).toLocaleDateString()}
-                </Table.Td>
-                <Table.Td>{run.eventName}</Table.Td>
-                <Table.Td>{run.finishTime}</Table.Td>
-                <Table.Td>{run.position}</Table.Td>
-                <Table.Td>{run.ageGrade.toFixed(1)}%</Table.Td>
-                <Table.Td>
-                  {run.wasPB && (
-                    <Badge color="green" size="sm">
-                      PB
-                    </Badge>
-                  )}
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-      </Card>
+      <RunsTable runs={runs} />
 
       <Text size="xs" c="dimmed" ta="center" mt="xl">
         Last updated: {new Date(profile.generatedAt).toLocaleString()}
