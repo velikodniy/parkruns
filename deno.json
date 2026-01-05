@@ -12,7 +12,8 @@
     "@mantine/hooks": "npm:@mantine/hooks@^7",
     "@rsbuild/core": "npm:@rsbuild/core",
     "@rsbuild/plugin-react": "npm:@rsbuild/plugin-react",
-    "zod": "npm:zod@^3"
+    "zod": "npm:zod@^3",
+    "d3": "npm:d3@^7"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

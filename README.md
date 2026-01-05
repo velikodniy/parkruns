@@ -1,6 +1,7 @@
 # Parkrun Profile
 
-Static dashboard displaying your parkrun results. Data refreshed weekly via GitHub Actions, hosted on Deno Deploy.
+Static dashboard displaying your parkrun results. Data refreshed weekly via
+GitHub Actions, hosted on Deno Deploy.
 
 ## Fork & Deploy
 
@@ -27,7 +28,8 @@ Static dashboard displaying your parkrun results. Data refreshed weekly via GitH
    gh secret set DENO_DEPLOY_TOKEN
    ```
 
-   Get your Deno Deploy token at <https://console.deno.com> → Account Settings → Access Tokens
+   Get your Deno Deploy token at <https://console.deno.com> → Account Settings →
+   Access Tokens
 
 3. **Create Deno Deploy app**
    - Go to <https://console.deno.com>

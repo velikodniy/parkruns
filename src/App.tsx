@@ -13,12 +13,14 @@ import {
   Title,
 } from "@mantine/core";
 import { type Profile, ProfileSchema, type Run } from "./types.ts";
-
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
+import {
+  AgeGradeChart,
+  ConsistencyCalendar,
+  FinishTimeChart,
+  FinishTimeDistribution,
+  PBProgressionChart,
+} from "./components/index.ts";
+import { formatTime } from "./format.ts";
 
 function StatsCard(
   { label, value }: { label: string; value: string | number },
@@ -32,6 +34,19 @@ function StatsCard(
         {value}
       </Text>
     </Paper>
+  );
+}
+
+function ChartCard(
+  { title, children }: { title: string; children: React.ReactNode },
+) {
+  return (
+    <Card withBorder mb="lg">
+      <Title order={4} mb="md">
+        {title}
+      </Title>
+      <div style={{ overflowX: "auto" }}>{children}</div>
+    </Card>
   );
 }
 
@@ -80,12 +95,25 @@ export function App() {
   if (!profile) return null;
 
   const { athlete, runs } = profile;
+
+  if (runs.length === 0) {
+    return (
+      <Container size="lg" py="xl">
+        <Title order={1} mb="xs">
+          {athlete.fullName}
+        </Title>
+        <Alert color="blue" title="No runs yet">
+          No parkrun results to display.
+        </Alert>
+      </Container>
+    );
+  }
+
   const totalRuns = runs.length;
   const pbCount = runs.filter((r: Run) => r.wasPB).length;
   const fastestRun = runs.reduce((a: Run, b: Run) =>
     a.finishTimeSeconds < b.finishTimeSeconds ? a : b
   );
-  const uniqueEvents = new Set(runs.map((r: Run) => r.eventName)).size;
   const avgTime = Math.round(
     runs.reduce((sum: number, r: Run) => sum + r.finishTimeSeconds, 0) /
       totalRuns,
@@ -108,11 +136,10 @@ export function App() {
           label="Fastest"
           value={formatTime(fastestRun.finishTimeSeconds)}
         />
-        <StatsCard label="Events Visited" value={uniqueEvents} />
+        <StatsCard label="Average Time" value={formatTime(avgTime)} />
       </SimpleGrid>
 
       <SimpleGrid cols={{ base: 2, sm: 4 }} mb="xl">
-        <StatsCard label="Average Time" value={formatTime(avgTime)} />
         <StatsCard
           label="Best Age Grade"
           value={`${Math.max(...runs.map((r: Run) => r.ageGrade)).toFixed(1)}%`}
@@ -125,7 +152,33 @@ export function App() {
           label="Latest Run"
           value={new Date(runs[0].eventDate).toLocaleDateString()}
         />
+        <StatsCard
+          label="Events Visited"
+          value={new Set(runs.map((r: Run) => r.eventName)).size}
+        />
       </SimpleGrid>
+
+      <SimpleGrid cols={{ base: 1, md: 2 }} mb="xl">
+        <ChartCard title="Finish Time Over Time">
+          <FinishTimeChart runs={runs} width={500} height={280} />
+        </ChartCard>
+
+        <ChartCard title="PB Progression">
+          <PBProgressionChart runs={runs} width={500} height={280} />
+        </ChartCard>
+
+        <ChartCard title="Age Grade Over Time">
+          <AgeGradeChart runs={runs} width={500} height={280} />
+        </ChartCard>
+
+        <ChartCard title="Finish Time Distribution">
+          <FinishTimeDistribution runs={runs} width={500} height={280} />
+        </ChartCard>
+      </SimpleGrid>
+
+      <ChartCard title="Consistency Calendar">
+        <ConsistencyCalendar runs={runs} />
+      </ChartCard>
 
       <Card withBorder>
         <Title order={3} mb="md">
