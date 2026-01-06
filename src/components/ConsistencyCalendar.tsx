@@ -4,7 +4,7 @@ import type { Run } from "../types.ts";
 import { chartColors } from "../theme.ts";
 import { createTooltip, hideTooltip, showTooltip } from "../d3-utils.ts";
 import { formatTime } from "../format.ts";
-import { getEventShortName } from "../../lib/parkrun/index.ts";
+import { getEventShortName } from "../lib/parkrun/index.ts";
 
 interface Props {
   runs: Run[];

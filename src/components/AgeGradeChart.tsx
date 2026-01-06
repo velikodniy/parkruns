@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
-import { getEventShortName } from "../../lib/parkrun/index.ts";
+import { getEventShortName } from "../lib/parkrun/index.ts";
 import { chartColors } from "../theme.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {

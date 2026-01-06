@@ -1,4 +1,4 @@
-import type { Athlete, Run } from "./types.ts";
+import type { Athlete, Run } from "../../types.ts";
 
 export type AccessToken = string;
 

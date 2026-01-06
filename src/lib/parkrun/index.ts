@@ -21,3 +21,6 @@ export {
   getEventCountryISO,
   getEventShortName,
 } from "./events.ts";
+
+export { authenticate, getAthlete, getRuns } from "./api.ts";
+export type { AccessToken } from "./api.ts";

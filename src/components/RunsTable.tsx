@@ -1,7 +1,7 @@
 import { Badge, Card, Group, ScrollArea, Table, Text, Title } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
-import { getEventCountryISO, getEventShortName } from "../../lib/parkrun/index.ts";
+import { getEventCountryISO, getEventShortName } from "../lib/parkrun/index.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 
 interface Props {

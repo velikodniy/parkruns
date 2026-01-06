@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Run } from "../types.ts";
-import { getEventById } from "../../lib/parkrun/index.ts";
+import { getEventById } from "../lib/parkrun/index.ts";
 
 const defaultIcon = new L.Icon({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",

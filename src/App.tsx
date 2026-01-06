@@ -23,7 +23,7 @@ import {
 } from "./components/index.ts";
 import { formatTime } from "./format.ts";
 import { computeRunStats } from "./stats.ts";
-import { getEventCountryISO } from "../lib/parkrun/index.ts";
+import { getEventCountryISO } from "./lib/parkrun/index.ts";
 
 function StatsCard(
   { label, value }: { label: string; value: string | number },
