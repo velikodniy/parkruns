@@ -132,7 +132,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
           rect
             .on("mouseover", (event: MouseEvent) => {
               const weekEnd = d3.timeDay.offset(wd.week, 6);
-              const dateRange = `${d3.timeFormat("%b %d")(wd.week)} - ${d3.timeFormat("%d")(weekEnd)}`;
+              const dateRange = `${d3.timeFormat("%b %d")(wd.week)} — ${d3.timeFormat("%b %d")(weekEnd)}`;
               const runsList = wd.runs
                 .map((r: Run) => `${r.eventName} ${formatTime(r.finishTimeSeconds)}`)
                 .join("<br/>");
