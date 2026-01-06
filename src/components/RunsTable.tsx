@@ -1,7 +1,7 @@
 import { Badge, Card, Group, ScrollArea, Table, Text, Title } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
-import { getEventCountryISO } from "../../lib/parkrun/index.ts";
+import { getEventCountryISO, getEventShortName } from "../../lib/parkrun/index.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 
 interface Props {
@@ -76,7 +76,7 @@ export function RunsTable({ runs }: Props) {
                       const countryISO = getEventCountryISO(run.eventId);
                       return countryISO ? <CountryFlag countryCode={countryISO} size={12} /> : null;
                     })()}
-                    <Text span>{run.eventName}</Text>
+                    <Text span>{getEventShortName(run.eventId) ?? run.eventName}</Text>
                     <Text span size="sm" c="dimmed">#{run.runNumber}</Text>
                   </Group>
                 </Table.Td>
