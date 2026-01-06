@@ -85,9 +85,7 @@ export function RunsTable({ runs }: Props) {
                 <Table.Td>{run.position}</Table.Td>
                 <Table.Td>
                   <Group gap={6} wrap="nowrap" align="center">
-                    <Text span>
-                      {formatTime(run.finishTimeSeconds)}
-                    </Text>
+                    {formatTime(run.finishTimeSeconds)}
                     {run.wasPB && isAllTimePB && (
                       <Badge color="blue" size="xs" variant="filled">
                         PB
@@ -103,7 +101,7 @@ export function RunsTable({ runs }: Props) {
                 <Table.Td>{formatPace(run.finishTimeSeconds)}</Table.Td>
                 <Table.Td>
                   <Group gap={0} wrap="nowrap">
-                    <Text span>{run.ageGrade.toFixed(1)}%</Text>
+                    {run.ageGrade.toFixed(1)}%
                     <AgeGradeDelta current={run.ageGrade} previous={previousAgeGrade} />
                   </Group>
                 </Table.Td>
