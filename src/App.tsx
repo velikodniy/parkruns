@@ -144,6 +144,12 @@ export function App() {
         <StatsCard label="Events Visited" value={stats.uniqueEvents} />
       </SimpleGrid>
 
+      <RunsTable runs={runs} />
+
+      <ChartCard title="Consistency Calendar">
+        <ConsistencyCalendar runs={runs} />
+      </ChartCard>
+
       <SimpleGrid cols={{ base: 1, md: 2 }} mb="xl">
         <ChartCard title="Finish Time Over Time">
           <FinishTimeChart runs={runs} width={500} height={280} />
@@ -161,12 +167,6 @@ export function App() {
           <FinishTimeDistribution runs={runs} width={500} height={280} />
         </ChartCard>
       </SimpleGrid>
-
-      <ChartCard title="Consistency Calendar">
-        <ConsistencyCalendar runs={runs} />
-      </ChartCard>
-
-      <RunsTable runs={runs} />
 
       <Text size="xs" c="dimmed" ta="center" mt="xl">
         Last updated: {new Date(profile.generatedAt).toLocaleString()}
