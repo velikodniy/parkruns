@@ -71,11 +71,13 @@ export function RunsTable({ runs }: Props) {
                   {new Date(run.eventDate).toLocaleDateString()}
                 </Table.Td>
                 <Table.Td>
-                  <Group gap={4} wrap="nowrap">
-                    {(() => {
-                      const countryISO = getEventCountryISO(run.eventId);
-                      return countryISO ? <CountryFlag countryCode={countryISO} size={12} /> : null;
-                    })()}
+                  <Group gap={6} wrap="nowrap">
+                    <span style={{ width: 16, display: "inline-flex", justifyContent: "center" }}>
+                      {(() => {
+                        const countryISO = getEventCountryISO(run.eventId);
+                        return countryISO ? <CountryFlag countryCode={countryISO} size={10} /> : null;
+                      })()}
+                    </span>
                     <Text span>{getEventShortName(run.eventId) ?? run.eventName}</Text>
                     <Text span size="sm" c="dimmed">#{run.runNumber}</Text>
                   </Group>
@@ -83,7 +85,7 @@ export function RunsTable({ runs }: Props) {
                 <Table.Td>{run.position}</Table.Td>
                 <Table.Td>
                   <Group gap={6} wrap="nowrap" align="center">
-                    <Text span style={{ fontVariantNumeric: "tabular-nums" }}>
+                    <Text span>
                       {formatTime(run.finishTimeSeconds)}
                     </Text>
                     {run.wasPB && isAllTimePB && (
