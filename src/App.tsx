@@ -14,6 +14,8 @@ import { type Profile, ProfileSchema } from "./types.ts";
 import {
   AgeGradeChart,
   ConsistencyCalendar,
+  CountryFlag,
+  EventsMap,
   FinishTimeChart,
   FinishTimeDistribution,
   PBProgressionChart,
@@ -22,7 +24,6 @@ import {
 import { formatTime } from "./format.ts";
 import { computeRunStats } from "./stats.ts";
 import { getEventCountryISO } from "../lib/parkrun/index.ts";
-import { CountryFlag } from "./components/CountryFlag.tsx";
 
 function StatsCard(
   { label, value }: { label: string; value: string | number },
@@ -165,6 +166,10 @@ export function App() {
       </SimpleGrid>
 
       <RunsTable runs={runs} />
+
+      <ChartCard title="Events Visited">
+        <EventsMap runs={runs} width={800} height={400} />
+      </ChartCard>
 
       <ChartCard title="Consistency Calendar">
         <ConsistencyCalendar runs={runs} />
