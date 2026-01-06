@@ -87,20 +87,21 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
       }
     }
 
+    const getWeekYear = (weekStart: Date): number => {
+      const thursday = d3.timeDay.offset(weekStart, 4);
+      return thursday.getFullYear();
+    };
+
     years.forEach((year: number, rowIndex: number) => {
       const firstDay = new Date(year, 0, 1);
       const lastDay = new Date(year, 11, 31);
       const weeks = d3.timeWeeks(
-        d3.timeSunday.floor(firstDay),
-        d3.timeSunday.ceil(lastDay),
+        d3.timeSunday.floor(d3.timeDay.offset(firstDay, -6)),
+        d3.timeSunday.ceil(d3.timeDay.offset(lastDay, 6)),
       );
 
       const weekData: WeekData[] = weeks
-        .filter(
-          (week: Date) =>
-            week.getFullYear() === year ||
-            d3.timeDay.offset(week, 6).getFullYear() === year,
-        )
+        .filter((week: Date) => getWeekYear(week) === year)
         .map((week: Date) => {
           const weekKey = d3.timeFormat("%Y-%W")(week);
           const weekRuns = runsByWeek.get(weekKey) ?? [];
