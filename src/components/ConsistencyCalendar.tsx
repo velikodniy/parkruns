@@ -135,7 +135,10 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
               const weekEnd = d3.timeDay.offset(wd.week, 6);
               const dateRange = `${d3.timeFormat("%b %d")(wd.week)} — ${d3.timeFormat("%b %d")(weekEnd)}`;
               const runsList = wd.runs
-                .map((r: Run) => `${r.eventName} ${formatTime(r.finishTimeSeconds)}`)
+                .map((r: Run) => {
+                  const date = d3.timeFormat("%b %d")(new Date(r.eventDate));
+                  return `${date}: ${r.eventName} ${formatTime(r.finishTimeSeconds)}`;
+                })
                 .join("<br/>");
               showTooltip(
                 tooltip,
