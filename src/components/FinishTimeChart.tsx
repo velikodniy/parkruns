@@ -120,7 +120,7 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
             event,
             `<strong>${run.eventName}</strong><br/>
             ${new Date(run.eventDate).toLocaleDateString()}<br/>
-            Time: ${run.finishTime}${run.wasPB ? " (PB!)" : ""}`,
+            Time: ${formatTime(run.finishTimeSeconds)}${run.wasPB ? " (PB!)" : ""}`,
           );
         })
         .on("mouseout", () => hideTooltip(tooltip));

@@ -1,17 +1,12 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { Run } from "../types.ts";
+import { formatTime } from "../format.ts";
 
 interface Props {
   runs: Run[];
   width?: number;
   height?: number;
-}
-
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
 export function EventMixChart({ runs, width = 600, height = 400 }: Props) {
