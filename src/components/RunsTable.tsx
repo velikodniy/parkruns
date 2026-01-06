@@ -8,7 +8,7 @@ interface Props {
 
 function AgeGradeDelta({ current, previous }: { current: number; previous: number | null }) {
   if (previous === null) {
-    return <Text span size="xs" c="dimmed">—</Text>;
+    return <Text span size="xs" c="dimmed" ml={4}>—</Text>;
   }
 
   const delta = current - previous;
@@ -24,7 +24,22 @@ function AgeGradeDelta({ current, previous }: { current: number; previous: numbe
   );
 }
 
+function computeAllTimePBs(runs: Run[]): boolean[] {
+  const result: boolean[] = new Array(runs.length).fill(false);
+  let bestTime = Number.POSITIVE_INFINITY;
+
+  for (let i = runs.length - 1; i >= 0; i--) {
+    if (runs[i].finishTimeSeconds < bestTime) {
+      bestTime = runs[i].finishTimeSeconds;
+      result[i] = true;
+    }
+  }
+  return result;
+}
+
 export function RunsTable({ runs }: Props) {
+  const allTimePBs = computeAllTimePBs(runs);
+
   return (
     <Card withBorder>
       <Title order={3} mb="md">
@@ -45,6 +60,7 @@ export function RunsTable({ runs }: Props) {
           {runs.map((run: Run, index: number) => {
             const previousRun = index < runs.length - 1 ? runs[index + 1] : null;
             const previousAgeGrade = previousRun?.ageGrade ?? null;
+            const isAllTimePB = allTimePBs[index];
 
             return (
               <Table.Tr key={`${run.eventDate}-${run.eventId}`}>
@@ -58,10 +74,17 @@ export function RunsTable({ runs }: Props) {
                   </Group>
                 </Table.Td>
                 <Table.Td>
-                  <Group gap={6} wrap="nowrap">
-                    <Text span>{formatTime(run.finishTimeSeconds)}</Text>
-                    {run.wasPB && (
-                      <Badge color="green" size="xs" variant="filled">
+                  <Group gap={6} wrap="nowrap" align="center">
+                    <Text span style={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatTime(run.finishTimeSeconds)}
+                    </Text>
+                    {run.wasPB && isAllTimePB && (
+                      <Badge color="blue" size="xs" variant="filled">
+                        PB
+                      </Badge>
+                    )}
+                    {run.wasPB && !isAllTimePB && (
+                      <Badge color="gray" size="xs" variant="light">
                         PB
                       </Badge>
                     )}
