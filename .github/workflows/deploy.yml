@@ -18,7 +18,7 @@ jobs:
       - name: Update events data
         run: curl -sSL https://images.parkrun.com/events.json -o src/lib/parkrun/events.json
       - name: Commit events.json if changed
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "chore: update parkrun events data"
           file_pattern: src/lib/parkrun/events.json
