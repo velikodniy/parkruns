@@ -1,5 +1,6 @@
 import { authenticate, getAthlete, getRuns } from "../src/parkrun.ts";
 import type { Profile } from "../src/types.ts";
+import { getEventShortName } from "../lib/parkrun/index.ts";
 
 const ATHLETE_ID = Deno.env.get("PARKRUN_ATHLETE_ID");
 const PASSWORD = Deno.env.get("PARKRUN_PASSWORD");
@@ -29,6 +30,12 @@ async function downloadData(
   console.log("Fetching runs...");
   const runs = await getRuns(accessToken, numericId);
 
+  const enrichedRuns = runs.map((run) => ({
+    ...run,
+    eventName: getEventShortName(run.eventId) ??
+      run.eventName.replace(/ parkrun$/i, ""),
+  }));
+
   const profile: Profile = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -40,7 +47,7 @@ async function downloadData(
       clubName: athlete.clubName,
       homeRun: athlete.homeRun,
     },
-    runs,
+    runs: enrichedRuns,
   };
 
   const outputPath = "public/data.json";
