@@ -85,7 +85,7 @@ export function RunsTable({ runs }: Props) {
                 <Table.Td>{run.position}</Table.Td>
                 <Table.Td>
                   <Group gap={6} wrap="nowrap" align="center">
-                    {formatTime(run.finishTimeSeconds)}
+                    <span style={{ minWidth: 42 }}>{formatTime(run.finishTimeSeconds)}</span>
                     {run.wasPB && isAllTimePB && (
                       <Badge color="blue" size="xs" variant="filled">
                         PB
