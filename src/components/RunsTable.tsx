@@ -1,4 +1,4 @@
-import { Badge, Card, Group, Table, Text, Title } from "@mantine/core";
+import { Badge, Card, Group, ScrollArea, Table, Text, Title } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
 
@@ -45,7 +45,8 @@ export function RunsTable({ runs }: Props) {
       <Title order={3} mb="md">
         All Runs
       </Title>
-      <Table striped highlightOnHover>
+      <ScrollArea>
+      <Table striped highlightOnHover miw={600}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>Date</Table.Th>
@@ -103,6 +104,7 @@ export function RunsTable({ runs }: Props) {
           })}
         </Table.Tbody>
       </Table>
+      </ScrollArea>
     </Card>
   );
 }
