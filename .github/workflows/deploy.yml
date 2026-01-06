@@ -16,12 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Update events data
-        run: curl -sSL https://images.parkrun.com/events.json -o lib/parkrun/events.json
+        run: curl -sSL https://images.parkrun.com/events.json -o src/lib/parkrun/events.json
       - name: Commit events.json if changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: update parkrun events data"
-          file_pattern: lib/parkrun/events.json
+          file_pattern: src/lib/parkrun/events.json
 
   build-and-deploy:
     runs-on: ubuntu-latest
