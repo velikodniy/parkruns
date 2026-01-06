@@ -7,12 +7,12 @@ export interface PointGeometry {
 
 export interface EventProperties {
   eventname: string;
-  eventLongName: string;
-  eventShortName: string;
-  localisedEventLongName: string | null;
-  countryCode: number;
-  seriesId: number;
-  eventLocation: string;
+  EventLongName: string;
+  EventShortName: string;
+  LocalisedEventLongName: string | null;
+  countrycode: number;
+  seriesid: number;
+  EventLocation: string;
 }
 
 export interface EventFeature {
