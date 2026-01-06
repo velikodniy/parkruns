@@ -20,6 +20,7 @@ export {
   getEventCountryCode,
   getEventCountryISO,
   getEventShortName,
+  getEventUrl,
 } from "./events.ts";
 
 export { authenticate, getAthlete, getRuns } from "./api.ts";

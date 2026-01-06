@@ -36,3 +36,12 @@ export function getEventCountryISO(id: number): string | null {
 export function getAllEvents(): EventFeature[] {
   return data.events.features;
 }
+
+export function getEventUrl(id: number): string | null {
+  const event = eventById.get(id);
+  if (!event) return null;
+  const countryCode = event.properties.countrycode;
+  const countryUrl = data.countries[countryCode]?.url;
+  if (!countryUrl) return null;
+  return `https://${countryUrl}/${event.properties.eventname}/`;
+}
