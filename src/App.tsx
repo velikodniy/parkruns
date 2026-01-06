@@ -140,7 +140,7 @@ export function App() {
       {visitedCountries.length > 0 && (
         <Group gap="xs" mb="xl">
           {visitedCountries.map((iso) => (
-            <CountryFlag key={iso} countryCode={iso} size={24} />
+            <CountryFlag key={iso} countryCode={iso} size={18} />
           ))}
         </Group>
       )}
