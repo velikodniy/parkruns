@@ -74,7 +74,7 @@ export function RunsTable({ runs }: Props) {
                   <Group gap={4} wrap="nowrap">
                     {(() => {
                       const countryISO = getEventCountryISO(run.eventId);
-                      return countryISO ? <CountryFlag countryCode={countryISO} size={14} /> : null;
+                      return countryISO ? <CountryFlag countryCode={countryISO} size={12} /> : null;
                     })()}
                     <Text span>{run.eventName}</Text>
                     <Text span size="sm" c="dimmed">#{run.runNumber}</Text>
