@@ -51,7 +51,7 @@ GitHub Actions, hosted on Deno Deploy.
    gh workflow run deploy.yml
    ```
 
-Your dashboard will be available at `https://YOUR_APP.deno.dev`
+Your dashboard will be available at `https://YOUR_APP.YOUR_ORG.deno.net`
 
 ## Local Development
 
