@@ -21,6 +21,8 @@ import {
 } from "./components/index.ts";
 import { formatTime } from "./format.ts";
 import { computeRunStats } from "./stats.ts";
+import { getEventCountryISO } from "../lib/parkrun/index.ts";
+import { CountryFlag } from "./components/CountryFlag.tsx";
 
 function StatsCard(
   { label, value }: { label: string; value: string | number },
@@ -77,6 +79,16 @@ export function App() {
     return computeRunStats(profile.runs);
   }, [profile]);
 
+  const visitedCountries = useMemo(() => {
+    if (!profile) return [];
+    const countrySet = new Set<string>();
+    for (const run of profile.runs) {
+      const iso = getEventCountryISO(run.eventId);
+      if (iso) countrySet.add(iso);
+    }
+    return [...countrySet].sort();
+  }, [profile]);
+
   if (loading) {
     return (
       <Container size="lg" py="xl">
@@ -119,10 +131,18 @@ export function App() {
       <Title order={1} mb="xs">
         {athlete.fullName}
       </Title>
-      <Text c="dimmed" mb="xl">
+      <Text c="dimmed" mb="sm">
         {athlete.homeRun && `Home: ${athlete.homeRun}`}
         {athlete.clubName && ` | Club: ${athlete.clubName}`}
       </Text>
+
+      {visitedCountries.length > 0 && (
+        <Group gap="xs" mb="xl">
+          {visitedCountries.map((iso) => (
+            <CountryFlag key={iso} countryCode={iso} size={24} />
+          ))}
+        </Group>
+      )}
 
       <SimpleGrid cols={{ base: 2, sm: 4 }} mb="xl">
         <StatsCard label="Total Runs" value={stats.totalRuns} />
