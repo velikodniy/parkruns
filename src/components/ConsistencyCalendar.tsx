@@ -59,7 +59,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     const colorScale = d3
       .scaleLinear<string>()
       .domain([0, 1, 2, 3])
-      .range([chartColors.inactive, "#2f9e44", "#37b24d", chartColors.success])
+      .range(["#dee2e6", "#69db7c", "#40c057", "#2f9e44"])
       .clamp(true);
 
     const refYear = maxYear;
