@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import type { Run } from "../types.ts";
 import { chartColors } from "../theme.ts";
 import { createTooltip, hideTooltip, showTooltip } from "../d3-utils.ts";
+import { formatTime } from "../format.ts";
 
 interface Props {
   runs: Run[];
@@ -131,17 +132,14 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
           rect
             .on("mouseover", (event: MouseEvent) => {
               const weekEnd = d3.timeDay.offset(wd.week, 6);
-              const dateRange = `${d3.timeFormat("%b %d")(wd.week)} - ${d3.timeFormat("%b %d")(weekEnd)}`;
+              const dateRange = `${d3.timeFormat("%b %d")(wd.week)} - ${d3.timeFormat("%d")(weekEnd)}`;
               const runsList = wd.runs
-                .map((r: Run) => `${r.eventName} (${r.finishTime})`)
+                .map((r: Run) => `${r.eventName} ${formatTime(r.finishTimeSeconds)}`)
                 .join("<br/>");
               showTooltip(
                 tooltip,
                 event,
-                `<strong>Week of ${dateRange}, ${year}</strong><br/>
-                ${wd.count} run${wd.count > 1 ? "s" : ""}<br/>
-                <br/>
-                ${runsList}`,
+                `<strong>${dateRange}</strong><br/>${runsList}`,
               );
             })
             .on("mouseout", () => hideTooltip(tooltip));
