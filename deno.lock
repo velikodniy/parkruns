@@ -6,7 +6,9 @@
     "npm:@rsbuild/core@*": "1.6.15_@swc+helpers@0.5.17",
     "npm:@rsbuild/plugin-react@*": "1.4.2_@rsbuild+core@1.6.15__@swc+helpers@0.5.17_react-refresh@0.18.0",
     "npm:d3@7": "7.9.0_d3-selection@3.0.0",
+    "npm:leaflet@1": "1.9.4",
     "npm:react-dom@18": "18.3.1_react@18.3.1",
+    "npm:react-leaflet@4": "4.2.1_leaflet@1.9.4_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:react@18": "18.3.1",
     "npm:zod@3": "3.25.76"
   },
@@ -128,6 +130,14 @@
         "@emnapi/core",
         "@emnapi/runtime",
         "@tybys/wasm-util"
+      ]
+    },
+    "@react-leaflet/core@2.1.0_leaflet@1.9.4_react@18.3.1_react-dom@18.3.1__react@18.3.1": {
+      "integrity": "sha512-Qk7Pfu8BSarKGqILj4x7bCSZ1pjuAPZ+qmRwH5S7mDS91VSbVVsJSrW4qA+GPrro8t69gFYVMWb1Zc4yFmPiVg==",
+      "dependencies": [
+        "leaflet",
+        "react",
+        "react-dom"
       ]
     },
     "@rsbuild/core@1.6.15_@swc+helpers@0.5.17": {
@@ -501,6 +511,9 @@
     "js-tokens@4.0.0": {
       "integrity": "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="
     },
+    "leaflet@1.9.4": {
+      "integrity": "sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA=="
+    },
     "loose-envify@1.4.0": {
       "integrity": "sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==",
       "dependencies": [
@@ -514,6 +527,15 @@
         "loose-envify",
         "react",
         "scheduler"
+      ]
+    },
+    "react-leaflet@4.2.1_leaflet@1.9.4_react@18.3.1_react-dom@18.3.1__react@18.3.1": {
+      "integrity": "sha512-p9chkvhcKrWn/H/1FFeVSqLdReGwn2qmiobOQGO3BifX+/vV/39qhY8dGqbdcPh1e6jxh/QHriLXr7a4eLFK4Q==",
+      "dependencies": [
+        "@react-leaflet/core",
+        "leaflet",
+        "react",
+        "react-dom"
       ]
     },
     "react-number-format@5.4.4_react@18.3.1_react-dom@18.3.1__react@18.3.1": {
@@ -640,7 +662,9 @@
       "npm:@rsbuild/core@*",
       "npm:@rsbuild/plugin-react@*",
       "npm:d3@7",
+      "npm:leaflet@1",
       "npm:react-dom@18",
+      "npm:react-leaflet@4",
       "npm:react@18",
       "npm:zod@3"
     ]

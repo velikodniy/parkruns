@@ -168,7 +168,7 @@ export function App() {
       <RunsTable runs={runs} />
 
       <ChartCard title="Events Visited">
-        <EventsMap runs={runs} width={800} height={400} />
+        <EventsMap runs={runs} height={400} />
       </ChartCard>
 
       <ChartCard title="Consistency Calendar">

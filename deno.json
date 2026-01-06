@@ -14,7 +14,9 @@
     "@rsbuild/plugin-react": "npm:@rsbuild/plugin-react",
     "zod": "npm:zod@^3",
     "d3": "npm:d3@^7",
-    "topojson-client": "npm:topojson-client@^3"
+    "leaflet": "npm:leaflet@^1",
+    "leaflet/dist/leaflet.css": "npm:leaflet@^1/dist/leaflet.css",
+    "react-leaflet": "npm:react-leaflet@^4"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

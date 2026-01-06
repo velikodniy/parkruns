@@ -1,133 +1,100 @@
-import { useEffect, useRef } from "react";
-import * as d3 from "d3";
-import * as topojson from "topojson-client";
+import { useEffect, useMemo } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import type { Run } from "../types.ts";
 import { getEventById } from "../../lib/parkrun/index.ts";
-import worldData from "../../lib/geo/world-110m.json" with { type: "json" };
-import { createTooltip, hideTooltip, showTooltip } from "../d3-utils.ts";
+
+const defaultIcon = new L.Icon({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+L.Marker.prototype.options.icon = defaultIcon;
 
 interface EventsMapProps {
   runs: Run[];
-  width?: number;
   height?: number;
 }
 
 interface VisitedEvent {
   id: number;
   name: string;
-  coordinates: [number, number];
+  coordinates: [number, number]; // [lat, lon] for Leaflet
   visitCount: number;
 }
 
-export function EventsMap({ runs, width = 800, height = 400 }: EventsMapProps) {
-  const svgRef = useRef<SVGSVGElement>(null);
+function FitBounds({ events }: { events: VisitedEvent[] }) {
+  const map = useMap();
 
   useEffect(() => {
-    if (!svgRef.current || runs.length === 0) return;
+    if (events.length === 0) return;
 
-    const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
+    const bounds = L.latLngBounds(events.map((e) => e.coordinates));
+    map.fitBounds(bounds, { padding: [30, 30] });
+  }, [events, map]);
 
-    const tooltip = createTooltip();
+  return null;
+}
 
+export function EventsMap({ runs, height = 400 }: EventsMapProps) {
+  const events = useMemo(() => {
     const visitedEvents = new Map<number, VisitedEvent>();
+
     for (const run of runs) {
       const event = getEventById(run.eventId);
       if (!event) continue;
 
       const [lon, lat] = event.geometry.coordinates;
       const existing = visitedEvents.get(run.eventId);
+
       if (existing) {
         existing.visitCount++;
       } else {
         visitedEvents.set(run.eventId, {
           id: run.eventId,
           name: event.properties.EventShortName,
-          coordinates: [lon, lat],
+          coordinates: [lat, lon], // Leaflet uses [lat, lon]
           visitCount: 1,
         });
       }
     }
 
-    const events = Array.from(visitedEvents.values());
-    if (events.length === 0) return;
+    return Array.from(visitedEvents.values());
+  }, [runs]);
 
-    const lons = events.map((e) => e.coordinates[0]);
-    const lats = events.map((e) => e.coordinates[1]);
-    const padding = 2;
-    const bounds: [[number, number], [number, number]] = [
-      [Math.min(...lons) - padding, Math.min(...lats) - padding],
-      [Math.max(...lons) + padding, Math.max(...lats) + padding],
-    ];
+  if (events.length === 0) {
+    return null;
+  }
 
-    const projection = d3
-      .geoMercator()
-      .fitSize([width, height], {
-        type: "Feature",
-        geometry: {
-          type: "Polygon",
-          coordinates: [
-            [
-              [bounds[0][0], bounds[0][1]],
-              [bounds[1][0], bounds[0][1]],
-              [bounds[1][0], bounds[1][1]],
-              [bounds[0][0], bounds[1][1]],
-              [bounds[0][0], bounds[0][1]],
-            ],
-          ],
-        },
-        properties: {},
-      });
+  // Default center (will be overridden by FitBounds)
+  const defaultCenter: [number, number] = events[0]?.coordinates ?? [51.5, -0.1];
 
-    const path = d3.geoPath().projection(projection);
-
-    const world = worldData as unknown as {
-      type: string;
-      objects: { countries: unknown };
-    };
-    const countries = topojson.feature(
-      world as Parameters<typeof topojson.feature>[0],
-      world.objects.countries as Parameters<typeof topojson.feature>[1],
-    ) as unknown as { features: Array<{ geometry: unknown }> };
-
-    svg
-      .append("g")
-      .selectAll("path")
-      .data(countries.features)
-      .join("path")
-      .attr("d", (d: { geometry: unknown }) => path(d.geometry as d3.GeoPermissibleObjects) ?? "")
-      .attr("fill", "#e9ecef")
-      .attr("stroke", "#dee2e6")
-      .attr("stroke-width", 0.5);
-
-    svg
-      .append("g")
-      .selectAll("circle")
-      .data(events)
-      .join("circle")
-      .attr("cx", (d: VisitedEvent) => projection(d.coordinates)?.[0] ?? 0)
-      .attr("cy", (d: VisitedEvent) => projection(d.coordinates)?.[1] ?? 0)
-      .attr("r", (d: VisitedEvent) => Math.min(4 + d.visitCount, 10))
-      .attr("fill", "#228be6")
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 1.5)
-      .attr("opacity", 0.8)
-      .style("cursor", "pointer")
-      .on("mouseover", (event: MouseEvent, d: VisitedEvent) => {
-        showTooltip(
-          tooltip,
-          event,
-          `<strong>${d.name}</strong><br/>Visits: ${d.visitCount}`,
-        );
-      })
-      .on("mouseout", () => {
-        hideTooltip(tooltip);
-      });
-
-    return () => {
-      tooltip.remove();
-    };
-  }, [runs, width, height]);
-
-  return <svg ref={svgRef} width={width} height={height} />;
+  return (
+    <MapContainer
+      center={defaultCenter}
+      zoom={10}
+      scrollWheelZoom={true}
+      style={{ height, width: "100%", borderRadius: 8 }}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <FitBounds events={events} />
+      {events.map((event) => (
+        <Marker key={event.id} position={event.coordinates}>
+          <Popup>
+            <strong>{event.name}</strong>
+            <br />
+            Visits: {event.visitCount}
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  );
 }
