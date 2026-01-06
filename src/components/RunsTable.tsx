@@ -50,9 +50,9 @@ export function RunsTable({ runs }: Props) {
           <Table.Tr>
             <Table.Th>Date</Table.Th>
             <Table.Th>Event</Table.Th>
+            <Table.Th>Pos</Table.Th>
             <Table.Th>Time</Table.Th>
             <Table.Th>Pace</Table.Th>
-            <Table.Th>Pos</Table.Th>
             <Table.Th>Age Grade</Table.Th>
           </Table.Tr>
         </Table.Thead>
@@ -73,6 +73,7 @@ export function RunsTable({ runs }: Props) {
                     <Text span size="sm" c="dimmed">#{run.runNumber}</Text>
                   </Group>
                 </Table.Td>
+                <Table.Td>{run.position}</Table.Td>
                 <Table.Td>
                   <Group gap={6} wrap="nowrap" align="center">
                     <Text span style={{ fontVariantNumeric: "tabular-nums" }}>
@@ -91,7 +92,6 @@ export function RunsTable({ runs }: Props) {
                   </Group>
                 </Table.Td>
                 <Table.Td>{formatPace(run.finishTimeSeconds)}</Table.Td>
-                <Table.Td>{run.position}</Table.Td>
                 <Table.Td>
                   <Group gap={0} wrap="nowrap">
                     <Text span>{run.ageGrade.toFixed(1)}%</Text>
