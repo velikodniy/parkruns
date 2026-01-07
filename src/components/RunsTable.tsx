@@ -86,7 +86,7 @@ export function RunsTable({ runs }: Props) {
               <Table.Tr key={`${run.eventDate}-${run.eventId}`}>
                 <Table.Td>
                   <Cell
-                    primary={<>{date.toLocaleDateString()} <Text span size="xs" c="dimmed">{DAYS[date.getDay()]}</Text></>}
+                    primary={<>{date.toLocaleDateString()}{"\u00A0"}<Text span size="xs" c="dimmed">{DAYS[date.getDay()]}</Text></>}
                   />
                 </Table.Td>
 
