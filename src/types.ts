@@ -16,6 +16,7 @@ export const RunSchema = z.object({
   finishTime: z.string().regex(/^\d{1,2}:\d{2}(:\d{2})?$/),
   finishTimeSeconds: z.number().int().positive(),
   position: z.number().int().positive(),
+  totalFinishers: z.number().int().positive(),
   genderPosition: z.number().int().positive(),
   ageGrade: z.number().min(0).max(100),
   ageCategory: z.string().min(1),

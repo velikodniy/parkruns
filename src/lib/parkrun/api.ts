@@ -47,6 +47,13 @@ interface RunResultResponse {
   abstractId: string;
 }
 
+interface RunSummaryResponse {
+  EventNumber: string;
+  EventDate: string;
+  NumberRunners: string;
+  abstractId: string;
+}
+
 function parseTimeToSeconds(time: string): number {
   const parts = time.split(":").map(Number);
   if (parts.length === 2) return parts[0] * 60 + parts[1];
@@ -143,10 +150,34 @@ export async function getAthlete(
   };
 }
 
+async function getRunStats(
+  accessToken: AccessToken,
+  athleteId: number,
+): Promise<Map<string, number>> {
+  const response = await apiRequest(`/v1/athletes/${athleteId}/runs`, {
+    params: {
+      access_token: accessToken,
+      scope: "app",
+    },
+  });
+
+  const json = await response.json();
+  const runs: RunSummaryResponse[] = json.data.Runs ?? [];
+
+  const statsMap = new Map<string, number>();
+  for (const r of runs) {
+    const key = `${r.EventNumber}-${r.abstractId}`;
+    statsMap.set(key, Number.parseInt(r.NumberRunners));
+  }
+  return statsMap;
+}
+
 export async function getRuns(
   accessToken: AccessToken,
   athleteId: number,
 ): Promise<Run[]> {
+  const runStats = await getRunStats(accessToken, athleteId);
+
   const allRuns: Run[] = [];
   let offset = 0;
   const limit = 100;
@@ -169,6 +200,7 @@ export async function getRuns(
     if (!results || results.length === 0) break;
 
     for (const r of results) {
+      const statsKey = `${r.EventNumber}-${r.abstractId}`;
       allRuns.push({
         eventName: r.EventLongName,
         eventId: Number.parseInt(r.EventNumber),
@@ -177,6 +209,7 @@ export async function getRuns(
         finishTime: r.RunTime,
         finishTimeSeconds: parseTimeToSeconds(r.RunTime),
         position: Number.parseInt(r.FinishPosition),
+        totalFinishers: runStats.get(statsKey) ?? Number.parseInt(r.FinishPosition),
         genderPosition: Number.parseInt(r.GenderPosition),
         ageGrade: Number.parseFloat(r.AgeGrading) * 100,
         ageCategory: r.AgeCategory,

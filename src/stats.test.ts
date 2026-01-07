@@ -11,6 +11,7 @@ function createMockRun(overrides: Partial<Run> = {}): Run {
     finishTime: "20:00",
     finishTimeSeconds: 1200,
     position: 10,
+    totalFinishers: 100,
     genderPosition: 5,
     ageGrade: 65.0,
     ageCategory: "VM35-39",

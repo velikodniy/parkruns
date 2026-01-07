@@ -96,7 +96,7 @@ export function RunsTable({ runs }: Props) {
                     })()}
                   </Group>
                 </Table.Td>
-                <Table.Td>{run.position}</Table.Td>
+                <Table.Td>{run.position}/{run.totalFinishers}</Table.Td>
                 <Table.Td>
                   <Group gap={6} wrap="nowrap" align="center">
                     <span style={{ minWidth: 42 }}>{formatTime(run.finishTimeSeconds)}</span>
