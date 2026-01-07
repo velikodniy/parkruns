@@ -133,8 +133,10 @@ export function App() {
         {athlete.fullName}
       </Title>
       <Text c="dimmed" mb="sm">
-        {athlete.homeRun && `Home: ${athlete.homeRun}`}
-        {athlete.clubName && ` | Club: ${athlete.clubName}`}
+        {[
+          athlete.homeRun && `Home: ${athlete.homeRun}`,
+          athlete.clubName && `Club: ${athlete.clubName}`,
+        ].filter(Boolean).join(" | ")}
       </Text>
 
       {visitedCountries.length > 0 && (
