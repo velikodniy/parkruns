@@ -54,7 +54,7 @@ export function RunsTable({ runs }: Props) {
           <Table.Tr>
             <Table.Th>Date</Table.Th>
             <Table.Th>Event</Table.Th>
-            <Table.Th>Pos</Table.Th>
+            <Table.Th>Position</Table.Th>
             <Table.Th>Time</Table.Th>
             <Table.Th>Pace</Table.Th>
             <Table.Th>Age Grade</Table.Th>
@@ -96,7 +96,10 @@ export function RunsTable({ runs }: Props) {
                     })()}
                   </Group>
                 </Table.Td>
-                <Table.Td>{run.position}/{run.totalFinishers}</Table.Td>
+                <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
+                  {run.position}
+                  <Text span c="dimmed" inherit>{"\u00A0/\u00A0"}{run.totalFinishers} · {run.ageCategory.startsWith("V") || run.ageCategory.startsWith("S") ? (run.ageCategory.charAt(1) === "M" ? "♂" : "♀") : (run.ageCategory.startsWith("JM") ? "♂" : "♀")}{"\u00A0"}{run.genderPosition} · Top{"\u00A0"}{Math.round((run.position / run.totalFinishers) * 100)}{"\u00A0"}%</Text>
+                </Table.Td>
                 <Table.Td>
                   <Group gap={6} wrap="nowrap" align="center">
                     <span style={{ minWidth: 42 }}>{formatTime(run.finishTimeSeconds)}</span>
