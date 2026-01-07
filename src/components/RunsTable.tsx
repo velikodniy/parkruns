@@ -132,10 +132,10 @@ export function RunsTable({ runs }: Props) {
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                       <span>{formatTime(run.finishTimeSeconds)}</span>
                       {run.wasPb && isAllTimePB && (
-                        <Badge color="blue" size="xs" variant="filled">PB</Badge>
+                        <Badge color="blue" size="xs" variant="filled" style={{ flexShrink: 0 }}>PB</Badge>
                       )}
                       {run.wasPb && !isAllTimePB && (
-                        <Badge color="gray" size="xs" variant="light">PB</Badge>
+                        <Badge color="gray" size="xs" variant="light" style={{ flexShrink: 0 }}>PB</Badge>
                       )}
                     </span>
                   </div>
