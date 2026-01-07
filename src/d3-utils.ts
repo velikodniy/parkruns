@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import type { Run } from "./types.ts";
-import { chartColors } from "./theme.ts";
+import { getChartColors } from "./theme.ts";
 
 /** A single line of tooltip content */
 export interface TooltipLine {
@@ -11,17 +11,18 @@ export interface TooltipLine {
 export type TooltipContent = TooltipLine[];
 
 export function createTooltip() {
+  const colors = getChartColors();
   return d3
     .select("body")
     .append("div")
     .attr("class", "chart-tooltip")
     .style("position", "absolute")
-    .style("background", chartColors.background)
-    .style("border", `1px solid ${chartColors.border}`)
+    .style("background", colors.background)
+    .style("border", `1px solid ${colors.border}`)
     .style("border-radius", "4px")
     .style("padding", "8px")
     .style("font-size", "12px")
-    .style("color", chartColors.text)
+    .style("color", colors.text)
     .style("pointer-events", "none")
     .style("opacity", 0);
 }
@@ -50,10 +51,11 @@ export function renderXAxis(
   innerHeight: number,
   ticks = 6,
 ): void {
+  const colors = getChartColors();
   g.append("g")
     .attr("transform", `translate(0,${innerHeight})`)
     .call(d3.axisBottom(scale).ticks(ticks))
-    .attr("color", chartColors.axis);
+    .attr("color", colors.axis);
 }
 
 export function renderYAxis(
@@ -61,10 +63,11 @@ export function renderYAxis(
   scale: d3.AxisScale<d3.NumberValue>,
   tickFormat?: (d: d3.NumberValue) => string,
 ): void {
+  const colors = getChartColors();
   const axis = tickFormat
     ? d3.axisLeft(scale).tickFormat(tickFormat)
     : d3.axisLeft(scale);
-  g.append("g").call(axis).attr("color", chartColors.axis);
+  g.append("g").call(axis).attr("color", colors.axis);
 }
 
 export function showTooltip(

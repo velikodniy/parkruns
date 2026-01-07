@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { getEventShortName } from "../lib/parkrun/index.ts";
 import { formatTime } from "../format.ts";
-import { chartColors } from "../theme.ts";
+import { getChartColors } from "../theme.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
   createTimeXScale,
@@ -17,6 +17,7 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions }) => {
       const { innerWidth, innerHeight } = dimensions;
+      const colors = getChartColors();
       const sortedRuns = sortRunsByDate(runs);
 
       const x = createTimeXScale(sortedRuns, innerWidth);
@@ -46,7 +47,7 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
       g.append("path")
         .datum(sortedRuns)
         .attr("fill", "none")
-        .attr("stroke", chartColors.primary)
+        .attr("stroke", colors.primary)
         .attr("stroke-width", 1.5)
         .attr("d", line);
 
@@ -60,7 +61,7 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         g.append("path")
           .datum(rollingAvg)
           .attr("fill", "none")
-          .attr("stroke", chartColors.warning)
+          .attr("stroke", colors.warning)
           .attr("stroke-width", 2)
           .attr("stroke-dasharray", "5,5")
           .attr("d", avgLine);
@@ -74,7 +75,7 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         .attr("cx", (d: Run) => x(new Date(d.eventDate)))
         .attr("cy", (d: Run) => y(d.finishTimeSeconds))
         .attr("r", (d: Run) => (d.wasPB ? 6 : 3))
-        .attr("fill", (d: Run) => (d.wasPB ? chartColors.success : chartColors.primary));
+        .attr("fill", (d: Run) => (d.wasPB ? colors.success : colors.primary));
 
       const legend = g.append("g").attr(
         "transform",
@@ -87,10 +88,10 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         .attr("x2", 20)
         .attr("y1", 0)
         .attr("y2", 0)
-        .attr("stroke", chartColors.primary)
+        .attr("stroke", colors.primary)
         .attr("stroke-width", 1.5);
       legend.append("text").attr("x", 25).attr("y", 4).attr("font-size", "11px")
-        .attr("fill", chartColors.axis).text("Finish time");
+        .attr("fill", colors.axis).text("Finish time");
 
       legend
         .append("line")
@@ -98,20 +99,20 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         .attr("x2", 20)
         .attr("y1", 15)
         .attr("y2", 15)
-        .attr("stroke", chartColors.warning)
+        .attr("stroke", colors.warning)
         .attr("stroke-width", 2)
         .attr("stroke-dasharray", "5,5");
       legend.append("text").attr("x", 25).attr("y", 19).attr("font-size", "11px")
-        .attr("fill", chartColors.axis).text(`${windowSize}-run average`);
+        .attr("fill", colors.axis).text(`${windowSize}-run average`);
 
       legend
         .append("circle")
         .attr("cx", 10)
         .attr("cy", 30)
         .attr("r", 5)
-        .attr("fill", chartColors.success);
+        .attr("fill", colors.success);
       legend.append("text").attr("x", 25).attr("y", 34).attr("font-size", "11px")
-        .attr("fill", chartColors.axis).text("PB");
+        .attr("fill", colors.axis).text("PB");
 
       g.selectAll(".point")
         .on("mouseover", (event: MouseEvent, d: unknown) => {

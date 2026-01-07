@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { formatTime } from "../format.ts";
-import { chartColors, chartMargins } from "../theme.ts";
+import { chartMargins, getChartColors } from "../theme.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import { hideTooltip, renderYAxis, showTooltip } from "../d3-utils.ts";
 
@@ -25,6 +25,7 @@ export function FinishTimeDistribution({
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions }) => {
       const { innerWidth, innerHeight } = dimensions;
+      const colors = getChartColors();
 
       const byMonth = d3.rollups(
         runs,
@@ -73,7 +74,7 @@ export function FinishTimeDistribution({
             return `${month}/${year.slice(2)}`;
           }),
         )
-        .attr("color", chartColors.axis)
+        .attr("color", colors.axis)
         .selectAll("text")
         .attr("transform", "rotate(-45)")
         .style("text-anchor", "end");
@@ -93,7 +94,7 @@ export function FinishTimeDistribution({
           .attr("x2", centerX)
           .attr("y1", y(d.min))
           .attr("y2", y(d.q1))
-          .attr("stroke", chartColors.boxStroke)
+          .attr("stroke", colors.boxStroke)
           .attr("stroke-width", 1);
 
         g.append("line")
@@ -101,7 +102,7 @@ export function FinishTimeDistribution({
           .attr("x2", centerX)
           .attr("y1", y(d.q3))
           .attr("y2", y(d.max))
-          .attr("stroke", chartColors.boxStroke)
+          .attr("stroke", colors.boxStroke)
           .attr("stroke-width", 1);
 
         g.append("rect")
@@ -109,9 +110,9 @@ export function FinishTimeDistribution({
           .attr("y", y(d.q3))
           .attr("width", narrowWidth)
           .attr("height", Math.abs(y(d.q1) - y(d.q3)))
-          .attr("fill", chartColors.box)
+          .attr("fill", colors.box)
           .attr("opacity", 0.8)
-          .attr("stroke", chartColors.boxStroke)
+          .attr("stroke", colors.boxStroke)
           .attr("stroke-width", 1);
 
         g.append("line")
@@ -119,7 +120,7 @@ export function FinishTimeDistribution({
           .attr("x2", xPos + narrowOffset + narrowWidth)
           .attr("y1", y(d.median))
           .attr("y2", y(d.median))
-          .attr("stroke", "#fff")
+          .attr("stroke", colors.text)
           .attr("stroke-width", 2);
       }
 

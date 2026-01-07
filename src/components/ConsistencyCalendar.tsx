@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { Run } from "../types.ts";
-import { chartColors } from "../theme.ts";
+import { getChartColors } from "../theme.ts";
 import { createTooltip, hideTooltip, showTooltip } from "../d3-utils.ts";
 import { formatTime } from "../format.ts";
 import { getEventShortName } from "../lib/parkrun/index.ts";
@@ -29,6 +29,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   useEffect(() => {
     if (!svgRef.current || runs.length === 0) return;
 
+    const colors = getChartColors();
     const dates = runs.map((r: Run) => new Date(r.eventDate));
     const minYear =
       d3.min(dates, (d: Date) => d.getFullYear()) ?? new Date().getFullYear();
@@ -83,7 +84,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
           .attr("x", weekIndex * (CELL_SIZE + CELL_GAP))
           .attr("y", -8)
           .attr("font-size", "10px")
-          .attr("fill", chartColors.axis)
+          .attr("fill", colors.axis)
           .text(d3.timeFormat("%b")(month));
       }
     }
@@ -114,7 +115,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
         .attr("y", rowIndex * ROW_HEIGHT + CELL_SIZE / 2)
         .attr("dy", "0.35em")
         .attr("font-size", "12px")
-        .attr("fill", chartColors.axis)
+        .attr("fill", colors.axis)
         .attr("text-anchor", "end")
         .text(year);
 
@@ -127,7 +128,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
           .attr("height", CELL_SIZE)
           .attr("rx", 2)
           .attr("fill", colorScale(wd.count))
-          .attr("stroke", chartColors.background)
+          .attr("stroke", colors.background)
           .attr("stroke-width", 1);
 
         if (wd.count > 0) {

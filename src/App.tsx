@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  ActionIcon,
   Alert,
   Card,
   Container,
@@ -9,6 +10,7 @@ import {
   SimpleGrid,
   Text,
   Title,
+  useMantineColorScheme,
 } from "@mantine/core";
 import { type Profile, ProfileSchema } from "./types.ts";
 import {
@@ -24,6 +26,7 @@ import {
 import { formatTime } from "./format.ts";
 import { computeRunStats } from "./stats.ts";
 import { getCountryNameByISO, getEventCountryISO } from "./lib/parkrun/index.ts";
+import { THEME_STORAGE_KEY, setChartColorScheme } from "./theme.ts";
 
 function StatsCard(
   { label, value }: { label: string; value: string | number },
@@ -53,10 +56,34 @@ function ChartCard(
   );
 }
 
+function ThemeToggle({ onToggle }: { onToggle: () => void }) {
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+
+  const toggle = () => {
+    const next = colorScheme === "dark" ? "light" : "dark";
+    setColorScheme(next);
+    setChartColorScheme(next);
+    localStorage.setItem(THEME_STORAGE_KEY, next);
+    onToggle();
+  };
+
+  return (
+    <ActionIcon
+      variant="default"
+      size="lg"
+      onClick={toggle}
+      aria-label="Toggle color scheme"
+    >
+      {colorScheme === "dark" ? "\u2600\uFE0F" : "\uD83C\uDF19"}
+    </ActionIcon>
+  );
+}
+
 export function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [chartKey, setChartKey] = useState(0);
 
   useEffect(() => {
     fetch("/data.json")
@@ -129,9 +156,12 @@ export function App() {
 
   return (
     <Container size="lg" py="xl">
-      <Title order={1} mb="xs">
-        {athlete.fullName}
-      </Title>
+      <Group justify="space-between" align="flex-start" mb="xs">
+        <Title order={1}>
+          {athlete.fullName}
+        </Title>
+        <ThemeToggle onToggle={() => setChartKey((k) => k + 1)} />
+      </Group>
       <Text c="dimmed" mb="sm">
         {[
           athlete.homeRun && `Home: ${athlete.homeRun}`,
@@ -174,24 +204,24 @@ export function App() {
       </ChartCard>
 
       <ChartCard title="Consistency Calendar">
-        <ConsistencyCalendar runs={runs} />
+        <ConsistencyCalendar key={chartKey} runs={runs} />
       </ChartCard>
 
       <SimpleGrid cols={{ base: 1, md: 2 }} mb="xl">
         <ChartCard title="Finish Time Over Time">
-          <FinishTimeChart runs={runs} width={500} height={280} />
+          <FinishTimeChart key={chartKey} runs={runs} width={500} height={280} />
         </ChartCard>
 
         <ChartCard title="PB Progression">
-          <PBProgressionChart runs={runs} width={500} height={280} />
+          <PBProgressionChart key={chartKey} runs={runs} width={500} height={280} />
         </ChartCard>
 
         <ChartCard title="Age Grade Over Time">
-          <AgeGradeChart runs={runs} width={500} height={280} />
+          <AgeGradeChart key={chartKey} runs={runs} width={500} height={280} />
         </ChartCard>
 
         <ChartCard title="Finish Time Distribution">
-          <FinishTimeDistribution runs={runs} width={500} height={280} />
+          <FinishTimeDistribution key={chartKey} runs={runs} width={500} height={280} />
         </ChartCard>
       </SimpleGrid>
 

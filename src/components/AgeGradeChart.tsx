@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { getEventShortName } from "../lib/parkrun/index.ts";
-import { chartColors } from "../theme.ts";
+import { getChartColors } from "../theme.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
   createTimeXScale,
@@ -12,17 +12,18 @@ import {
   sortRunsByDate,
 } from "../d3-utils.ts";
 
-const AGE_GRADE_BANDS = [
-  { y: 80, label: "80%", color: chartColors.success },
-  { y: 70, label: "70%", color: chartColors.warning },
-  { y: 60, label: "60%", color: "#ff6b6b" },
-] as const;
-
 export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions }) => {
       const { innerWidth, innerHeight } = dimensions;
+      const colors = getChartColors();
       const sortedRuns = sortRunsByDate(runs);
+
+      const ageGradeBands = [
+        { y: 80, label: "80%", color: colors.success },
+        { y: 70, label: "70%", color: colors.warning },
+        { y: 60, label: "60%", color: "#ff6b6b" },
+      ];
 
       const x = createTimeXScale(sortedRuns, innerWidth);
       const minAgeGrade = Math.min(
@@ -34,7 +35,7 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
         .domain([minAgeGrade - 5, 100])
         .range([innerHeight, 0]);
 
-      for (const band of AGE_GRADE_BANDS) {
+      for (const band of ageGradeBands) {
         g.append("line")
           .attr("x1", 0)
           .attr("x2", innerWidth)
@@ -64,7 +65,7 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
       g.append("path")
         .datum(sortedRuns)
         .attr("fill", "none")
-        .attr("stroke", chartColors.primary)
+        .attr("stroke", colors.primary)
         .attr("stroke-width", 1.5)
         .attr("d", line);
 
@@ -76,7 +77,7 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
         .attr("cx", (d: Run) => x(new Date(d.eventDate)))
         .attr("cy", (d: Run) => y(d.ageGrade))
         .attr("r", 3)
-        .attr("fill", chartColors.primary);
+        .attr("fill", colors.primary);
 
       g.selectAll(".point")
         .on("mouseover", (event: MouseEvent, d: unknown) => {

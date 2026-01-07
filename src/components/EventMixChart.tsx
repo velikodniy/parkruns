@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import type { Run } from "../types.ts";
 import { formatTime } from "../format.ts";
 import { createTooltip, hideTooltip, showTooltip } from "../d3-utils.ts";
+import { getChartColors } from "../theme.ts";
 
 interface Props {
   runs: Run[];
@@ -16,6 +17,7 @@ export function EventMixChart({ runs, width = 600, height = 400 }: Props) {
   useEffect(() => {
     if (!svgRef.current || runs.length === 0) return;
 
+    const colors = getChartColors();
     const margin = { top: 20, right: 80, bottom: 40, left: 150 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
@@ -51,12 +53,12 @@ export function EventMixChart({ runs, width = 600, height = 400 }: Props) {
     const maxCount = d3.max(sortedData, (d) => d.count) ?? 0;
     const x = d3.scaleLinear().domain([0, maxCount]).range([0, innerWidth]);
 
-    g.append("g").call(d3.axisLeft(y)).attr("color", "#888");
+    g.append("g").call(d3.axisLeft(y)).attr("color", colors.axis);
 
     g.append("g")
       .attr("transform", `translate(0,${innerHeight})`)
       .call(d3.axisBottom(x).ticks(5))
-      .attr("color", "#888");
+      .attr("color", colors.axis);
 
     g.selectAll(".bar")
       .data(sortedData)
@@ -67,7 +69,7 @@ export function EventMixChart({ runs, width = 600, height = 400 }: Props) {
       .attr("height", y.bandwidth())
       .attr("x", 0)
       .attr("width", (d) => x(d.count))
-      .attr("fill", "#228be6")
+      .attr("fill", colors.primary)
       .attr("opacity", 0.8);
 
     g.selectAll(".count-label")
@@ -79,7 +81,7 @@ export function EventMixChart({ runs, width = 600, height = 400 }: Props) {
       .attr("x", (d) => x(d.count) + 5)
       .attr("dy", "0.35em")
       .attr("font-size", "11px")
-      .attr("fill", "#c1c2c5")
+      .attr("fill", colors.text)
       .text((d) => `${d.count} (${formatTime(d.bestTime)})`);
 
     const tooltip = createTooltip();

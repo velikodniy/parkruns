@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { getEventShortName } from "../lib/parkrun/index.ts";
 import { formatTime } from "../format.ts";
-import { chartColors } from "../theme.ts";
+import { getChartColors } from "../theme.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
   createTimeXScale,
@@ -23,6 +23,7 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions }) => {
       const { innerWidth, innerHeight } = dimensions;
+      const colors = getChartColors();
       const sortedRuns = sortRunsByDate(runs);
 
       let bestSoFar = Number.POSITIVE_INFINITY;
@@ -57,7 +58,7 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
       g.append("path")
         .datum(pbProgression)
         .attr("fill", "none")
-        .attr("stroke", chartColors.success)
+        .attr("stroke", colors.success)
         .attr("stroke-width", 2)
         .attr("d", stepLine);
 
@@ -69,7 +70,7 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
         .attr("cx", (d: PBPoint) => x(d.date))
         .attr("cy", (d: PBPoint) => y(d.time))
         .attr("r", 5)
-        .attr("fill", chartColors.success);
+        .attr("fill", colors.success);
 
       g.selectAll(".pb-point")
         .on("mouseover", (event: MouseEvent, d: unknown) => {
