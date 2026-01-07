@@ -6,6 +6,7 @@ function createMockRun(overrides: Partial<Run> = {}): Run {
   return {
     eventName: "Test parkrun",
     eventId: 1,
+    eventEdition: 1,
     eventDate: "2024-01-01T09:00:00Z",
     finishTime: "20:00",
     finishTimeSeconds: 1200,
@@ -13,8 +14,8 @@ function createMockRun(overrides: Partial<Run> = {}): Run {
     genderPosition: 5,
     ageGrade: 65.0,
     ageCategory: "VM35-39",
-    wasPB: false,
-    runNumber: 1,
+    wasPb: false,
+    wasFirstVisit: false,
     ...overrides,
   };
 }
@@ -53,9 +54,9 @@ Deno.test("computeRunStats - calculates total runs", () => {
 
 Deno.test("computeRunStats - counts PBs correctly", () => {
   const runs = [
-    createMockRun({ wasPB: true }),
-    createMockRun({ wasPB: false }),
-    createMockRun({ wasPB: true }),
+    createMockRun({ wasPb: true }),
+    createMockRun({ wasPb: false }),
+    createMockRun({ wasPb: true }),
   ];
   const stats = computeRunStats(runs);
   assertEquals(stats.pbCount, 2);

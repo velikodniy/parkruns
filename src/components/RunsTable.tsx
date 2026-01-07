@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Badge, Card, Group, ScrollArea, Table, Text, Title } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
-import { getEventCountryISO, getEventShortName, getEventUrl } from "../lib/parkrun/index.ts";
+import { getEventCountryISO, getEventResultsUrl, getEventShortName, getEventUrl } from "../lib/parkrun/index.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 
 interface Props {
@@ -86,19 +86,26 @@ export function RunsTable({ runs }: Props) {
                         <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}>{name}</a>
                       ) : <Text span>{name}</Text>;
                     })()}
-                    <Text span size="sm" c="dimmed">#{run.runNumber}</Text>
+                    {(() => {
+                      const resultsUrl = getEventResultsUrl(run.eventId, run.eventEdition);
+                      return resultsUrl ? (
+                        <a href={resultsUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}>
+                          <Text span size="sm" c="dimmed">#{run.eventEdition}</Text>
+                        </a>
+                      ) : <Text span size="sm" c="dimmed">#{run.eventEdition}</Text>;
+                    })()}
                   </Group>
                 </Table.Td>
                 <Table.Td>{run.position}</Table.Td>
                 <Table.Td>
                   <Group gap={6} wrap="nowrap" align="center">
                     <span style={{ minWidth: 42 }}>{formatTime(run.finishTimeSeconds)}</span>
-                    {run.wasPB && isAllTimePB && (
+                    {run.wasPb && isAllTimePB && (
                       <Badge color="blue" size="xs" variant="filled">
                         PB
                       </Badge>
                     )}
-                    {run.wasPB && !isAllTimePB && (
+                    {run.wasPb && !isAllTimePB && (
                       <Badge color="gray" size="xs" variant="light">
                         PB
                       </Badge>

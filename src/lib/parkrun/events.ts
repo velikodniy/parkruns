@@ -45,3 +45,12 @@ export function getEventUrl(id: number): string | null {
   if (!countryUrl) return null;
   return `https://${countryUrl}/${event.properties.eventname}/`;
 }
+
+export function getEventResultsUrl(id: number, edition: number): string | null {
+  const event = eventById.get(id);
+  if (!event) return null;
+  const countryCode = event.properties.countrycode;
+  const countryUrl = data.countries[countryCode]?.url;
+  if (!countryUrl) return null;
+  return `https://${countryUrl}/${event.properties.eventname}/results/${edition}/`;
+}

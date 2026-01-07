@@ -74,8 +74,8 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         .attr("class", "point")
         .attr("cx", (d: Run) => x(new Date(d.eventDate)))
         .attr("cy", (d: Run) => y(d.finishTimeSeconds))
-        .attr("r", (d: Run) => (d.wasPB ? 6 : 3))
-        .attr("fill", (d: Run) => (d.wasPB ? colors.success : colors.primary));
+        .attr("r", (d: Run) => (d.wasPb ? 6 : 3))
+        .attr("fill", (d: Run) => (d.wasPb ? colors.success : colors.primary));
 
       const legend = g.append("g").attr(
         "transform",
@@ -120,7 +120,7 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
           showTooltip(tooltip, event, [
             { text: getEventShortName(run.eventId) ?? run.eventName, bold: true },
             { text: new Date(run.eventDate).toLocaleDateString() },
-            { text: `Time: ${formatTime(run.finishTimeSeconds)}${run.wasPB ? " (PB!)" : ""}` },
+            { text: `Time: ${formatTime(run.finishTimeSeconds)}${run.wasPb ? " (PB!)" : ""}` },
           ]);
         })
         .on("mouseout", () => hideTooltip(tooltip));

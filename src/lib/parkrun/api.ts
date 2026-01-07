@@ -40,10 +40,11 @@ interface RunResultResponse {
   EventLongName: string;
   EventNumber: string;
   FinishPosition: string;
+  FirstTimer: "0" | "1";
   GenderPosition: string;
-  RunId: string;
   RunTime: string;
   WasPbRun: "0" | "1";
+  abstractId: string;
 }
 
 function parseTimeToSeconds(time: string): number {
@@ -171,6 +172,7 @@ export async function getRuns(
       allRuns.push({
         eventName: r.EventLongName,
         eventId: Number.parseInt(r.EventNumber),
+        eventEdition: Number.parseInt(r.abstractId),
         eventDate: new Date(r.EventDate).toISOString(),
         finishTime: r.RunTime,
         finishTimeSeconds: parseTimeToSeconds(r.RunTime),
@@ -178,8 +180,8 @@ export async function getRuns(
         genderPosition: Number.parseInt(r.GenderPosition),
         ageGrade: Number.parseFloat(r.AgeGrading) * 100,
         ageCategory: r.AgeCategory,
-        wasPB: r.WasPbRun === "1",
-        runNumber: Number.parseInt(r.RunId),
+        wasPb: r.WasPbRun === "1",
+        wasFirstVisit: r.FirstTimer === "1",
       });
     }
 

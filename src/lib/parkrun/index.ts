@@ -20,6 +20,7 @@ export {
   getEventCoordinates,
   getEventCountryCode,
   getEventCountryISO,
+  getEventResultsUrl,
   getEventShortName,
   getEventUrl,
 } from "./events.ts";

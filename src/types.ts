@@ -11,6 +11,7 @@ export const AthleteSchema = z.object({
 export const RunSchema = z.object({
   eventName: z.string().min(1),
   eventId: z.number().int().positive(),
+  eventEdition: z.number().int().positive(),
   eventDate: z.string().datetime(),
   finishTime: z.string().regex(/^\d{1,2}:\d{2}(:\d{2})?$/),
   finishTimeSeconds: z.number().int().positive(),
@@ -18,8 +19,8 @@ export const RunSchema = z.object({
   genderPosition: z.number().int().positive(),
   ageGrade: z.number().min(0).max(100),
   ageCategory: z.string().min(1),
-  wasPB: z.boolean(),
-  runNumber: z.number().int().positive(),
+  wasPb: z.boolean(),
+  wasFirstVisit: z.boolean(),
 });
 
 export const ProfileSchema = z.object({

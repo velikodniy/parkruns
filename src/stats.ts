@@ -23,7 +23,7 @@ export function computeRunStats(runs: Run[]): RunStats {
 
   return {
     totalRuns: runs.length,
-    pbCount: runs.filter((r) => r.wasPB).length,
+    pbCount: runs.filter((r) => r.wasPb).length,
     fastestTime: Math.min(...times),
     averageTime: Math.round(times.reduce((a, b) => a + b, 0) / runs.length),
     bestAgeGrade: Math.max(...runs.map((r) => r.ageGrade)),
