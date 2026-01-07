@@ -2,6 +2,8 @@
 
 Static dashboard displaying parkrun results with D3.js visualizations. Data refreshed weekly via GitHub Actions, hosted on Deno Deploy.
 
+> **Disclaimer:** This project uses an unofficial, reverse-engineered parkrun API. It is NOT affiliated with, endorsed by, or connected to parkrun Limited. Use at your own risk.
+
 ## Local Development
 
 ```bash
@@ -14,7 +16,7 @@ deno task download # Fetch data (requires env vars below)
 
 Create a `.env` file (gitignored):
 
-```
+```env
 PARKRUN_ATHLETE_ID=Axxxxx
 PARKRUN_PASSWORD=xxx
 PARKRUN_CLIENT_ID=xxx
