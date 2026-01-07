@@ -26,22 +26,27 @@ import {
   PBProgressionChart,
   RunsTable,
 } from "./components/index.ts";
-import { formatTime } from "./format.ts";
+import { formatPace, formatTime } from "./format.ts";
 import { computeRunStats, sortRunsByDateDesc } from "./stats.ts";
 import { getCountryNameByISO, getEventCountryISO } from "./lib/parkrun/index.ts";
 import { THEME_STORAGE_KEY, setChartColorScheme } from "./theme.ts";
 
 function StatsCard(
-  { label, value }: { label: string; value: string | number },
+  { label, value, secondary }: { label: string; value: string | number; secondary?: string },
 ) {
   return (
-    <Paper p="md" radius="md" withBorder>
+    <Paper p="sm" radius="md" withBorder>
       <Text size="xs" c="dimmed" tt="uppercase" fw={700}>
         {label}
       </Text>
-      <Text size="xl" fw={700}>
+      <Text size="lg" fw={700}>
         {value}
       </Text>
+      {secondary && (
+        <Text size="xs" c="dimmed">
+          {secondary}
+        </Text>
+      )}
     </Paper>
   );
 }
@@ -207,24 +212,37 @@ export function App() {
         </Group>
       )}
 
-      <SimpleGrid cols={{ base: 2, sm: 4 }} mb="xl">
-        <StatsCard label="Total Runs" value={stats.totalRuns} />
-        <StatsCard label="PBs" value={stats.pbCount} />
-        <StatsCard label="Fastest" value={formatTime(stats.fastestTime)} />
-        <StatsCard label="Average Time" value={formatTime(stats.averageTime)} />
-      </SimpleGrid>
-
-      <SimpleGrid cols={{ base: 2, sm: 4 }} mb="xl">
+      <SimpleGrid cols={{ base: 2, sm: 3, md: 6 }} mb="xl">
+        <StatsCard 
+          label="Runs" 
+          value={stats.totalRuns} 
+          secondary={`${stats.uniqueEvents} events`}
+        />
+        <StatsCard 
+          label="Fastest" 
+          value={formatTime(stats.fastestTime)} 
+          secondary={formatPace(stats.fastestTime)}
+        />
+        <StatsCard 
+          label="Last 5 Median" 
+          value={formatTime(stats.recentMedianTime)}
+          secondary={formatPace(stats.recentMedianTime)}
+        />
         <StatsCard
           label="Best Age Grade"
           value={`${stats.bestAgeGrade.toFixed(1)}%`}
+          secondary={stats.bestAgeGradeCategory}
         />
-        <StatsCard label="Best Position" value={stats.bestPosition} />
-        <StatsCard
-          label="Latest Run"
-          value={stats.latestRunDate.toLocaleDateString()}
+        <StatsCard 
+          label="Best Top %" 
+          value={`Top ${Math.round(stats.bestTopPercent)}%`}
+          secondary={stats.bestTopPercentRun ? `${stats.bestTopPercentRun.position}\u00A0/\u00A0${stats.bestTopPercentRun.totalFinishers}` : undefined}
         />
-        <StatsCard label="Events Visited" value={stats.uniqueEvents} />
+        <StatsCard 
+          label="Streak" 
+          value={`${stats.streak.current} weeks`}
+          secondary={`Best: ${stats.streak.best}`}
+        />
       </SimpleGrid>
 
       <RunsTable runs={sortedRuns} />
