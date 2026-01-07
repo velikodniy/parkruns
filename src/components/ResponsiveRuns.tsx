@@ -9,13 +9,13 @@ interface Props {
 
 export function ResponsiveRuns({ runs }: Props) {
   return (
-    <>
+    <Box mb="lg">
       <Box hiddenFrom="sm">
         <RunsCardList runs={runs} />
       </Box>
       <Box visibleFrom="sm">
         <RunsTable runs={runs} />
       </Box>
-    </>
+    </Box>
   );
 }
