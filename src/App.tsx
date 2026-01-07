@@ -12,6 +12,7 @@ import {
   Title,
   useMantineColorScheme,
 } from "@mantine/core";
+import { useElementSize } from "@mantine/hooks";
 import { type Profile, ProfileSchema } from "./types.ts";
 import {
   AgeGradeChart,
@@ -52,6 +53,28 @@ function ChartCard(
         {title}
       </Title>
       <div style={{ overflowX: "auto" }}>{children}</div>
+    </Card>
+  );
+}
+
+interface ResponsiveChartProps {
+  title: string;
+  height: number;
+  children: (width: number) => React.ReactNode;
+}
+
+function ResponsiveChartCard({ title, height, children }: ResponsiveChartProps) {
+  const { ref, width } = useElementSize();
+  const chartWidth = Math.max(width - 32, 280);
+
+  return (
+    <Card withBorder mb="lg">
+      <Title order={4} mb="md">
+        {title}
+      </Title>
+      <div ref={ref} style={{ width: "100%" }}>
+        {width > 0 && children(chartWidth)}
+      </div>
     </Card>
   );
 }
@@ -213,21 +236,21 @@ export function App() {
       </ChartCard>
 
       <SimpleGrid cols={{ base: 1, md: 2 }} mb="xl">
-        <ChartCard title="Finish Time Over Time">
-          <FinishTimeChart key={chartKey} runs={sortedRuns} width={500} height={280} />
-        </ChartCard>
+        <ResponsiveChartCard title="Finish Time Over Time" height={280}>
+          {(width) => <FinishTimeChart key={chartKey} runs={sortedRuns} width={width} height={280} />}
+        </ResponsiveChartCard>
 
-        <ChartCard title="PB Progression">
-          <PBProgressionChart key={chartKey} runs={sortedRuns} width={500} height={280} />
-        </ChartCard>
+        <ResponsiveChartCard title="PB Progression" height={280}>
+          {(width) => <PBProgressionChart key={chartKey} runs={sortedRuns} width={width} height={280} />}
+        </ResponsiveChartCard>
 
-        <ChartCard title="Age Grade Over Time">
-          <AgeGradeChart key={chartKey} runs={sortedRuns} width={500} height={280} />
-        </ChartCard>
+        <ResponsiveChartCard title="Age Grade Over Time" height={280}>
+          {(width) => <AgeGradeChart key={chartKey} runs={sortedRuns} width={width} height={280} />}
+        </ResponsiveChartCard>
 
-        <ChartCard title="Finish Time Distribution">
-          <FinishTimeDistribution key={chartKey} runs={sortedRuns} width={500} height={280} />
-        </ChartCard>
+        <ResponsiveChartCard title="Finish Time Distribution" height={280}>
+          {(width) => <FinishTimeDistribution key={chartKey} runs={sortedRuns} width={width} height={280} />}
+        </ResponsiveChartCard>
       </SimpleGrid>
 
       <Text size="xs" c="dimmed" ta="center" mt="xl">
