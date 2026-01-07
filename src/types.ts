@@ -9,17 +9,17 @@ export const AthleteSchema = z.object({
 });
 
 export const RunSchema = z.object({
-  eventName: z.string(),
-  eventId: z.number(),
-  eventDate: z.string(),
-  finishTime: z.string(),
-  finishTimeSeconds: z.number(),
-  position: z.number(),
-  genderPosition: z.number(),
-  ageGrade: z.number(),
-  ageCategory: z.string(),
+  eventName: z.string().min(1),
+  eventId: z.number().int().positive(),
+  eventDate: z.string().datetime(),
+  finishTime: z.string().regex(/^\d{1,2}:\d{2}(:\d{2})?$/),
+  finishTimeSeconds: z.number().int().positive(),
+  position: z.number().int().positive(),
+  genderPosition: z.number().int().positive(),
+  ageGrade: z.number().min(0).max(100),
+  ageCategory: z.string().min(1),
   wasPB: z.boolean(),
-  runNumber: z.number(),
+  runNumber: z.number().int().positive(),
 });
 
 export const ProfileSchema = z.object({
