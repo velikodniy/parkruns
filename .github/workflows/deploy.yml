@@ -37,6 +37,8 @@ jobs:
         env:
           PARKRUN_ATHLETE_ID: ${{ secrets.PARKRUN_ATHLETE_ID }}
           PARKRUN_PASSWORD: ${{ secrets.PARKRUN_PASSWORD }}
+          PARKRUN_CLIENT_ID: ${{ secrets.PARKRUN_CLIENT_ID }}
+          PARKRUN_CLIENT_SECRET: ${{ secrets.PARKRUN_CLIENT_SECRET }}
         run: deno task download
       - name: Build
         run: deno task build

@@ -1,4 +1,5 @@
-import { authenticate, getAthlete, getRuns, getEventShortName } from "../src/lib/parkrun/index.ts";
+import { authenticate, getAthlete, getRuns } from "../src/lib/parkrun/api.ts";
+import { getEventShortName } from "../src/lib/parkrun/index.ts";
 import type { Profile } from "../src/types.ts";
 
 const ATHLETE_ID = Deno.env.get("PARKRUN_ATHLETE_ID");

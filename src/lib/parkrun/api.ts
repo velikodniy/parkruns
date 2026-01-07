@@ -2,11 +2,20 @@ import type { Athlete, Run } from "../../types.ts";
 
 export type AccessToken = string;
 
-// API credentials from reverse-engineering the official parkrun app.
-// See: https://github.com/Prouser123/parkrun.js
+/**
+ * DISCLAIMER: This module uses the unofficial parkrun API.
+ * 
+ * The API credentials are reverse-engineered from the official parkrun mobile app.
+ * This project is NOT affiliated with, endorsed by, or connected to parkrun Limited.
+ * Use at your own risk and responsibility.
+ * 
+ * The credentials are loaded from environment variables to avoid exposing them
+ * in the source code. They are required only during the data download phase
+ * (CI/CD or local development), not in the browser runtime.
+ */
 const API_BASE = "https://api.parkrun.com";
-const CLIENT_ID = "REDACTED_CLIENT_ID";
-const CLIENT_SECRET = "REDACTED_CLIENT_SECRET";
+const CLIENT_ID = Deno.env.get("PARKRUN_CLIENT_ID") ?? "";
+const CLIENT_SECRET = Deno.env.get("PARKRUN_CLIENT_SECRET") ?? "";
 const USER_AGENT = "parkrun/1.2.7 CFNetwork/1121.2.2 Darwin/19.3.0";
 
 interface AuthResponse {

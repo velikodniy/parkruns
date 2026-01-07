@@ -23,6 +23,3 @@ export {
   getEventShortName,
   getEventUrl,
 } from "./events.ts";
-
-export { authenticate, getAthlete, getRuns } from "./api.ts";
-export type { AccessToken } from "./api.ts";
