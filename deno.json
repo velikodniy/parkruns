@@ -5,6 +5,7 @@
     "download": "deno run -A scripts/download-data.ts"
   },
   "imports": {
+    "@std/dotenv": "jsr:@std/dotenv@^0.225",
     "react": "npm:react@^18",
     "react-dom": "npm:react-dom@^18",
     "react-dom/client": "npm:react-dom@^18/client",

@@ -5,7 +5,8 @@ dist/
 # Generated data
 public/data.json
 
-# Local scripts with credentials
+# Local credentials
+.env
 generate.sh
 
 # Scaffold files

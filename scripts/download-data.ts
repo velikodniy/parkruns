@@ -1,3 +1,4 @@
+import "@std/dotenv/load";
 import { authenticate, getAthlete, getRuns } from "../src/lib/parkrun/api.ts";
 import { getEventShortName } from "../src/lib/parkrun/index.ts";
 import type { Profile } from "../src/types.ts";
