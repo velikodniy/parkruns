@@ -22,6 +22,38 @@ export default defineConfig({
   },
   html: {
     title: "Parkrun Profile",
+    meta: {
+      description: "Track your parkrun results, statistics, and personal records",
+      robots: "index, follow",
+      "og:title": {
+        property: "og:title",
+        content: "Parkrun Profile",
+      },
+      "og:description": {
+        property: "og:description",
+        content: "Track your parkrun results, statistics, and personal records",
+      },
+      "og:type": {
+        property: "og:type",
+        content: "website",
+      },
+      "og:site_name": {
+        property: "og:site_name",
+        content: "Parkrun Profile",
+      },
+      "twitter:card": {
+        name: "twitter:card",
+        content: "summary",
+      },
+      "twitter:title": {
+        name: "twitter:title",
+        content: "Parkrun Profile",
+      },
+      "twitter:description": {
+        name: "twitter:description",
+        content: "Track your parkrun results, statistics, and personal records",
+      },
+    },
     tags: [
       {
         tag: "script",
