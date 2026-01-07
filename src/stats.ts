@@ -6,7 +6,6 @@ export function sortRunsByDateDesc(runs: Run[]): Run[] {
   );
 }
 
-/** Compute median of a sorted (ascending) array of numbers */
 function median(sorted: number[]): number {
   const mid = Math.floor(sorted.length / 2);
   if (sorted.length % 2 === 0) {
@@ -15,85 +14,80 @@ function median(sorted: number[]): number {
   return sorted[mid];
 }
 
-/** Compute current streak (consecutive weeks with a run, starting from most recent) */
-function computeStreak(runs: Run[]): { current: number; best: number } {
-  if (runs.length === 0) return { current: 0, best: 0 };
+const MS_PER_DAY = 86400000;
 
-  // runs should be sorted desc (most recent first)
-  const weeks = new Set<string>();
-  for (const run of runs) {
-    const d = new Date(run.eventDate);
-    // Get ISO week: year-week format
-    const year = d.getFullYear();
-    const jan1 = new Date(year, 0, 1);
-    const days = Math.floor((d.getTime() - jan1.getTime()) / 86400000);
-    const week = Math.ceil((days + jan1.getDay() + 1) / 7);
-    weeks.add(`${year}-${week.toString().padStart(2, "0")}`);
+function getYearWeek(date: Date): string {
+  const year = date.getFullYear();
+  const jan1 = new Date(year, 0, 1);
+  const days = Math.floor((date.getTime() - jan1.getTime()) / MS_PER_DAY);
+  const week = Math.ceil((days + jan1.getDay() + 1) / 7);
+  return `${year}-${week.toString().padStart(2, "0")}`;
+}
+
+function getPreviousWeek(weekStr: string): string {
+  const [year, week] = weekStr.split("-").map(Number);
+  if (week > 1) {
+    return `${year}-${(week - 1).toString().padStart(2, "0")}`;
   }
+  return `${year - 1}-52`;
+}
+
+function getNextWeek(weekStr: string): string {
+  const [year, week] = weekStr.split("-").map(Number);
+  if (week < 52) {
+    return `${year}-${(week + 1).toString().padStart(2, "0")}`;
+  }
+  return `${year + 1}-01`;
+}
+
+function countCurrentStreak(weeks: Set<string>, currentWeek: string): number {
+  let streak = 0;
+  let checkWeek = weeks.has(currentWeek) ? currentWeek : getPreviousWeek(currentWeek);
 
   const sortedWeeks = [...weeks].sort().reverse();
-  
-  // Get current week
-  const now = new Date();
-  const year = now.getFullYear();
-  const jan1 = new Date(year, 0, 1);
-  const days = Math.floor((now.getTime() - jan1.getTime()) / 86400000);
-  const currentWeekNum = Math.ceil((days + jan1.getDay() + 1) / 7);
-  const currentWeek = `${year}-${currentWeekNum.toString().padStart(2, "0")}`;
-
-  // Count current streak (consecutive weeks from current or last week)
-  let current = 0;
-  let checkWeek = currentWeek;
-  
-  // Allow starting from current week or previous week
-  if (!weeks.has(currentWeek)) {
-    // Check previous week
-    const prevWeekNum = currentWeekNum - 1;
-    if (prevWeekNum > 0) {
-      checkWeek = `${year}-${prevWeekNum.toString().padStart(2, "0")}`;
-    } else {
-      checkWeek = `${year - 1}-52`;
-    }
-  }
-
   for (const week of sortedWeeks) {
     if (week === checkWeek) {
-      current++;
-      // Decrement checkWeek
-      const [y, w] = checkWeek.split("-").map(Number);
-      if (w > 1) {
-        checkWeek = `${y}-${(w - 1).toString().padStart(2, "0")}`;
-      } else {
-        checkWeek = `${y - 1}-52`;
-      }
+      streak++;
+      checkWeek = getPreviousWeek(checkWeek);
     } else if (week < checkWeek) {
       break;
     }
   }
+  return streak;
+}
 
-  // Compute best streak
+function countBestStreak(weeks: Set<string>): number {
+  const sortedWeeks = [...weeks].sort();
   let best = 0;
   let streak = 0;
   let prevWeek = "";
-  
-  for (const week of [...weeks].sort()) {
-    if (prevWeek === "") {
-      streak = 1;
+
+  for (const week of sortedWeeks) {
+    if (prevWeek === "" || week === getNextWeek(prevWeek)) {
+      streak++;
     } else {
-      const [py, pw] = prevWeek.split("-").map(Number);
-      const [cy, cw] = week.split("-").map(Number);
-      const expectedWeek = pw === 52 ? `${py + 1}-01` : `${py}-${(pw + 1).toString().padStart(2, "0")}`;
-      if (week === expectedWeek) {
-        streak++;
-      } else {
-        streak = 1;
-      }
+      streak = 1;
     }
     best = Math.max(best, streak);
     prevWeek = week;
   }
+  return best;
+}
 
-  return { current, best };
+function computeStreak(runs: Run[]): { current: number; best: number } {
+  if (runs.length === 0) return { current: 0, best: 0 };
+
+  const weeks = new Set<string>();
+  for (const run of runs) {
+    weeks.add(getYearWeek(new Date(run.eventDate)));
+  }
+
+  const currentWeek = getYearWeek(new Date());
+
+  return {
+    current: countCurrentStreak(weeks, currentWeek),
+    best: countBestStreak(weeks),
+  };
 }
 
 export interface RunStats {
@@ -109,41 +103,62 @@ export interface RunStats {
 }
 
 export function computeRunStats(runs: Run[]): RunStats {
-  const times = runs.map((r) => r.finishTimeSeconds);
-  
-  // 5-run median (most recent 5 runs) - runs should already be sorted desc
-  const recent5 = times.slice(0, Math.min(5, times.length));
-  const recentMedianTime = median([...recent5].sort((a, b) => a - b));
-  
+  if (runs.length === 0) {
+    return {
+      totalRuns: 0,
+      fastestTime: Number.POSITIVE_INFINITY,
+      recentMedianTime: 0,
+      bestAgeGrade: 0,
+      bestAgeGradeCategory: "",
+      bestTopPercent: 100,
+      bestTopPercentRun: null,
+      uniqueEvents: 0,
+      streak: { current: 0, best: 0 },
+    };
+  }
+
+  let fastestTime = Number.POSITIVE_INFINITY;
   let bestAgeGrade = 0;
   let bestAgeGradeCategory = "";
-  for (const run of runs) {
+  let bestTopPercent = 100;
+  let bestTopPercentRun: { position: number; totalFinishers: number } | null = null;
+  const events = new Set<string>();
+  const recent5Times: number[] = [];
+
+  for (let i = 0; i < runs.length; i++) {
+    const run = runs[i];
+
+    if (run.finishTimeSeconds < fastestTime) {
+      fastestTime = run.finishTimeSeconds;
+    }
+
     if (run.ageGrade > bestAgeGrade) {
       bestAgeGrade = run.ageGrade;
       bestAgeGradeCategory = run.ageCategory;
     }
-  }
-  
-  // Best top % (lowest percentage = best relative finish)
-  let bestTopPercent = 100;
-  let bestTopPercentRun: { position: number; totalFinishers: number } | null = null;
-  for (const run of runs) {
+
     const topPercent = (run.position / run.totalFinishers) * 100;
     if (topPercent < bestTopPercent) {
       bestTopPercent = topPercent;
       bestTopPercentRun = { position: run.position, totalFinishers: run.totalFinishers };
     }
+
+    events.add(run.eventName);
+
+    if (i < 5) {
+      recent5Times.push(run.finishTimeSeconds);
+    }
   }
 
   return {
     totalRuns: runs.length,
-    fastestTime: Math.min(...times),
-    recentMedianTime,
+    fastestTime,
+    recentMedianTime: median([...recent5Times].sort((a, b) => a - b)),
     bestAgeGrade,
     bestAgeGradeCategory,
     bestTopPercent,
     bestTopPercentRun,
-    uniqueEvents: new Set(runs.map((r) => r.eventName)).size,
+    uniqueEvents: events.size,
     streak: computeStreak(runs),
   };
 }
