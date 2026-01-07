@@ -23,4 +23,5 @@ export {
   getEventResultsUrl,
   getEventShortName,
   getEventUrl,
+  getShortNameByLongName,
 } from "./events.ts";

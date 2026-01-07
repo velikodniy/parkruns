@@ -8,12 +8,20 @@ const eventById = new Map<number, EventFeature>(
   data.events.features.map((f) => [f.id, f]),
 );
 
+const eventByLongName = new Map<string, EventFeature>(
+  data.events.features.map((f) => [f.properties.EventLongName.toLowerCase(), f]),
+);
+
 export function getEventById(id: number): EventFeature | undefined {
   return eventById.get(id);
 }
 
 export function getEventShortName(id: number): string | null {
   return eventById.get(id)?.properties.EventShortName ?? null;
+}
+
+export function getShortNameByLongName(longName: string): string | null {
+  return eventByLongName.get(longName.toLowerCase())?.properties.EventShortName ?? null;
 }
 
 export function getEventCoordinates(id: number): [number, number] | null {
