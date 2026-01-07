@@ -8,3 +8,7 @@ export { CountryFlag } from "./CountryFlag.tsx";
 export { EventsMap } from "./EventsMap.tsx";
 export { ErrorBoundary } from "./ErrorBoundary.tsx";
 export { IconSun, IconMoon } from "./ThemeIcons.tsx";
+export { StatsCard } from "./StatsCard.tsx";
+export { ChartCard } from "./ChartCard.tsx";
+export { ResponsiveChartCard } from "./ResponsiveChartCard.tsx";
+export { ThemeToggle } from "./ThemeToggle.tsx";
