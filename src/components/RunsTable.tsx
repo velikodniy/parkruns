@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Badge, Card, Group, ScrollArea, Table, Text, Title } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
@@ -40,7 +41,7 @@ function computeAllTimePBs(runs: Run[]): boolean[] {
 }
 
 export function RunsTable({ runs }: Props) {
-  const allTimePBs = computeAllTimePBs(runs);
+  const allTimePBs = useMemo(() => computeAllTimePBs(runs), [runs]);
 
   return (
     <Card withBorder>
