@@ -37,3 +37,11 @@ export function getCountryName(numericCode: number): string | null {
 export function getAllCountryCodes(): number[] {
   return Object.keys(COUNTRY_CODES).map(Number);
 }
+
+const ISO_TO_NAME: Record<string, string> = Object.fromEntries(
+  Object.values(COUNTRY_CODES).map(({ iso, name }) => [iso, name])
+);
+
+export function getCountryNameByISO(iso: string): string | null {
+  return ISO_TO_NAME[iso.toUpperCase()] ?? null;
+}

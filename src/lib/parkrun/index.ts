@@ -11,6 +11,7 @@ export {
   getAllCountryCodes,
   getCountryISO,
   getCountryName,
+  getCountryNameByISO,
 } from "./countries.ts";
 
 export {
