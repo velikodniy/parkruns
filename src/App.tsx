@@ -97,7 +97,7 @@ function ThemeToggle({ onToggle }: { onToggle: () => void }) {
       onClick={toggle}
       aria-label="Toggle color scheme"
     >
-      {colorScheme === "dark" ? "☼" : "☽"}
+      {colorScheme === "dark" ? "☼" : "◐"}
     </ActionIcon>
   );
 }
