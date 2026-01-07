@@ -10,8 +10,8 @@ export function formatTime(seconds: number): string {
 }
 
 export function formatPace(seconds: number, distanceKm = 5): string {
-  const paceSeconds = seconds / distanceKm;
-  const mins = Math.floor(paceSeconds / 60);
-  const secs = Math.round(paceSeconds % 60);
+  const totalSecs = Math.round(seconds / distanceKm);
+  const mins = Math.floor(totalSecs / 60);
+  const secs = totalSecs % 60;
   return `${mins}:${secs.toString().padStart(2, "0")}/km`;
 }
