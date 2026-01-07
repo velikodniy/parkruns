@@ -2,7 +2,8 @@
 
 Static dashboard displaying parkrun results with D3.js visualizations. Data refreshed weekly via GitHub Actions, hosted on Deno Deploy.
 
-> **Disclaimer:** This project uses an unofficial, reverse-engineered parkrun API. It is NOT affiliated with, endorsed by, or connected to parkrun Limited. Use at your own risk.
+> [!WARNING]
+> This project uses an unofficial, reverse-engineered parkrun API. It is NOT affiliated with, endorsed by, or connected to parkrun Limited. Use at your own risk.
 
 ## Local Development
 
