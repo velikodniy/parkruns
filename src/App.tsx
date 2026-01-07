@@ -24,7 +24,7 @@ import {
   RunsTable,
 } from "./components/index.ts";
 import { formatTime } from "./format.ts";
-import { computeRunStats } from "./stats.ts";
+import { computeRunStats, sortRunsByDateDesc } from "./stats.ts";
 import { getCountryNameByISO, getEventCountryISO } from "./lib/parkrun/index.ts";
 import { THEME_STORAGE_KEY, setChartColorScheme } from "./theme.ts";
 
@@ -102,20 +102,25 @@ export function App() {
       .finally(() => setLoading(false));
   }, []);
 
-  const stats = useMemo(() => {
-    if (!profile || profile.runs.length === 0) return null;
-    return computeRunStats(profile.runs);
+  const sortedRuns = useMemo(() => {
+    if (!profile) return [];
+    return sortRunsByDateDesc(profile.runs);
   }, [profile]);
 
+  const stats = useMemo(() => {
+    if (sortedRuns.length === 0) return null;
+    return computeRunStats(sortedRuns);
+  }, [sortedRuns]);
+
   const visitedCountries = useMemo(() => {
-    if (!profile) return [];
+    if (sortedRuns.length === 0) return [];
     const countrySet = new Set<string>();
-    for (const run of profile.runs) {
+    for (const run of sortedRuns) {
       const iso = getEventCountryISO(run.eventId);
       if (iso) countrySet.add(iso);
     }
     return [...countrySet].sort();
-  }, [profile]);
+  }, [sortedRuns]);
 
   if (loading) {
     return (
@@ -139,7 +144,7 @@ export function App() {
 
   if (!profile) return null;
 
-  const { athlete, runs } = profile;
+  const { athlete } = profile;
 
   if (!stats) {
     return (
@@ -197,31 +202,31 @@ export function App() {
         <StatsCard label="Events Visited" value={stats.uniqueEvents} />
       </SimpleGrid>
 
-      <RunsTable runs={runs} />
+      <RunsTable runs={sortedRuns} />
 
       <ChartCard title="Events Visited">
-        <EventsMap runs={runs} height={400} />
+        <EventsMap runs={sortedRuns} height={400} />
       </ChartCard>
 
       <ChartCard title="Consistency Calendar">
-        <ConsistencyCalendar key={chartKey} runs={runs} />
+        <ConsistencyCalendar key={chartKey} runs={sortedRuns} />
       </ChartCard>
 
       <SimpleGrid cols={{ base: 1, md: 2 }} mb="xl">
         <ChartCard title="Finish Time Over Time">
-          <FinishTimeChart key={chartKey} runs={runs} width={500} height={280} />
+          <FinishTimeChart key={chartKey} runs={sortedRuns} width={500} height={280} />
         </ChartCard>
 
         <ChartCard title="PB Progression">
-          <PBProgressionChart key={chartKey} runs={runs} width={500} height={280} />
+          <PBProgressionChart key={chartKey} runs={sortedRuns} width={500} height={280} />
         </ChartCard>
 
         <ChartCard title="Age Grade Over Time">
-          <AgeGradeChart key={chartKey} runs={runs} width={500} height={280} />
+          <AgeGradeChart key={chartKey} runs={sortedRuns} width={500} height={280} />
         </ChartCard>
 
         <ChartCard title="Finish Time Distribution">
-          <FinishTimeDistribution key={chartKey} runs={runs} width={500} height={280} />
+          <FinishTimeDistribution key={chartKey} runs={sortedRuns} width={500} height={280} />
         </ChartCard>
       </SimpleGrid>
 
