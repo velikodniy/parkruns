@@ -7,6 +7,13 @@ Static dashboard displaying parkrun results with D3.js visualizations. Data refr
 ```bash
 deno task dev                    # Dev server
 deno task build                  # Build static site
+
+# Fetch data (requires all env vars)
+PARKRUN_ATHLETE_ID=Axxxxx \
+PARKRUN_PASSWORD=xxx \
+PARKRUN_CLIENT_ID=xxx \
+PARKRUN_CLIENT_SECRET=xxx \
+deno task download
 ```
 
 ## How It Works
