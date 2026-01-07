@@ -53,7 +53,7 @@ async function downloadData(
 
   const outputPath = "public/data.json";
   await Deno.mkdir("public", { recursive: true });
-  await Deno.writeTextFile(outputPath, JSON.stringify(profile, null, 2));
+  await Deno.writeTextFile(outputPath, JSON.stringify(profile));
   console.log(`Written ${runs.length} runs to ${outputPath}`);
 }
 
