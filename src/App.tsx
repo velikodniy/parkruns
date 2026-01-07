@@ -21,6 +21,8 @@ import {
   EventsMap,
   FinishTimeChart,
   FinishTimeDistribution,
+  IconMoon,
+  IconSun,
   PBProgressionChart,
   RunsTable,
 } from "./components/index.ts";
@@ -97,7 +99,7 @@ function ThemeToggle({ onToggle }: { onToggle: () => void }) {
       onClick={toggle}
       aria-label="Toggle color scheme"
     >
-      {colorScheme === "dark" ? "☼" : "☽"}
+      {colorScheme === "dark" ? <IconSun /> : <IconMoon />}
     </ActionIcon>
   );
 }

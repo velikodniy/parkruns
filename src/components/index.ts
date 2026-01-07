@@ -7,3 +7,4 @@ export { RunsTable } from "./RunsTable.tsx";
 export { CountryFlag } from "./CountryFlag.tsx";
 export { EventsMap } from "./EventsMap.tsx";
 export { ErrorBoundary } from "./ErrorBoundary.tsx";
+export { IconSun, IconMoon } from "./ThemeIcons.tsx";
