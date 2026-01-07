@@ -23,7 +23,7 @@ import {
 } from "./components/index.ts";
 import { formatTime } from "./format.ts";
 import { computeRunStats } from "./stats.ts";
-import { getEventCountryISO } from "./lib/parkrun/index.ts";
+import { getCountryNameByISO, getEventCountryISO } from "./lib/parkrun/index.ts";
 
 function StatsCard(
   { label, value }: { label: string; value: string | number },
@@ -140,7 +140,7 @@ export function App() {
       {visitedCountries.length > 0 && (
         <Group gap="xs" mb="xl">
           {visitedCountries.map((iso) => (
-            <CountryFlag key={iso} countryCode={iso} size={18} />
+            <CountryFlag key={iso} countryCode={iso} size={18} title={getCountryNameByISO(iso) ?? iso} />
           ))}
         </Group>
       )}
