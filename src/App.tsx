@@ -11,14 +11,14 @@ import {
 import {
   AgeGradeChart,
   ChartCard,
-  ConsistencyCalendar,
   CountryFlag,
   EventsMap,
   FinishTimeChart,
   FinishTimeDistribution,
   PBProgressionChart,
+  ResponsiveCalendar,
   ResponsiveChartCard,
-  RunsTable,
+  ResponsiveRuns,
   StatsCard,
   ThemeToggle,
 } from "./components/index.ts";
@@ -125,14 +125,14 @@ export function App() {
         />
       </SimpleGrid>
 
-      <RunsTable runs={sortedRuns} />
+      <ResponsiveRuns runs={sortedRuns} />
 
       <ChartCard title="Events Visited">
         <EventsMap runs={sortedRuns} height={400} />
       </ChartCard>
 
       <ChartCard title="Consistency Calendar">
-        <ConsistencyCalendar key={chartKey} runs={sortedRuns} />
+        <ResponsiveCalendar key={chartKey} runs={sortedRuns} />
       </ChartCard>
 
       <SimpleGrid cols={{ base: 1, md: 2 }} mb="xl">
