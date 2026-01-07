@@ -102,7 +102,7 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         .attr("stroke-width", 2)
         .attr("stroke-dasharray", "5,5");
       legend.append("text").attr("x", 25).attr("y", 19).attr("font-size", "11px")
-        .attr("fill", chartColors.axis).text("7-run average");
+        .attr("fill", chartColors.axis).text(`${windowSize}-run average`);
 
       legend
         .append("circle")
