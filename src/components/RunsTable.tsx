@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Badge, Card, Group, ScrollArea, Table, Text, Title } from "@mantine/core";
+import { Badge, Card, ScrollArea, Table, Text, Title } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
 import { getEventCountryISO, getEventResultsUrl, getEventShortName, getEventUrl } from "../lib/parkrun/index.ts";
@@ -9,22 +9,13 @@ interface Props {
   runs: Run[];
 }
 
-function AgeGradeDelta({ current, previous }: { current: number; previous: number | null }) {
-  if (previous === null) {
-    return <Text span size="xs" c="dimmed" ml={4}>—</Text>;
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function getGenderSymbol(ageCategory: string): string {
+  if (ageCategory.startsWith("V") || ageCategory.startsWith("S")) {
+    return ageCategory.charAt(1) === "M" ? "♂" : "♀";
   }
-
-  const delta = current - previous;
-  const isPositive = delta > 0;
-  const color = isPositive ? "green" : "red";
-  const arrow = isPositive ? "↑" : "↓";
-  const sign = isPositive ? "+" : "";
-
-  return (
-    <Text span size="xs" c={color} ml={4}>
-      {arrow}{sign}{delta.toFixed(1)}%
-    </Text>
-  );
+  return ageCategory.startsWith("JM") ? "♂" : "♀";
 }
 
 function computeAllTimePBs(runs: Run[]): boolean[] {
@@ -38,6 +29,30 @@ function computeAllTimePBs(runs: Run[]): boolean[] {
     }
   }
   return result;
+}
+
+function formatDelta(current: number, previous: number | null): { text: string; color: string } | null {
+  if (previous === null) return null;
+  const delta = current - previous;
+  const isPositive = delta > 0;
+  return {
+    text: `${isPositive ? "↑" : "↓"} ${isPositive ? "+" : ""}${delta.toFixed(1)}%`,
+    color: isPositive ? "green" : "red",
+  };
+}
+
+interface CellProps {
+  primary: React.ReactNode;
+  secondary?: React.ReactNode;
+}
+
+function Cell({ primary, secondary }: CellProps) {
+  return (
+    <div>
+      <div style={{ lineHeight: 1.4 }}>{primary}</div>
+      {secondary && <Text size="xs" c="dimmed" style={{ lineHeight: 1.4 }}>{secondary}</Text>}
+    </div>
+  );
 }
 
 export function RunsTable({ runs }: Props) {
@@ -56,71 +71,82 @@ export function RunsTable({ runs }: Props) {
             <Table.Th>Event</Table.Th>
             <Table.Th>Position</Table.Th>
             <Table.Th>Time</Table.Th>
-            <Table.Th>Pace</Table.Th>
             <Table.Th>Age Grade</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {runs.map((run: Run, index: number) => {
+            const date = new Date(run.eventDate);
             const previousRun = index < runs.length - 1 ? runs[index + 1] : null;
             const previousAgeGrade = previousRun?.ageGrade ?? null;
             const isAllTimePB = allTimePBs[index];
+            const delta = formatDelta(run.ageGrade, previousAgeGrade);
 
             return (
               <Table.Tr key={`${run.eventDate}-${run.eventId}`}>
                 <Table.Td>
-                  {new Date(run.eventDate).toLocaleDateString()}
+                  <Cell
+                    primary={<>{date.toLocaleDateString()} <Text span size="xs" c="dimmed">{DAYS[date.getDay()]}</Text></>}
+                  />
                 </Table.Td>
+
                 <Table.Td>
-                  <Group gap={6} wrap="nowrap">
-                    <span style={{ width: 16, display: "inline-flex", justifyContent: "center" }}>
-                      {(() => {
-                        const countryISO = getEventCountryISO(run.eventId);
-                        return countryISO ? <CountryFlag countryCode={countryISO} size={10} /> : null;
-                      })()}
-                    </span>
-                    {(() => {
-                      const url = getEventUrl(run.eventId);
-                      const name = getEventShortName(run.eventId) ?? run.eventName;
-                      return url ? (
-                        <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}>{name}</a>
-                      ) : <Text span>{name}</Text>;
-                    })()}
-                    {(() => {
-                      const resultsUrl = getEventResultsUrl(run.eventId, run.eventEdition);
-                      return resultsUrl ? (
-                        <a href={resultsUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}>
-                          <Text span size="sm" c="dimmed">#{run.eventEdition}</Text>
-                        </a>
-                      ) : <Text span size="sm" c="dimmed">#{run.eventEdition}</Text>;
-                    })()}
-                  </Group>
+                  <Cell
+                    primary={
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ width: 16, display: "inline-flex", justifyContent: "center" }}>
+                          {(() => {
+                            const countryISO = getEventCountryISO(run.eventId);
+                            return countryISO ? <CountryFlag countryCode={countryISO} size={10} /> : null;
+                          })()}
+                        </span>
+                        {(() => {
+                          const url = getEventUrl(run.eventId);
+                          const name = getEventShortName(run.eventId) ?? run.eventName;
+                          return url ? (
+                            <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}>{name}</a>
+                          ) : name;
+                        })()}
+                        {(() => {
+                          const resultsUrl = getEventResultsUrl(run.eventId, run.eventEdition);
+                          return resultsUrl ? (
+                            <a href={resultsUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}>
+                              <Text span size="xs" c="dimmed">#{run.eventEdition}</Text>
+                            </a>
+                          ) : <Text span size="xs" c="dimmed">#{run.eventEdition}</Text>;
+                        })()}
+                      </span>
+                    }
+                  />
                 </Table.Td>
+
                 <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
-                  {run.position}
-                  <Text span c="dimmed" inherit>{"\u00A0/\u00A0"}{run.totalFinishers} · {run.ageCategory.startsWith("V") || run.ageCategory.startsWith("S") ? (run.ageCategory.charAt(1) === "M" ? "♂" : "♀") : (run.ageCategory.startsWith("JM") ? "♂" : "♀")}{"\u00A0"}{run.genderPosition} · Top{"\u00A0"}{Math.round((run.position / run.totalFinishers) * 100)}{"\u00A0"}%</Text>
+                  <Cell
+                    primary={<>{run.position}<Text span c="dimmed" inherit>{"\u00A0/\u00A0"}{run.totalFinishers}</Text></>}
+                    secondary={`${getGenderSymbol(run.ageCategory)}\u00A0${run.genderPosition} · Top\u00A0${Math.round((run.position / run.totalFinishers) * 100)}\u00A0%`}
+                  />
                 </Table.Td>
-                <Table.Td>
-                  <Group gap={6} wrap="nowrap" align="center">
-                    <span style={{ minWidth: 42 }}>{formatTime(run.finishTimeSeconds)}</span>
-                    {run.wasPb && isAllTimePB && (
-                      <Badge color="blue" size="xs" variant="filled">
-                        PB
-                      </Badge>
-                    )}
-                    {run.wasPb && !isAllTimePB && (
-                      <Badge color="gray" size="xs" variant="light">
-                        PB
-                      </Badge>
-                    )}
-                  </Group>
+
+                <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
+                  <div>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <span>{formatTime(run.finishTimeSeconds)}</span>
+                      {run.wasPb && isAllTimePB && (
+                        <Badge color="blue" size="xs" variant="filled">PB</Badge>
+                      )}
+                      {run.wasPb && !isAllTimePB && (
+                        <Badge color="gray" size="xs" variant="light">PB</Badge>
+                      )}
+                    </span>
+                  </div>
+                  <Text size="xs" c="dimmed" style={{ lineHeight: 1.4 }}>{formatPace(run.finishTimeSeconds)}</Text>
                 </Table.Td>
-                <Table.Td>{formatPace(run.finishTimeSeconds)}</Table.Td>
-                <Table.Td>
-                  <Group gap={0} wrap="nowrap">
-                    {run.ageGrade.toFixed(1)}%
-                    <AgeGradeDelta current={run.ageGrade} previous={previousAgeGrade} />
-                  </Group>
+
+                <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
+                  <Cell
+                    primary={`${run.ageGrade.toFixed(1)}%`}
+                    secondary={delta ? <Text span c={delta.color} inherit>{delta.text}</Text> : "—"}
+                  />
                 </Table.Td>
               </Table.Tr>
             );
