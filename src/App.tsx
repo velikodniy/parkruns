@@ -28,7 +28,7 @@ import {
 } from "./components/index.ts";
 import { formatPace, formatTime } from "./format.ts";
 import { computeRunStats, sortRunsByDateDesc } from "./stats.ts";
-import { getCountryNameByISO, getEventCountryISO } from "./lib/parkrun/index.ts";
+import { getCountryNameByISO, getEventCountryISO, getShortNameByLongName } from "./lib/parkrun/index.ts";
 import { THEME_STORAGE_KEY, setChartColorScheme } from "./theme.ts";
 
 function StatsCard(
@@ -199,9 +199,9 @@ export function App() {
       </Group>
       <Text c="dimmed" mb="sm">
         {[
-          athlete.homeRun && `Home: ${athlete.homeRun}`,
-          athlete.clubName && `Club: ${athlete.clubName}`,
-        ].filter(Boolean).join(" | ")}
+          athlete.homeRun && `Home: ${getShortNameByLongName(athlete.homeRun) ?? athlete.homeRun}`,
+          athlete.clubName && athlete.clubName !== "Unattached" && `Club: ${athlete.clubName}`,
+        ].filter(Boolean).join(" | ") || "—"}
       </Text>
 
       {visitedCountries.length > 0 && (
