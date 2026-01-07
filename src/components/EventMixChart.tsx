@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { Run } from "../types.ts";
 import { formatTime } from "../format.ts";
+import { createTooltip, hideTooltip, showTooltip } from "../d3-utils.ts";
 
 interface Props {
   runs: Run[];
@@ -81,19 +82,7 @@ export function EventMixChart({ runs, width = 600, height = 400 }: Props) {
       .attr("fill", "#c1c2c5")
       .text((d) => `${d.count} (${formatTime(d.bestTime)})`);
 
-    const tooltip = d3
-      .select("body")
-      .append("div")
-      .attr("class", "chart-tooltip")
-      .style("position", "absolute")
-      .style("background", "#1a1b1e")
-      .style("border", "1px solid #373a40")
-      .style("border-radius", "4px")
-      .style("padding", "8px")
-      .style("font-size", "12px")
-      .style("color", "#c1c2c5")
-      .style("pointer-events", "none")
-      .style("opacity", 0);
+    const tooltip = createTooltip();
 
     g.selectAll(".bar")
       .on("mouseover", (event: MouseEvent, d: unknown) => {
@@ -103,20 +92,14 @@ export function EventMixChart({ runs, width = 600, height = 400 }: Props) {
           bestTime: number;
           avgTime: number;
         };
-        tooltip
-          .style("opacity", 1)
-          .html(
-            `<strong>${data.name}</strong><br/>
-            Runs: ${data.count}<br/>
-            Best: ${formatTime(data.bestTime)}<br/>
-            Avg: ${formatTime(Math.round(data.avgTime))}`,
-          )
-          .style("left", `${event.pageX + 10}px`)
-          .style("top", `${event.pageY - 10}px`);
+        showTooltip(tooltip, event, [
+          { text: data.name, bold: true },
+          { text: `Runs: ${data.count}` },
+          { text: `Best: ${formatTime(data.bestTime)}` },
+          { text: `Avg: ${formatTime(Math.round(data.avgTime))}` },
+        ]);
       })
-      .on("mouseout", () => {
-        tooltip.style("opacity", 0);
-      });
+      .on("mouseout", () => hideTooltip(tooltip));
 
     return () => {
       tooltip.remove();

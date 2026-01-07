@@ -81,14 +81,12 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
       g.selectAll(".point")
         .on("mouseover", (event: MouseEvent, d: unknown) => {
           const run = d as Run;
-          showTooltip(
-            tooltip,
-            event,
-            `<strong>${getEventShortName(run.eventId) ?? run.eventName}</strong><br/>
-            ${new Date(run.eventDate).toLocaleDateString()}<br/>
-            Age Grade: ${run.ageGrade.toFixed(1)}%<br/>
-            Category: ${run.ageCategory}`,
-          );
+          showTooltip(tooltip, event, [
+            { text: getEventShortName(run.eventId) ?? run.eventName, bold: true },
+            { text: new Date(run.eventDate).toLocaleDateString() },
+            { text: `Age Grade: ${run.ageGrade.toFixed(1)}%` },
+            { text: `Category: ${run.ageCategory}` },
+          ]);
         })
         .on("mouseout", () => hideTooltip(tooltip));
     },

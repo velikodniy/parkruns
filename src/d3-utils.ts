@@ -2,6 +2,14 @@ import * as d3 from "d3";
 import type { Run } from "./types.ts";
 import { chartColors } from "./theme.ts";
 
+/** A single line of tooltip content */
+export interface TooltipLine {
+  text: string;
+  bold?: boolean;
+}
+
+export type TooltipContent = TooltipLine[];
+
 export function createTooltip() {
   return d3
     .select("body")
@@ -62,11 +70,21 @@ export function renderYAxis(
 export function showTooltip(
   tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, undefined>,
   event: MouseEvent,
-  html: string,
+  content: TooltipContent,
 ): void {
+  tooltip.selectAll("*").remove();
+
+  content.forEach((line, i) => {
+    if (i > 0) tooltip.append("br");
+    if (line.bold) {
+      tooltip.append("strong").text(line.text);
+    } else {
+      tooltip.append("span").text(line.text);
+    }
+  });
+
   tooltip
     .style("opacity", 1)
-    .html(html)
     .style("left", `${event.pageX + 10}px`)
     .style("top", `${event.pageY - 10}px`);
 }

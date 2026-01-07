@@ -135,18 +135,15 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
             .on("mouseover", (event: MouseEvent) => {
               const weekEnd = d3.timeDay.offset(wd.week, 6);
               const dateRange = `${d3.timeFormat("%b %d")(wd.week)} — ${d3.timeFormat("%b %d")(weekEnd)}`;
-              const runsList = wd.runs
-                .map((r: Run) => {
-                  const date = d3.timeFormat("%b %d")(new Date(r.eventDate));
-                  const name = getEventShortName(r.eventId) ?? r.eventName;
-                  return `${date}: ${name} ${formatTime(r.finishTimeSeconds)}`;
-                })
-                .join("<br/>");
-              showTooltip(
-                tooltip,
-                event,
-                `<strong>${dateRange}</strong><br/>${runsList}`,
-              );
+              const runLines = wd.runs.map((r: Run) => {
+                const date = d3.timeFormat("%b %d")(new Date(r.eventDate));
+                const name = getEventShortName(r.eventId) ?? r.eventName;
+                return { text: `${date}: ${name} ${formatTime(r.finishTimeSeconds)}` };
+              });
+              showTooltip(tooltip, event, [
+                { text: dateRange, bold: true },
+                ...runLines,
+              ]);
             })
             .on("mouseout", () => hideTooltip(tooltip));
         }

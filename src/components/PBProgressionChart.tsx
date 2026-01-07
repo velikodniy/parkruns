@@ -74,13 +74,11 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
       g.selectAll(".pb-point")
         .on("mouseover", (event: MouseEvent, d: unknown) => {
           const data = d as PBPoint;
-          showTooltip(
-            tooltip,
-            event,
-            `${data.date.toLocaleDateString()}<br/>
-            <strong>${getEventShortName(data.run.eventId) ?? data.run.eventName}</strong><br/>
-            Time: ${formatTime(data.time)}`,
-          );
+          showTooltip(tooltip, event, [
+            { text: getEventShortName(data.run.eventId) ?? data.run.eventName, bold: true },
+            { text: data.date.toLocaleDateString() },
+            { text: `Time: ${formatTime(data.time)}` },
+          ]);
         })
         .on("mouseout", () => hideTooltip(tooltip));
     },

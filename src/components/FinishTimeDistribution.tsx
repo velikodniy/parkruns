@@ -131,17 +131,15 @@ export function FinishTimeDistribution({
           (d) => Math.abs((x(d.month) ?? 0) + narrowOffset - xVal) < 1,
         );
         if (monthData) {
-          showTooltip(
-            tooltip,
-            event,
-            `<strong>${monthData.month}</strong><br/>
-              Runs: ${monthData.count}<br/>
-              Best: ${formatTime(monthData.min)}<br/>
-              Q1: ${formatTime(monthData.q1)}<br/>
-              Median: ${formatTime(monthData.median)}<br/>
-              Q3: ${formatTime(monthData.q3)}<br/>
-              Worst: ${formatTime(monthData.max)}`,
-          );
+          showTooltip(tooltip, event, [
+            { text: monthData.month, bold: true },
+            { text: `Runs: ${monthData.count}` },
+            { text: `Best: ${formatTime(monthData.min)}` },
+            { text: `Q1: ${formatTime(monthData.q1)}` },
+            { text: `Median: ${formatTime(monthData.median)}` },
+            { text: `Q3: ${formatTime(monthData.q3)}` },
+            { text: `Worst: ${formatTime(monthData.max)}` },
+          ]);
         }
       });
 
