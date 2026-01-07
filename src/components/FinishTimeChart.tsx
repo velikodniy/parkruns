@@ -130,5 +130,13 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
     height,
   );
 
-  return <svg ref={svgRef} width={width} height={height} />;
+  return (
+    <svg
+      ref={svgRef}
+      width={width}
+      height={height}
+      role="img"
+      aria-label="Line chart showing finish times over time with rolling average"
+    />
+  );
 }

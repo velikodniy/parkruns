@@ -88,5 +88,13 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
     height,
   );
 
-  return <svg ref={svgRef} width={width} height={height} />;
+  return (
+    <svg
+      ref={svgRef}
+      width={width}
+      height={height}
+      role="img"
+      aria-label="Line chart showing personal best progression over time"
+    />
+  );
 }

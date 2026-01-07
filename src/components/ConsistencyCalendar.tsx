@@ -156,5 +156,13 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     };
   }, [runs]);
 
-  return <svg ref={svgRef} width={width} style={{ overflow: "visible" }} />;
+  return (
+    <svg
+      ref={svgRef}
+      width={width}
+      style={{ overflow: "visible" }}
+      role="img"
+      aria-label="Calendar heatmap showing weekly parkrun consistency by year"
+    />
+  );
 }

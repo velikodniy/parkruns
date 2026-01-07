@@ -91,5 +91,13 @@ export function EventMixChart({ runs, width = 600, height = 400 }: ChartProps) {
     EVENT_MIX_MARGIN,
   );
 
-  return <svg ref={svgRef} width={width} height={height} />;
+  return (
+    <svg
+      ref={svgRef}
+      width={width}
+      height={height}
+      role="img"
+      aria-label="Bar chart showing top 15 most visited parkrun events by run count"
+    />
+  );
 }
