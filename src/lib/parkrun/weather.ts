@@ -21,16 +21,21 @@ interface OpenMeteoResponse {
 
 const PARKRUN_START_HOUR = 9;
 
-export async function fetchWeather(
+function locationKey(lat: number, lon: number): string {
+  return `${lat.toFixed(4)},${lon.toFixed(4)}`;
+}
+
+async function fetchWeatherForLocation(
   latitude: number,
   longitude: number,
-  dateYYYYMMDD: string,
-): Promise<Weather | null> {
+  startDate: string,
+  endDate: string,
+): Promise<Map<string, Weather> | null> {
   const url = new URL("https://archive-api.open-meteo.com/v1/archive");
   url.searchParams.set("latitude", latitude.toString());
   url.searchParams.set("longitude", longitude.toString());
-  url.searchParams.set("start_date", dateYYYYMMDD);
-  url.searchParams.set("end_date", dateYYYYMMDD);
+  url.searchParams.set("start_date", startDate);
+  url.searchParams.set("end_date", endDate);
   url.searchParams.set(
     "hourly",
     "temperature_2m,weather_code,wind_speed_10m,wind_direction_10m",
@@ -41,20 +46,31 @@ export async function fetchWeather(
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.error(`Weather API error: ${response.status} for ${dateYYYYMMDD}`);
+      console.error(`Weather API error: ${response.status} for ${startDate}-${endDate}`);
       return null;
     }
 
     const data: OpenMeteoResponse = await response.json();
+    const weatherByDate = new Map<string, Weather>();
 
-    return {
-      temperatureC: data.hourly.temperature_2m[PARKRUN_START_HOUR],
-      weatherCode: data.hourly.weather_code[PARKRUN_START_HOUR],
-      windSpeedMs: data.hourly.wind_speed_10m[PARKRUN_START_HOUR],
-      windDirectionDeg: data.hourly.wind_direction_10m[PARKRUN_START_HOUR],
-    };
+    for (let i = 0; i < data.hourly.time.length; i++) {
+      const timestamp = data.hourly.time[i];
+      const hour = new Date(timestamp).getHours();
+      
+      if (hour === PARKRUN_START_HOUR) {
+        const date = timestamp.split("T")[0];
+        weatherByDate.set(date, {
+          temperatureC: data.hourly.temperature_2m[i],
+          weatherCode: data.hourly.weather_code[i],
+          windSpeedMs: data.hourly.wind_speed_10m[i],
+          windDirectionDeg: data.hourly.wind_direction_10m[i],
+        });
+      }
+    }
+
+    return weatherByDate;
   } catch (error) {
-    console.error(`Failed to fetch weather for ${dateYYYYMMDD}:`, error);
+    console.error(`Failed to fetch weather for ${startDate}-${endDate}:`, error);
     return null;
   }
 }
@@ -65,57 +81,52 @@ export async function fetchWeatherForRuns(
     eventDate: string;
     coordinates: [number, number] | null;
   }>,
-  options: {
-    delayMs?: number;
-    concurrency?: number;
-  } = {},
 ): Promise<Map<string, Weather | null>> {
-  const { delayMs = 100, concurrency = 5 } = options;
-
-  const uniqueRequests = new Map<
+  const locationGroups = new Map<
     string,
-    { lat: number; lon: number; date: string }
+    { lat: number; lon: number; dates: Set<string> }
   >();
 
   for (const run of runs) {
     if (!run.coordinates) continue;
 
     const [lat, lon] = run.coordinates;
+    const key = locationKey(lat, lon);
     const date = run.eventDate.split("T")[0];
-    const key = `${lat.toFixed(4)},${lon.toFixed(4)},${date}`;
 
-    if (!uniqueRequests.has(key)) {
-      uniqueRequests.set(key, { lat, lon, date });
+    const existing = locationGroups.get(key);
+    if (existing) {
+      existing.dates.add(date);
+    } else {
+      locationGroups.set(key, { lat, lon, dates: new Set([date]) });
     }
   }
 
+  const totalDates = Array.from(locationGroups.values()).reduce(
+    (sum, g) => sum + g.dates.size,
+    0,
+  );
   console.log(
-    `Fetching weather for ${uniqueRequests.size} unique location/date combinations...`,
+    `Fetching weather: ${totalDates} dates across ${locationGroups.size} locations (${locationGroups.size} API calls)`,
   );
 
   const results = new Map<string, Weather | null>();
-  const requests = Array.from(uniqueRequests.entries());
+  const locations = Array.from(locationGroups.entries());
 
-  for (let i = 0; i < requests.length; i += concurrency) {
-    const batch = requests.slice(i, i + concurrency);
+  for (let i = 0; i < locations.length; i++) {
+    const [locKey, { lat, lon, dates }] = locations[i];
+    const sortedDates = Array.from(dates).sort();
+    const startDate = sortedDates[0];
+    const endDate = sortedDates[sortedDates.length - 1];
 
-    const batchResults = await Promise.all(
-      batch.map(async ([key, { lat, lon, date }]) => {
-        const weather = await fetchWeather(lat, lon, date);
-        return [key, weather] as const;
-      }),
-    );
+    const weatherByDate = await fetchWeatherForLocation(lat, lon, startDate, endDate);
 
-    for (const [key, weather] of batchResults) {
-      results.set(key, weather);
+    for (const date of dates) {
+      const key = `${locKey},${date}`;
+      results.set(key, weatherByDate?.get(date) ?? null);
     }
 
-    const completed = Math.min(i + concurrency, requests.length);
-    console.log(`  Weather progress: ${completed}/${requests.length}`);
-
-    if (i + concurrency < requests.length) {
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    }
+    console.log(`  Weather progress: ${i + 1}/${locations.length} locations`);
   }
 
   return results;
@@ -127,5 +138,5 @@ export function getWeatherKey(
 ): string {
   const [lat, lon] = coordinates;
   const date = eventDate.split("T")[0];
-  return `${lat.toFixed(4)},${lon.toFixed(4)},${date}`;
+  return `${locationKey(lat, lon)},${date}`;
 }
