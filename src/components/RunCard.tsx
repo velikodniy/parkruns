@@ -3,6 +3,7 @@ import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
 import { getEventCountryISO, getEventResultsUrl, getEventShortName, getEventUrl } from "../lib/parkrun/index.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
+import { WeatherBadge } from "./WeatherBadge.tsx";
 import { DAYS, formatDelta, getGenderSymbol } from "./run-utils.ts";
 
 interface Props {
@@ -93,6 +94,7 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
               {delta.text}
             </Text>
           )}
+          {run.weather && <Box mt={4}><WeatherBadge weather={run.weather} compact /></Box>}
         </Stack>
       </Group>
     </Paper>

@@ -4,6 +4,7 @@ import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
 import { getEventCountryISO, getEventResultsUrl, getEventShortName, getEventUrl } from "../lib/parkrun/index.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
+import { WeatherBadge } from "./WeatherBadge.tsx";
 import { computeAllTimePBs, DAYS, formatDelta, getGenderSymbol } from "./run-utils.ts";
 
 interface Props {
@@ -41,6 +42,7 @@ export function RunsTable({ runs }: Props) {
             <Table.Th>Position</Table.Th>
             <Table.Th>Time</Table.Th>
             <Table.Th>Age Grade</Table.Th>
+            <Table.Th>Weather</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -116,6 +118,10 @@ export function RunsTable({ runs }: Props) {
                     primary={`${run.ageGrade.toFixed(1)}%`}
                     secondary={delta ? <Text span c={delta.color} inherit>{delta.text}</Text> : "—"}
                   />
+                </Table.Td>
+
+                <Table.Td>
+                  <WeatherBadge weather={run.weather} />
                 </Table.Td>
               </Table.Tr>
             );

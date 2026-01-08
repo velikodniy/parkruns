@@ -8,6 +8,13 @@ export const AthleteSchema = z.object({
   homeRun: z.string().nullable(),
 });
 
+export const WeatherSchema = z.object({
+  temperatureC: z.number(),
+  weatherCode: z.number(),
+  windSpeedMs: z.number(),
+  windDirectionDeg: z.number(),
+});
+
 export const RunSchema = z.object({
   eventName: z.string().min(1),
   eventId: z.number().int().positive(),
@@ -22,6 +29,7 @@ export const RunSchema = z.object({
   ageCategory: z.string().min(1),
   wasPb: z.boolean(),
   wasFirstVisit: z.boolean(),
+  weather: WeatherSchema.nullable().optional(),
 });
 
 export const ProfileSchema = z.object({
@@ -44,5 +52,6 @@ export interface ChartProps {
 }
 
 export type Athlete = z.infer<typeof AthleteSchema>;
+export type Weather = z.infer<typeof WeatherSchema>;
 export type Run = z.infer<typeof RunSchema>;
 export type Profile = z.infer<typeof ProfileSchema>;

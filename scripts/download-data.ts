@@ -1,6 +1,7 @@
 import "@std/dotenv/load";
 import { authenticate, getAthlete, getRuns } from "../src/lib/parkrun/api.ts";
-import { getEventShortName } from "../src/lib/parkrun/index.ts";
+import { getEventCoordinates, getEventShortName } from "../src/lib/parkrun/index.ts";
+import { fetchWeatherForRuns, getWeatherKey } from "../src/lib/parkrun/weather.ts";
 import type { Profile } from "../src/types.ts";
 
 const ATHLETE_ID = Deno.env.get("PARKRUN_ATHLETE_ID");
@@ -31,11 +32,27 @@ async function downloadData(
   console.log("Fetching runs...");
   const runs = await getRuns(accessToken, numericId);
 
-  const enrichedRuns = runs.map((run) => ({
+  const runsWithCoordinates = runs.map((run) => ({
     ...run,
-    eventName: getEventShortName(run.eventId) ??
-      run.eventName.replace(/ parkrun$/i, ""),
+    coordinates: getEventCoordinates(run.eventId),
   }));
+
+  console.log("Fetching weather data...");
+  const weatherMap = await fetchWeatherForRuns(runsWithCoordinates);
+
+  const enrichedRuns = runsWithCoordinates.map((run) => {
+    const { coordinates, ...runData } = run;
+    const weather = coordinates
+      ? weatherMap.get(getWeatherKey(coordinates, run.eventDate)) ?? null
+      : null;
+
+    return {
+      ...runData,
+      eventName: getEventShortName(run.eventId) ??
+        run.eventName.replace(/ parkrun$/i, ""),
+      weather,
+    };
+  });
 
   const profile: Profile = {
     schemaVersion: 1,

@@ -17,3 +17,4 @@ export { RunsCardList } from "./RunsCardList.tsx";
 export { MonthlySummary } from "./MonthlySummary.tsx";
 export { ResponsiveRuns } from "./ResponsiveRuns.tsx";
 export { ResponsiveCalendar } from "./ResponsiveCalendar.tsx";
+export { WeatherBadge } from "./WeatherBadge.tsx";
