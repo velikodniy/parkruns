@@ -85,9 +85,9 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
 
         <Stack gap={0} align="flex-end">
           <Text size="lg" fw={600} style={{ fontVariantNumeric: "tabular-nums" }}>
+            <Text span c="dimmed" fw={400} size="sm">AG: </Text>
             {run.ageGrade.toFixed(1)}%
           </Text>
-          <Text size="xs" c="dimmed">Age Grade</Text>
           {delta && (
             <Text size="xs" c={delta.color} fw={500} style={{ fontVariantNumeric: "tabular-nums" }}>
               {delta.text}
