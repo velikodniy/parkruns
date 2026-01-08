@@ -23,10 +23,10 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
 
   return (
     <Paper withBorder p="sm" radius="sm">
-      <Group justify="space-between" align="flex-start" mb="xs" wrap="nowrap">
-        <Group gap={6} wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+      <Group justify="space-between" align="center" mb="xs" wrap="nowrap">
+        <Group gap={6} wrap="nowrap" style={{ minWidth: 0, flex: 1 }} align="center">
           {countryISO && (
-            <Box style={{ flexShrink: 0 }}>
+            <Box style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
               <CountryFlag countryCode={countryISO} size={14} />
             </Box>
           )}
@@ -49,12 +49,12 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
               href={resultsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: "inherit", textDecoration: "none", flexShrink: 0 }}
+              style={{ color: "inherit", textDecoration: "none", flexShrink: 0, display: "inline-flex", alignItems: "center" }}
             >
-              <Text size="xs" c="dimmed">#{run.eventEdition}</Text>
+              <Text size="xs" c="dimmed" span>#{run.eventEdition}</Text>
             </a>
           ) : (
-            <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>#{run.eventEdition}</Text>
+            <Text size="xs" c="dimmed" span style={{ flexShrink: 0 }}>#{run.eventEdition}</Text>
           )}
         </Group>
         <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
@@ -63,22 +63,24 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
       </Group>
 
       <Stack gap={4}>
-        <Group gap="xs" align="center">
-          <Text size="lg" fw={600} style={{ fontVariantNumeric: "tabular-nums" }}>
-            {formatTime(run.finishTimeSeconds)}
-          </Text>
-          {run.wasPb && isAllTimePB && (
-            <Badge color="blue" size="xs" variant="filled">PB</Badge>
-          )}
-          {run.wasPb && !isAllTimePB && (
-            <Badge color="gray" size="xs" variant="light">PB</Badge>
-          )}
-          <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums" }}>
+        <Stack gap={2}>
+          <Box style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Text size="lg" fw={600} span style={{ fontVariantNumeric: "tabular-nums" }}>
+              {formatTime(run.finishTimeSeconds)}
+            </Text>
+            {run.wasPb && isAllTimePB && (
+              <Badge color="blue" size="xs" variant="filled" style={{ flexShrink: 0 }}>PB</Badge>
+            )}
+            {run.wasPb && !isAllTimePB && (
+              <Badge color="gray" size="xs" variant="light" style={{ flexShrink: 0 }}>PB</Badge>
+            )}
+          </Box>
+          <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums", lineHeight: 1.4 }}>
             {formatPace(run.finishTimeSeconds)}
           </Text>
-        </Group>
+        </Stack>
 
-        <Group gap="md">
+        <Group gap="md" justify="space-between" wrap="wrap">
           <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums" }}>
             {run.position}/{run.totalFinishers}
             {" "}
