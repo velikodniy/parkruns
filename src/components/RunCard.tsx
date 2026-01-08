@@ -23,8 +23,8 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
 
   return (
     <Paper withBorder p="sm" radius="sm">
-      <Group justify="space-between" align="center" mb="xs" wrap="nowrap">
-        <Group gap={6} wrap="nowrap" style={{ minWidth: 0, flex: 1 }} align="center">
+      <Box mb="xs">
+        <Group gap={6} wrap="nowrap" align="center">
           {countryISO && (
             <Box style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
               <CountryFlag countryCode={countryISO} size={14} />
@@ -57,12 +57,12 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
             <Text size="xs" c="dimmed" span style={{ flexShrink: 0 }}>#{run.eventEdition}</Text>
           )}
         </Group>
-        <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>
+        <Text size="xs" c="dimmed">
           {DAYS[date.getDay()]} {date.toLocaleDateString()}
         </Text>
-      </Group>
+      </Box>
 
-      <Stack gap={4}>
+      <Group justify="space-between" align="flex-start" wrap="nowrap">
         <Stack gap={2}>
           <Box style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <Text size="lg" fw={600} span style={{ fontVariantNumeric: "tabular-nums" }}>
@@ -75,26 +75,26 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
               <Badge color="gray" size="xs" variant="light" style={{ flexShrink: 0 }}>PB</Badge>
             )}
           </Box>
-          <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums", lineHeight: 1.4 }}>
+          <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums" }}>
             {formatPace(run.finishTimeSeconds)}
+          </Text>
+          <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums" }}>
+            {run.position}/{run.totalFinishers} · {genderSymbol}{run.genderPosition} · Top {topPercent}%
           </Text>
         </Stack>
 
-        <Group gap="md" justify="space-between" wrap="wrap">
-          <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums" }}>
-            {run.position}/{run.totalFinishers}
-            {" "}
-            <Text span inherit>({genderSymbol}{run.genderPosition} · Top {topPercent}%)</Text>
-          </Text>
-          <Text size="xs" style={{ fontVariantNumeric: "tabular-nums" }}>
-            <Text span c="dimmed">AG:</Text>{" "}
+        <Stack gap={0} align="flex-end">
+          <Text size="lg" fw={600} style={{ fontVariantNumeric: "tabular-nums" }}>
             {run.ageGrade.toFixed(1)}%
-            {delta && (
-              <Text span c={delta.color} ml={4}>{delta.text}</Text>
-            )}
           </Text>
-        </Group>
-      </Stack>
+          <Text size="xs" c="dimmed">Age Grade</Text>
+          {delta && (
+            <Text size="xs" c={delta.color} fw={500} style={{ fontVariantNumeric: "tabular-nums" }}>
+              {delta.text}
+            </Text>
+          )}
+        </Stack>
+      </Group>
     </Paper>
   );
 }
