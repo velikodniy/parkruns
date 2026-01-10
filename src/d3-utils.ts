@@ -45,16 +45,34 @@ export function createTimeXScale(
   return d3.scaleTime().domain(extent).range([0, innerWidth]);
 }
 
+export interface XAxisOptions {
+  /** Custom tick formatter */
+  tickFormat?: (d: Date | d3.NumberValue) => string;
+  /** Padding between tick and label (default: 8) */
+  tickPadding?: number;
+  /** Target pixel spacing per tick (default: 80) */
+  tickSpacing?: number;
+}
+
 export function renderXAxis(
   g: d3.Selection<SVGGElement, unknown, null, undefined>,
   scale: d3.AxisScale<Date | d3.NumberValue>,
   innerHeight: number,
-  ticks = 6,
+  innerWidth: number,
+  options: XAxisOptions = {},
 ): void {
+  const { tickFormat, tickPadding = 8, tickSpacing = 80 } = options;
   const colors = getChartColors();
+  const tickCount = Math.max(2, Math.min(10, Math.floor(innerWidth / tickSpacing)));
+
+  const axis = d3.axisBottom(scale).ticks(tickCount).tickPadding(tickPadding);
+  if (tickFormat) {
+    axis.tickFormat(tickFormat as (d: d3.NumberValue) => string);
+  }
+
   g.append("g")
     .attr("transform", `translate(0,${innerHeight})`)
-    .call(d3.axisBottom(scale).ticks(ticks))
+    .call(axis)
     .attr("color", colors.axis);
 }
 

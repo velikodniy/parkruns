@@ -39,9 +39,10 @@ export function EventMixChart({ runs, width = 600, height = 400 }: ChartProps) {
 
       g.append("g").call(d3.axisLeft(y)).attr("color", colors.axis);
 
+      const tickCount = Math.max(2, Math.min(8, Math.floor(innerWidth / 60)));
       g.append("g")
         .attr("transform", `translate(0,${innerHeight})`)
-        .call(d3.axisBottom(x).ticks(5))
+        .call(d3.axisBottom(x).ticks(tickCount))
         .attr("color", colors.axis);
 
       g.selectAll(".bar")

@@ -46,7 +46,9 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
         .domain([minTime - 30, maxTime + 30])
         .range([innerHeight, 0]);
 
-      renderXAxis(g, x, innerHeight);
+      renderXAxis(g, x, innerHeight, innerWidth, {
+        tickFormat: d3.timeFormat("%b '%y"),
+      });
       renderYAxis(g, y, (d) => formatTime(d as number));
 
       const stepLine = d3
@@ -70,7 +72,8 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
         .attr("cx", (d: PBPoint) => x(d.date))
         .attr("cy", (d: PBPoint) => y(d.time))
         .attr("r", 5)
-        .attr("fill", colors.success);
+        .attr("fill", colors.success)
+        .attr("opacity", 0.85);
 
       g.selectAll(".pb-point")
         .on("mouseover", (event: MouseEvent, d: unknown) => {

@@ -54,7 +54,9 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
           .text(band.label);
       }
 
-      renderXAxis(g, x, innerHeight);
+      renderXAxis(g, x, innerHeight, innerWidth, {
+        tickFormat: d3.timeFormat("%b '%y"),
+      });
       renderYAxis(g, y, (d) => `${d}%`);
 
       const line = d3
@@ -69,15 +71,24 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
         .attr("stroke-width", 1.5)
         .attr("d", line);
 
+      const runsByDate = d3.group(sortedRuns, (d: Run) => d.eventDate);
+      const getJitterOffset = (run: Run): number => {
+        const runsOnDate = runsByDate.get(run.eventDate) ?? [];
+        if (runsOnDate.length <= 1) return 0;
+        const idx = runsOnDate.indexOf(run);
+        return (idx - (runsOnDate.length - 1) / 2) * 5;
+      };
+
       g.selectAll(".point")
         .data(sortedRuns)
         .enter()
         .append("circle")
         .attr("class", "point")
-        .attr("cx", (d: Run) => x(new Date(d.eventDate)))
+        .attr("cx", (d: Run) => x(new Date(d.eventDate)) + getJitterOffset(d))
         .attr("cy", (d: Run) => y(d.ageGrade))
         .attr("r", 3)
-        .attr("fill", colors.primary);
+        .attr("fill", colors.primary)
+        .attr("opacity", 0.8);
 
       g.selectAll(".point")
         .on("mouseover", (event: MouseEvent, d: unknown) => {

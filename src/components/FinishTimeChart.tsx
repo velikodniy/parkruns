@@ -36,7 +36,9 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         return d3.mean(window, (d: Run) => d.finishTimeSeconds) ?? 0;
       });
 
-      renderXAxis(g, x, innerHeight);
+      renderXAxis(g, x, innerHeight, innerWidth, {
+        tickFormat: d3.timeFormat("%b '%y"),
+      });
       renderYAxis(g, y, (d) => formatTime(d as number));
 
       const line = d3
@@ -67,15 +69,24 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
           .attr("d", avgLine);
       }
 
+      const runsByDate = d3.group(sortedRuns, (d: Run) => d.eventDate);
+      const getJitterOffset = (run: Run): number => {
+        const runsOnDate = runsByDate.get(run.eventDate) ?? [];
+        if (runsOnDate.length <= 1) return 0;
+        const idx = runsOnDate.indexOf(run);
+        return (idx - (runsOnDate.length - 1) / 2) * 5;
+      };
+
       g.selectAll(".point")
         .data(sortedRuns)
         .enter()
         .append("circle")
         .attr("class", "point")
-        .attr("cx", (d: Run) => x(new Date(d.eventDate)))
+        .attr("cx", (d: Run) => x(new Date(d.eventDate)) + getJitterOffset(d))
         .attr("cy", (d: Run) => y(d.finishTimeSeconds))
         .attr("r", (d: Run) => (d.wasPb ? 6 : 3))
-        .attr("fill", (d: Run) => (d.wasPb ? colors.success : colors.primary));
+        .attr("fill", (d: Run) => (d.wasPb ? colors.success : colors.primary))
+        .attr("opacity", 0.8);
 
       const legend = g.append("g").attr(
         "transform",

@@ -66,13 +66,21 @@ export function FinishTimeDistribution({
         .domain([minTime - 30, maxTime + 30])
         .range([innerHeight, 0]);
 
+      const maxTicks = Math.max(2, Math.floor(innerWidth / 50));
+      const tickStep = Math.max(1, Math.ceil(monthlyData.length / maxTicks));
+      const tickValues = monthlyData
+        .filter((_: MonthData, i: number) => i % tickStep === 0)
+        .map((d: MonthData) => d.month);
+
       g.append("g")
         .attr("transform", `translate(0,${innerHeight})`)
         .call(
-          d3.axisBottom(x).tickFormat((d: string) => {
-            const [year, month] = d.split("-");
-            return `${month}/${year.slice(2)}`;
-          }),
+          d3.axisBottom(x)
+            .tickValues(tickValues)
+            .tickFormat((d: string) => {
+              const [year, month] = d.split("-");
+              return `${month}/${year.slice(2)}`;
+            }),
         )
         .attr("color", colors.axis)
         .selectAll("text")
