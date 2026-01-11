@@ -2,6 +2,13 @@ export const THEME_STORAGE_KEY = "parkrun-color-scheme";
 
 export type ColorScheme = "light" | "dark";
 
+interface AgeGradeTiers {
+  worldClass: string;
+  nationalClass: string;
+  regionalClass: string;
+  localClass: string;
+}
+
 interface ChartColors {
   primary: string;
   success: string;
@@ -13,6 +20,7 @@ interface ChartColors {
   box: string;
   boxStroke: string;
   inactive: string;
+  ageGrade: AgeGradeTiers;
 }
 
 const darkChartColors: ChartColors = {
@@ -26,6 +34,12 @@ const darkChartColors: ChartColors = {
   box: "#364fc7",
   boxStroke: "#4c6ef5",
   inactive: "#2c2e33",
+  ageGrade: {
+    worldClass: "#ae3ec9",
+    nationalClass: "#40c057",
+    regionalClass: "#fab005",
+    localClass: "#ff6b6b",
+  },
 };
 
 const lightChartColors: ChartColors = {
@@ -39,6 +53,12 @@ const lightChartColors: ChartColors = {
   box: "#4263eb",
   boxStroke: "#5c7cfa",
   inactive: "#e9ecef",
+  ageGrade: {
+    worldClass: "#9c36b5",
+    nationalClass: "#2f9e44",
+    regionalClass: "#f08c00",
+    localClass: "#e03131",
+  },
 };
 
 let currentColorScheme: ColorScheme = "dark";

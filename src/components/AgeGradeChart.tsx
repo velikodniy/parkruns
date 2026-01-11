@@ -20,9 +20,10 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
       const sortedRuns = sortRunsByDate(runs);
 
       const ageGradeBands = [
-        { y: 80, label: "80%", color: colors.success },
-        { y: 70, label: "70%", color: colors.warning },
-        { y: 60, label: "60%", color: "#ff6b6b" },
+        { y: 90, label: "90%", color: colors.ageGrade.worldClass, description: "World Class" },
+        { y: 80, label: "80%", color: colors.ageGrade.nationalClass, description: "National Class" },
+        { y: 70, label: "70%", color: colors.ageGrade.regionalClass, description: "Regional Class" },
+        { y: 60, label: "60%", color: colors.ageGrade.localClass, description: "Local Class" },
       ];
 
       const x = createTimeXScale(sortedRuns, innerWidth);
@@ -35,23 +36,68 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
         .domain([minAgeGrade - 5, 100])
         .range([innerHeight, 0]);
 
-      for (const band of ageGradeBands) {
+      const minHitboxHeight = 44;
+      const bandPositions = ageGradeBands.map((band) => ({
+        ...band,
+        yPos: y(band.y),
+      }));
+
+      for (let i = 0; i < bandPositions.length; i++) {
+        const band = bandPositions[i];
+        const prevBandY = i > 0 ? bandPositions[i - 1].yPos : 0;
+        const nextBandY =
+          i < bandPositions.length - 1
+            ? bandPositions[i + 1].yPos
+            : innerHeight;
+
+        const spaceAbove = band.yPos - prevBandY;
+        const spaceBelow = nextBandY - band.yPos;
+        const hitboxTop = band.yPos - Math.min(spaceAbove / 2, minHitboxHeight / 2);
+        const hitboxBottom = band.yPos + Math.min(spaceBelow / 2, minHitboxHeight / 2);
+        const hitboxHeight = hitboxBottom - hitboxTop;
+
         g.append("line")
           .attr("x1", 0)
           .attr("x2", innerWidth)
-          .attr("y1", y(band.y))
-          .attr("y2", y(band.y))
+          .attr("y1", band.yPos)
+          .attr("y2", band.yPos)
           .attr("stroke", band.color)
           .attr("stroke-dasharray", "4,4")
           .attr("opacity", 0.5);
 
         g.append("text")
           .attr("x", innerWidth + 5)
-          .attr("y", y(band.y))
+          .attr("y", band.yPos)
           .attr("dy", "0.35em")
           .attr("font-size", "10px")
           .attr("fill", band.color)
+          .attr("pointer-events", "none")
           .text(band.label);
+
+        g.append("rect")
+          .attr("x", 0)
+          .attr("y", hitboxTop)
+          .attr("width", innerWidth + 35)
+          .attr("height", hitboxHeight)
+          .attr("fill", "transparent")
+          .attr("cursor", "pointer")
+          .on("mouseover", (event: MouseEvent) => {
+            showTooltip(tooltip, event, [
+              { text: `${band.label} · ${band.description}`, bold: true },
+              { text: "WMA age-grading standard" },
+            ]);
+          })
+          .on("mouseout", () => hideTooltip(tooltip))
+          .on("touchstart", (event: TouchEvent) => {
+            event.preventDefault();
+            const touch = event.touches[0];
+            if (!touch) return;
+            showTooltip(tooltip, touch, [
+              { text: `${band.label} · ${band.description}`, bold: true },
+              { text: "WMA age-grading standard" },
+            ]);
+          })
+          .on("touchend", () => hideTooltip(tooltip));
       }
 
       renderXAxis(g, x, innerHeight, innerWidth, {

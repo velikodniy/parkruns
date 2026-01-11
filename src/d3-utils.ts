@@ -88,9 +88,14 @@ export function renderYAxis(
   g.append("g").call(axis).attr("color", colors.axis);
 }
 
+export interface PointerPosition {
+  pageX: number;
+  pageY: number;
+}
+
 export function showTooltip(
   tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, undefined>,
-  event: MouseEvent,
+  position: PointerPosition,
   content: TooltipContent,
 ): void {
   tooltip.selectAll("*").remove();
@@ -106,8 +111,8 @@ export function showTooltip(
 
   tooltip
     .style("opacity", 1)
-    .style("left", `${event.pageX + 10}px`)
-    .style("top", `${event.pageY - 10}px`);
+    .style("left", `${position.pageX + 10}px`)
+    .style("top", `${position.pageY - 10}px`);
 }
 
 export function hideTooltip(
