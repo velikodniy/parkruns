@@ -2,13 +2,8 @@
 node_modules/
 dist/
 
-# Generated data
+# User data
 public/data.json
 
 # Local credentials
 .env
-generate.sh
-
-# Scaffold files
-mod.ts
-mod_test.ts
