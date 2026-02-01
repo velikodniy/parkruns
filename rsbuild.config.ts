@@ -1,5 +1,6 @@
 import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
+import fs from "node:fs";
 
 const themeInitScript = `
 (function() {
@@ -9,6 +10,18 @@ const themeInitScript = `
   document.documentElement.setAttribute('data-mantine-color-scheme', scheme);
 })();
 `;
+
+let athleteName = "";
+try {
+  const data = JSON.parse(fs.readFileSync("./public/data.json", "utf-8"));
+  athleteName = data.athlete.fullName;
+} catch (e) {
+  console.warn("Could not read athlete name from data.json", e);
+}
+
+const pageTitle = athleteName
+  ? `${athleteName} — Parkrun Profile`
+  : "Parkrun Profile";
 
 export default defineConfig({
   plugins: [pluginReact()],
@@ -21,14 +34,14 @@ export default defineConfig({
     assetPrefix: "./",
   },
   html: {
-    title: "Parkrun Profile",
+    title: pageTitle,
     meta: {
       description:
         "Track your parkrun results, statistics, and personal records",
       robots: "index, follow",
       "og:title": {
         property: "og:title",
-        content: "Parkrun Profile",
+        content: pageTitle,
       },
       "og:description": {
         property: "og:description",
@@ -48,7 +61,7 @@ export default defineConfig({
       },
       "twitter:title": {
         name: "twitter:title",
-        content: "Parkrun Profile",
+        content: pageTitle,
       },
       "twitter:description": {
         name: "twitter:description",
