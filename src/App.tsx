@@ -15,7 +15,6 @@ import {
   FinishTimeChart,
   FinishTimeDistribution,
   LoadingState,
-  PBProgressionChart,
   ResponsiveCalendar,
   ResponsiveChartCard,
   ResponsiveRuns,
@@ -135,12 +134,6 @@ export function App() {
         <ResponsiveChartCard title="Finish Time Over Time">
           {(width) => (
             <FinishTimeChart runs={sortedRuns} width={width} height={280} />
-          )}
-        </ResponsiveChartCard>
-
-        <ResponsiveChartCard title="PB Progression">
-          {(width) => (
-            <PBProgressionChart runs={sortedRuns} width={width} height={280} />
           )}
         </ResponsiveChartCard>
 

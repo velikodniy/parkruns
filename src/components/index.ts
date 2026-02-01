@@ -1,5 +1,6 @@
 export { FinishTimeChart } from "./FinishTimeChart.tsx";
-export { PBProgressionChart } from "./PBProgressionChart.tsx";
+export { MonthlySummary } from "./MonthlySummary.tsx";
+export { ResponsiveCalendar } from "./ResponsiveCalendar.tsx";
 export { AgeGradeChart } from "./AgeGradeChart.tsx";
 export { FinishTimeDistribution } from "./FinishTimeDistribution.tsx";
 export { ConsistencyCalendar } from "./ConsistencyCalendar.tsx";
@@ -14,9 +15,7 @@ export { ResponsiveChartCard } from "./ResponsiveChartCard.tsx";
 export { ThemeToggle } from "./ThemeToggle.tsx";
 export { RunCard } from "./RunCard.tsx";
 export { RunsCardList } from "./RunsCardList.tsx";
-export { MonthlySummary } from "./MonthlySummary.tsx";
 export { ResponsiveRuns } from "./ResponsiveRuns.tsx";
-export { ResponsiveCalendar } from "./ResponsiveCalendar.tsx";
 export { WeatherBadge } from "./WeatherBadge.tsx";
 export { LoadingState } from "./LoadingState.tsx";
 export { ErrorState } from "./ErrorState.tsx";
