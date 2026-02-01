@@ -6,6 +6,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import { IconHome, IconUsers } from "@tabler/icons-react";
 import {
   AgeGradeChart,
   ChartCard,
@@ -57,20 +58,32 @@ export function App() {
 
   return (
     <Container size="lg" py="xl">
-      <Group justify="space-between" align="flex-start" mb="xs">
+      <Group justify="space-between" align="flex-start" mb={4}>
         <Title order={1}>
           {athlete.fullName}
         </Title>
         <ThemeToggle />
       </Group>
-      <Text c="dimmed" mb="sm">
-        {[
-          athlete.homeRun &&
-          `Home: ${athlete.homeRunShortName ?? athlete.homeRun}`,
-          athlete.clubName && athlete.clubName !== "Unattached" &&
-          `Club: ${athlete.clubName}`,
-        ].filter(Boolean).join(" | ") || "—"}
-      </Text>
+
+      <Group gap="md" mb={12}>
+        {athlete.homeRun && (
+          <Group gap={6}>
+            <IconHome size={20} color="gray" />
+            <Text size="lg" c="dimmed" fw={500}>
+              {athlete.homeRunShortName ?? athlete.homeRun}
+            </Text>
+          </Group>
+        )}
+
+        {athlete.clubName && athlete.clubName !== "Unattached" && (
+          <Group gap={6}>
+            <IconUsers size={20} color="gray" />
+            <Text size="lg" c="dimmed" fw={500}>
+              {athlete.clubName}
+            </Text>
+          </Group>
+        )}
+      </Group>
 
       {visitedCountries.length > 0 && (
         <Group gap="xs" mb="xl">
