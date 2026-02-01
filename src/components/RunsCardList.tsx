@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import { Box, Card, Group, Pagination, Stack, Title } from "@mantine/core";
+import { useMemo } from "react";
+import { Card, Group, Pagination, Stack, Text, Title } from "@mantine/core";
+import { usePagination } from "@mantine/hooks";
 import type { Run } from "../types.ts";
 import { RunCard } from "./RunCard.tsx";
 import { computeAllTimePBs } from "./run-utils.ts";
@@ -11,47 +12,46 @@ interface Props {
 const PAGE_SIZE = 10;
 
 export function RunsCardList({ runs }: Props) {
-  const [activePage, setPage] = useState(1);
-  const totalPages = Math.ceil(runs.length / PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(runs.length / PAGE_SIZE));
+  const pagination = usePagination({
+    total: totalPages,
+    initialPage: 1,
+  });
 
   const allTimePBs = useMemo(() => computeAllTimePBs(runs), [runs]);
 
   const displayedRuns = useMemo(() => {
-    const start = (activePage - 1) * PAGE_SIZE;
+    const start = (pagination.active - 1) * PAGE_SIZE;
     return runs.slice(start, start + PAGE_SIZE);
-  }, [runs, activePage]);
+  }, [runs, pagination.active]);
+
+  const startIdx = (pagination.active - 1) * PAGE_SIZE + 1;
+  const endIdx = Math.min(pagination.active * PAGE_SIZE, runs.length);
+  const rangeText = runs.length > 0
+    ? `${startIdx}–${endIdx} of ${runs.length}`
+    : "0 runs";
 
   return (
     <Card withBorder>
       <Group justify="space-between" align="center" mb="md">
         <Title order={3}>All Runs</Title>
-        <Pagination
-          total={totalPages}
-          value={activePage}
-          onChange={setPage}
-          size="sm"
-          radius="md"
-          siblings={1}
-          boundaries={1}
-        >
-          <Group gap={5} wrap="nowrap">
-            <Pagination.Previous />
-            <Box visibleFrom="xs">
-              <Pagination.Items />
-            </Box>
-            <Box hiddenFrom="xs">
-              <Pagination.Control>
-                {activePage}
-              </Pagination.Control>
-            </Box>
-            <Pagination.Next />
-          </Group>
-        </Pagination>
+        <Group gap="xs" wrap="nowrap">
+          <Text size="xs" c="dimmed" fw={500} style={{ whiteSpace: "nowrap" }}>
+            {rangeText}
+          </Text>
+          <Pagination
+            total={totalPages}
+            value={pagination.active}
+            onChange={pagination.setPage}
+            size="sm"
+            withPages={false}
+          />
+        </Group>
       </Group>
 
       <Stack gap="sm">
         {displayedRuns.map((run: Run, index: number) => {
-          const globalIndex = (activePage - 1) * PAGE_SIZE + index;
+          const globalIndex = (pagination.active - 1) * PAGE_SIZE + index;
           const previousRun = globalIndex < runs.length - 1
             ? runs[globalIndex + 1]
             : null;
