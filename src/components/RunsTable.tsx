@@ -25,6 +25,76 @@ function Cell({ primary, secondary }: CellProps) {
   );
 }
 
+const linkStyle = { color: "inherit", textDecoration: "none" };
+
+function EventLink({ url, children }: { url: string | null; children: React.ReactNode }) {
+  if (!url) return <>{children}</>;
+  return (
+    <a 
+      href={url} 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      style={linkStyle} 
+      onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} 
+      onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
+    >
+      {children}
+    </a>
+  );
+}
+
+interface EventCellProps {
+  eventId: number;
+  eventName: string;
+  eventEdition: number;
+}
+
+function EventCell({ eventId, eventName, eventEdition }: EventCellProps) {
+  const countryISO = getEventCountryISO(eventId);
+  const url = getEventUrl(eventId);
+  const resultsUrl = getEventResultsUrl(eventId, eventEdition);
+  const name = getEventShortName(eventId) ?? eventName;
+
+  return (
+    <Cell
+      primary={
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ width: 16, display: "inline-flex", justifyContent: "center" }}>
+            {countryISO && <CountryFlag countryCode={countryISO} size={10} />}
+          </span>
+          <EventLink url={url}>{name}</EventLink>
+          <EventLink url={resultsUrl}>
+            <Text span size="xs" c="dimmed">#{eventEdition}</Text>
+          </EventLink>
+        </span>
+      }
+    />
+  );
+}
+
+interface TimeCellProps {
+  finishTimeSeconds: number;
+  wasPb: boolean;
+  isAllTimePB: boolean;
+}
+
+function TimeCell({ finishTimeSeconds, wasPb, isAllTimePB }: TimeCellProps) {
+  return (
+    <div>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span>{formatTime(finishTimeSeconds)}</span>
+        {wasPb && isAllTimePB && (
+          <Badge color="blue" size="xs" variant="filled" style={{ flexShrink: 0 }}>PB</Badge>
+        )}
+        {wasPb && !isAllTimePB && (
+          <Badge color="gray" size="xs" variant="light" style={{ flexShrink: 0 }}>PB</Badge>
+        )}
+      </span>
+      <Text size="xs" c="dimmed" style={{ lineHeight: 1.4 }}>{formatPace(finishTimeSeconds)}</Text>
+    </div>
+  );
+}
+
 export function RunsTable({ runs }: Props) {
   const allTimePBs = useMemo(() => computeAllTimePBs(runs), [runs]);
 
@@ -62,32 +132,10 @@ export function RunsTable({ runs }: Props) {
                 </Table.Td>
 
                 <Table.Td>
-                  <Cell
-                    primary={
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ width: 16, display: "inline-flex", justifyContent: "center" }}>
-                          {(() => {
-                            const countryISO = getEventCountryISO(run.eventId);
-                            return countryISO ? <CountryFlag countryCode={countryISO} size={10} /> : null;
-                          })()}
-                        </span>
-                        {(() => {
-                          const url = getEventUrl(run.eventId);
-                          const name = getEventShortName(run.eventId) ?? run.eventName;
-                          return url ? (
-                            <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}>{name}</a>
-                          ) : name;
-                        })()}
-                        {(() => {
-                          const resultsUrl = getEventResultsUrl(run.eventId, run.eventEdition);
-                          return resultsUrl ? (
-                            <a href={resultsUrl} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"} onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}>
-                              <Text span size="xs" c="dimmed">#{run.eventEdition}</Text>
-                            </a>
-                          ) : <Text span size="xs" c="dimmed">#{run.eventEdition}</Text>;
-                        })()}
-                      </span>
-                    }
+                  <EventCell
+                    eventId={run.eventId}
+                    eventName={run.eventName}
+                    eventEdition={run.eventEdition}
                   />
                 </Table.Td>
 
@@ -99,18 +147,11 @@ export function RunsTable({ runs }: Props) {
                 </Table.Td>
 
                 <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
-                  <div>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      <span>{formatTime(run.finishTimeSeconds)}</span>
-                      {run.wasPb && isAllTimePB && (
-                        <Badge color="blue" size="xs" variant="filled" style={{ flexShrink: 0 }}>PB</Badge>
-                      )}
-                      {run.wasPb && !isAllTimePB && (
-                        <Badge color="gray" size="xs" variant="light" style={{ flexShrink: 0 }}>PB</Badge>
-                      )}
-                    </span>
-                  </div>
-                  <Text size="xs" c="dimmed" style={{ lineHeight: 1.4 }}>{formatPace(run.finishTimeSeconds)}</Text>
+                  <TimeCell
+                    finishTimeSeconds={run.finishTimeSeconds}
+                    wasPb={run.wasPb}
+                    isAllTimePB={isAllTimePB}
+                  />
                 </Table.Td>
 
                 <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
