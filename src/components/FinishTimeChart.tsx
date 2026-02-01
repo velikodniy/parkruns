@@ -12,7 +12,9 @@ import {
   sortRunsByDate,
 } from "../d3-utils.ts";
 
-export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps) {
+export function FinishTimeChart(
+  { runs, width = 600, height = 300 }: ChartProps,
+) {
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
@@ -105,7 +107,10 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         .attr("stroke", colors.warning)
         .attr("stroke-width", 2)
         .attr("stroke-dasharray", "5,5");
-      legend.append("text").attr("x", 25).attr("y", 19).attr("font-size", "11px")
+      legend.append("text").attr("x", 25).attr("y", 19).attr(
+        "font-size",
+        "11px",
+      )
         .attr("fill", colors.axis).text(`${windowSize}-run average`);
 
       legend
@@ -114,7 +119,10 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         .attr("cy", 30)
         .attr("r", 5)
         .attr("fill", colors.success);
-      legend.append("text").attr("x", 25).attr("y", 34).attr("font-size", "11px")
+      legend.append("text").attr("x", 25).attr("y", 34).attr(
+        "font-size",
+        "11px",
+      )
         .attr("fill", colors.axis).text("PB");
 
       attachTooltipHandlers(
@@ -123,7 +131,11 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
         (run) => [
           { text: getEventShortName(run.eventId) ?? run.eventName, bold: true },
           { text: new Date(run.eventDate).toLocaleDateString() },
-          { text: `Time: ${formatTime(run.finishTimeSeconds)}${run.wasPb ? " (PB!)" : ""}` },
+          {
+            text: `Time: ${formatTime(run.finishTimeSeconds)}${
+              run.wasPb ? " (PB!)" : ""
+            }`,
+          },
         ],
       );
     },

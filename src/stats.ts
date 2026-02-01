@@ -2,7 +2,7 @@ import type { Run } from "./types.ts";
 
 export function sortRunsByDateDesc(runs: Run[]): Run[] {
   return [...runs].sort(
-    (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()
+    (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
   );
 }
 
@@ -42,7 +42,9 @@ function getNextWeek(weekStr: string): string {
 
 function countCurrentStreak(weeks: Set<string>, currentWeek: string): number {
   let streak = 0;
-  let checkWeek = weeks.has(currentWeek) ? currentWeek : getPreviousWeek(currentWeek);
+  let checkWeek = weeks.has(currentWeek)
+    ? currentWeek
+    : getPreviousWeek(currentWeek);
 
   const sortedWeeks = [...weeks].sort().reverse();
   for (const week of sortedWeeks) {
@@ -121,7 +123,8 @@ export function computeRunStats(runs: Run[]): RunStats {
   let bestAgeGrade = 0;
   let bestAgeGradeCategory = "";
   let bestTopPercent = 100;
-  let bestTopPercentRun: { position: number; totalFinishers: number } | null = null;
+  let bestTopPercentRun: { position: number; totalFinishers: number } | null =
+    null;
   const events = new Set<string>();
   const recent5Times: number[] = [];
 
@@ -140,7 +143,10 @@ export function computeRunStats(runs: Run[]): RunStats {
     const topPercent = (run.position / run.totalFinishers) * 100;
     if (topPercent < bestTopPercent) {
       bestTopPercent = topPercent;
-      bestTopPercentRun = { position: run.position, totalFinishers: run.totalFinishers };
+      bestTopPercentRun = {
+        position: run.position,
+        totalFinishers: run.totalFinishers,
+      };
     }
 
     events.add(run.eventName);

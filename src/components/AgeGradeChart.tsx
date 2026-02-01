@@ -20,10 +20,30 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
       const sortedRuns = sortRunsByDate(runs);
 
       const ageGradeBands = [
-        { y: 90, label: "90%", color: colors.ageGrade.worldClass, description: "World Class" },
-        { y: 80, label: "80%", color: colors.ageGrade.nationalClass, description: "National Class" },
-        { y: 70, label: "70%", color: colors.ageGrade.regionalClass, description: "Regional Class" },
-        { y: 60, label: "60%", color: colors.ageGrade.localClass, description: "Local Class" },
+        {
+          y: 90,
+          label: "90%",
+          color: colors.ageGrade.worldClass,
+          description: "World Class",
+        },
+        {
+          y: 80,
+          label: "80%",
+          color: colors.ageGrade.nationalClass,
+          description: "National Class",
+        },
+        {
+          y: 70,
+          label: "70%",
+          color: colors.ageGrade.regionalClass,
+          description: "Regional Class",
+        },
+        {
+          y: 60,
+          label: "60%",
+          color: colors.ageGrade.localClass,
+          description: "Local Class",
+        },
       ];
 
       const x = createTimeXScale(sortedRuns, innerWidth);
@@ -45,15 +65,16 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
       for (let i = 0; i < bandPositions.length; i++) {
         const band = bandPositions[i];
         const prevBandY = i > 0 ? bandPositions[i - 1].yPos : 0;
-        const nextBandY =
-          i < bandPositions.length - 1
-            ? bandPositions[i + 1].yPos
-            : innerHeight;
+        const nextBandY = i < bandPositions.length - 1
+          ? bandPositions[i + 1].yPos
+          : innerHeight;
 
         const spaceAbove = band.yPos - prevBandY;
         const spaceBelow = nextBandY - band.yPos;
-        const hitboxTop = band.yPos - Math.min(spaceAbove / 2, minHitboxHeight / 2);
-        const hitboxBottom = band.yPos + Math.min(spaceBelow / 2, minHitboxHeight / 2);
+        const hitboxTop = band.yPos -
+          Math.min(spaceAbove / 2, minHitboxHeight / 2);
+        const hitboxBottom = band.yPos +
+          Math.min(spaceBelow / 2, minHitboxHeight / 2);
         const hitboxHeight = hitboxBottom - hitboxTop;
 
         g.append("line")

@@ -1,7 +1,13 @@
 import "@std/dotenv/load";
 import { authenticate, getAthlete, getRuns } from "../src/lib/parkrun/api.ts";
-import { getEventCoordinates, getEventShortName } from "../src/lib/parkrun/index.ts";
-import { fetchWeatherForRuns, getWeatherKey } from "../src/lib/parkrun/weather.ts";
+import {
+  getEventCoordinates,
+  getEventShortName,
+} from "../src/lib/parkrun/index.ts";
+import {
+  fetchWeatherForRuns,
+  getWeatherKey,
+} from "../src/lib/parkrun/weather.ts";
 import type { Profile } from "../src/types.ts";
 
 const ATHLETE_ID = Deno.env.get("PARKRUN_ATHLETE_ID");

@@ -1,9 +1,12 @@
 # Parkrun Profile
 
-Static dashboard displaying parkrun results with D3.js visualizations. Data refreshed weekly via GitHub Actions, hosted on Deno Deploy.
+Static dashboard displaying parkrun results with D3.js visualizations. Data
+refreshed weekly via GitHub Actions, hosted on Deno Deploy.
 
 > [!WARNING]
-> This project uses an unofficial, reverse-engineered parkrun API. It is NOT affiliated with, endorsed by, or connected to parkrun Limited. Use at your own risk.
+> This project uses an unofficial, reverse-engineered parkrun API. It is NOT
+> affiliated with, endorsed by, or connected to parkrun Limited. Use at your own
+> risk.
 
 ## Local Development
 
@@ -30,7 +33,8 @@ Then run `deno task download` to fetch your parkrun results.
 
 - GitHub Actions runs weekly (Saturdays 12:00 UTC) or on manual trigger
 - Downloads results from parkrun API
-- Builds static React dashboard  
+- Builds static React dashboard
 - Deploys to Deno Deploy
 
-**Note:** The API credentials are only used during data download. They are NOT bundled into the static website.
+**Note:** The API credentials are only used during data download. They are NOT
+bundled into the static website.

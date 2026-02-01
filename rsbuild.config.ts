@@ -23,7 +23,8 @@ export default defineConfig({
   html: {
     title: "Parkrun Profile",
     meta: {
-      description: "Track your parkrun results, statistics, and personal records",
+      description:
+        "Track your parkrun results, statistics, and personal records",
       robots: "index, follow",
       "og:title": {
         property: "og:title",

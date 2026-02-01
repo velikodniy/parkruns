@@ -4,7 +4,9 @@ interface CountryFlagProps {
   title?: string;
 }
 
-export function CountryFlag({ countryCode, size = 16, title }: CountryFlagProps) {
+export function CountryFlag(
+  { countryCode, size = 16, title }: CountryFlagProps,
+) {
   return (
     <img
       src={`https://flagcdn.com/${countryCode.toLowerCase()}.svg`}

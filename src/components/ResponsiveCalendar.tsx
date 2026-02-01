@@ -17,7 +17,11 @@ export function ResponsiveCalendar({ runs }: Props) {
       <Box hiddenFrom="sm">
         <MonthlySummary runs={runs} />
       </Box>
-      <Box visibleFrom="sm" ref={ref} style={{ width: "100%", overflowX: "auto" }}>
+      <Box
+        visibleFrom="sm"
+        ref={ref}
+        style={{ width: "100%", overflowX: "auto" }}
+      >
         {width > 0 && <ConsistencyCalendar runs={runs} width={calendarWidth} />}
       </Box>
     </>

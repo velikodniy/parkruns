@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, type ReactNode, useContext, useMemo } from "react";
 import { useMantineColorScheme } from "@mantine/core";
 import { THEME_STORAGE_KEY } from "../theme.ts";
 
@@ -85,13 +85,15 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
-  
+
   // Normalize "auto" to actual scheme (fallback to dark)
-  const resolvedScheme: ColorScheme = colorScheme === "light" ? "light" : "dark";
-  
+  const resolvedScheme: ColorScheme = colorScheme === "light"
+    ? "light"
+    : "dark";
+
   const colors = useMemo(
     () => (resolvedScheme === "dark" ? darkChartColors : lightChartColors),
-    [resolvedScheme]
+    [resolvedScheme],
   );
 
   const toggle = () => {
@@ -102,7 +104,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const value = useMemo(
     () => ({ colorScheme: resolvedScheme, colors, toggle }),
-    [resolvedScheme, colors]
+    [resolvedScheme, colors],
   );
 
   return (

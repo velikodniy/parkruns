@@ -1,7 +1,12 @@
 import { Badge, Box, Group, Paper, Stack, Text } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
-import { getEventCountryISO, getEventResultsUrl, getEventShortName, getEventUrl } from "../lib/parkrun/index.ts";
+import {
+  getEventCountryISO,
+  getEventResultsUrl,
+  getEventShortName,
+  getEventUrl,
+} from "../lib/parkrun/index.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 import { WeatherBadge } from "./WeatherBadge.tsx";
 import { DAYS, formatDelta, getGenderSymbol } from "./run-utils.ts";
@@ -27,36 +32,48 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
       <Box mb="xs">
         <Group gap={6} wrap="nowrap" align="center">
           {countryISO && (
-            <Box style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+            <Box
+              style={{ flexShrink: 0, display: "flex", alignItems: "center" }}
+            >
               <CountryFlag countryCode={countryISO} size={14} />
             </Box>
           )}
           <Text size="sm" fw={500} truncate style={{ minWidth: 0 }}>
-            {eventUrl ? (
+            {eventUrl
+              ? (
+                <a
+                  href={eventUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "inherit", textDecoration: "none" }}
+                >
+                  {eventName}
+                </a>
+              )
+              : eventName}
+          </Text>
+          {resultsUrl
+            ? (
               <a
-                href={eventUrl}
+                href={resultsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "inherit", textDecoration: "none" }}
+                style={{
+                  color: "inherit",
+                  textDecoration: "none",
+                  flexShrink: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                }}
               >
-                {eventName}
+                <Text size="xs" c="dimmed" span>#{run.eventEdition}</Text>
               </a>
-            ) : (
-              eventName
+            )
+            : (
+              <Text size="xs" c="dimmed" span style={{ flexShrink: 0 }}>
+                #{run.eventEdition}
+              </Text>
             )}
-          </Text>
-          {resultsUrl ? (
-            <a
-              href={resultsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "inherit", textDecoration: "none", flexShrink: 0, display: "inline-flex", alignItems: "center" }}
-            >
-              <Text size="xs" c="dimmed" span>#{run.eventEdition}</Text>
-            </a>
-          ) : (
-            <Text size="xs" c="dimmed" span style={{ flexShrink: 0 }}>#{run.eventEdition}</Text>
-          )}
         </Group>
         <Text size="xs" c="dimmed">
           {DAYS[date.getDay()]} {date.toLocaleDateString()}
@@ -66,35 +83,76 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
       <Group justify="space-between" align="flex-start" wrap="nowrap">
         <Stack gap={2}>
           <Box style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <Text size="lg" fw={600} span style={{ fontVariantNumeric: "tabular-nums" }}>
+            <Text
+              size="lg"
+              fw={600}
+              span
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
               {formatTime(run.finishTimeSeconds)}
             </Text>
             {run.wasPb && isAllTimePB && (
-              <Badge color="blue" size="xs" variant="filled" style={{ flexShrink: 0 }}>PB</Badge>
+              <Badge
+                color="blue"
+                size="xs"
+                variant="filled"
+                style={{ flexShrink: 0 }}
+              >
+                PB
+              </Badge>
             )}
             {run.wasPb && !isAllTimePB && (
-              <Badge color="gray" size="xs" variant="light" style={{ flexShrink: 0 }}>PB</Badge>
+              <Badge
+                color="gray"
+                size="xs"
+                variant="light"
+                style={{ flexShrink: 0 }}
+              >
+                PB
+              </Badge>
             )}
           </Box>
-          <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums" }}>
+          <Text
+            size="xs"
+            c="dimmed"
+            style={{ fontVariantNumeric: "tabular-nums" }}
+          >
             {formatPace(run.finishTimeSeconds)}
           </Text>
-          <Text size="xs" c="dimmed" style={{ fontVariantNumeric: "tabular-nums" }}>
-            {run.position}/{run.totalFinishers} · {genderSymbol}{run.genderPosition} · Top {topPercent}%
+          <Text
+            size="xs"
+            c="dimmed"
+            style={{ fontVariantNumeric: "tabular-nums" }}
+          >
+            {run.position}/{run.totalFinishers} · {genderSymbol}
+            {run.genderPosition} · Top {topPercent}%
           </Text>
         </Stack>
 
         <Stack gap={0} align="flex-end">
-          <Text size="lg" fw={600} style={{ fontVariantNumeric: "tabular-nums" }}>
-            <Text span c="dimmed" fw={400} size="sm">AG: </Text>
+          <Text
+            size="lg"
+            fw={600}
+            style={{ fontVariantNumeric: "tabular-nums" }}
+          >
+            <Text span c="dimmed" fw={400} size="sm">AG:</Text>
             {run.ageGrade.toFixed(1)}%
           </Text>
           {delta && (
-            <Text size="xs" c={delta.color} fw={500} style={{ fontVariantNumeric: "tabular-nums" }}>
+            <Text
+              size="xs"
+              c={delta.color}
+              fw={500}
+              style={{ fontVariantNumeric: "tabular-nums" }}
+            >
               {delta.text}
             </Text>
           )}
-          {run.weather && <Box mt={4}><WeatherBadge weather={run.weather} compact /></Box>}
+          {run.weather && (
+            <Box mt={4}>
+              <WeatherBadge weather={run.weather} compact />
+            </Box>
+          )}
         </Stack>
       </Group>
     </Paper>

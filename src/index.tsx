@@ -3,7 +3,7 @@ import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { App } from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
-import { ThemeProvider, type ColorScheme } from "./context/ThemeContext.tsx";
+import { type ColorScheme, ThemeProvider } from "./context/ThemeContext.tsx";
 import { THEME_STORAGE_KEY } from "./theme.ts";
 
 function getInitialColorScheme(): ColorScheme {

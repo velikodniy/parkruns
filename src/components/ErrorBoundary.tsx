@@ -34,7 +34,9 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <Alert color="red" title="Something went wrong">
           <Stack gap="sm">
-            <span>{this.state.error?.message || "An unexpected error occurred"}</span>
+            <span>
+              {this.state.error?.message || "An unexpected error occurred"}
+            </span>
             <Button size="xs" variant="outline" onClick={this.handleReset}>
               Try again
             </Button>

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import { createTooltip } from "../d3-utils.ts";
-import { useChartTheme, type ChartColors } from "../context/ThemeContext.tsx";
+import { type ChartColors, useChartTheme } from "../context/ThemeContext.tsx";
 import { chartMargins } from "../theme.ts";
 
 export interface ChartMargin {

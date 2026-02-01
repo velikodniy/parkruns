@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 import { computeRunStats, sortRunsByDateDesc } from "./stats.ts";
 import type { Run } from "./types.ts";
 
@@ -53,8 +53,6 @@ Deno.test("computeRunStats - calculates total runs", () => {
   assertEquals(stats.totalRuns, 3);
 });
 
-
-
 Deno.test("computeRunStats - finds fastest time", () => {
   const runs = [
     createMockRun({ finishTimeSeconds: 1500 }),
@@ -65,8 +63,6 @@ Deno.test("computeRunStats - finds fastest time", () => {
   assertEquals(stats.fastestTime, 1200);
 });
 
-
-
 Deno.test("computeRunStats - finds best age grade", () => {
   const runs = [
     createMockRun({ ageGrade: 55.5 }),
@@ -76,10 +72,6 @@ Deno.test("computeRunStats - finds best age grade", () => {
   const stats = computeRunStats(runs);
   assertEquals(stats.bestAgeGrade, 72.3);
 });
-
-
-
-
 
 Deno.test("computeRunStats - counts unique events", () => {
   const runs = [
@@ -97,11 +89,26 @@ Deno.test("computeRunStats - counts unique events", () => {
 Deno.test("computeRunStats - calculates 5-run median with odd count", () => {
   // Runs sorted desc by date (most recent first)
   const runs = [
-    createMockRun({ finishTimeSeconds: 1100, eventDate: "2024-05-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 1300, eventDate: "2024-04-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 1000, eventDate: "2024-03-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 1400, eventDate: "2024-02-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 1200, eventDate: "2024-01-01T09:00:00Z" }),
+    createMockRun({
+      finishTimeSeconds: 1100,
+      eventDate: "2024-05-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1300,
+      eventDate: "2024-04-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1000,
+      eventDate: "2024-03-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1400,
+      eventDate: "2024-02-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1200,
+      eventDate: "2024-01-01T09:00:00Z",
+    }),
   ];
   const sorted = sortRunsByDateDesc(runs);
   const stats = computeRunStats(sorted);
@@ -111,8 +118,14 @@ Deno.test("computeRunStats - calculates 5-run median with odd count", () => {
 
 Deno.test("computeRunStats - calculates 5-run median with even count (2 runs)", () => {
   const runs = [
-    createMockRun({ finishTimeSeconds: 1200, eventDate: "2024-02-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 1400, eventDate: "2024-01-01T09:00:00Z" }),
+    createMockRun({
+      finishTimeSeconds: 1200,
+      eventDate: "2024-02-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1400,
+      eventDate: "2024-01-01T09:00:00Z",
+    }),
   ];
   const sorted = sortRunsByDateDesc(runs);
   const stats = computeRunStats(sorted);
@@ -122,12 +135,30 @@ Deno.test("computeRunStats - calculates 5-run median with even count (2 runs)", 
 
 Deno.test("computeRunStats - uses only most recent 5 runs for median", () => {
   const runs = [
-    createMockRun({ finishTimeSeconds: 1000, eventDate: "2024-06-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 1100, eventDate: "2024-05-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 1200, eventDate: "2024-04-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 1300, eventDate: "2024-03-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 1400, eventDate: "2024-02-01T09:00:00Z" }),
-    createMockRun({ finishTimeSeconds: 2000, eventDate: "2024-01-01T09:00:00Z" }), // ignored
+    createMockRun({
+      finishTimeSeconds: 1000,
+      eventDate: "2024-06-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1100,
+      eventDate: "2024-05-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1200,
+      eventDate: "2024-04-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1300,
+      eventDate: "2024-03-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1400,
+      eventDate: "2024-02-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 2000,
+      eventDate: "2024-01-01T09:00:00Z",
+    }), // ignored
   ];
   const sorted = sortRunsByDateDesc(runs);
   const stats = computeRunStats(sorted);

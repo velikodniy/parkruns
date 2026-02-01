@@ -39,7 +39,7 @@ export function getAllCountryCodes(): number[] {
 }
 
 const ISO_TO_NAME: Record<string, string> = Object.fromEntries(
-  Object.values(COUNTRY_CODES).map(({ iso, name }) => [iso, name])
+  Object.values(COUNTRY_CODES).map(({ iso, name }) => [iso, name]),
 );
 
 export function getCountryNameByISO(iso: string): string | null {

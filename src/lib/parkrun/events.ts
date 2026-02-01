@@ -1,5 +1,5 @@
 import eventsJson from "./events.json" with { type: "json" };
-import type { EventsData, EventFeature } from "./types.ts";
+import type { EventFeature, EventsData } from "./types.ts";
 import { getCountryISO } from "./countries.ts";
 
 const data = eventsJson as unknown as EventsData;
@@ -9,7 +9,9 @@ const eventById = new Map<number, EventFeature>(
 );
 
 const eventByLongName = new Map<string, EventFeature>(
-  data.events.features.map((f) => [f.properties.EventLongName.toLowerCase(), f]),
+  data.events.features.map((
+    f,
+  ) => [f.properties.EventLongName.toLowerCase(), f]),
 );
 
 export function getEventById(id: number): EventFeature | undefined {
@@ -21,7 +23,8 @@ export function getEventShortName(id: number): string | null {
 }
 
 export function getShortNameByLongName(longName: string): string | null {
-  return eventByLongName.get(longName.toLowerCase())?.properties.EventShortName ?? null;
+  return eventByLongName.get(longName.toLowerCase())?.properties
+    .EventShortName ?? null;
 }
 
 export function getEventCoordinates(id: number): [number, number] | null {

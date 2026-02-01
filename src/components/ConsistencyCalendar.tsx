@@ -31,10 +31,10 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     if (!svgRef.current || runs.length === 0) return;
 
     const dates = runs.map((r: Run) => new Date(r.eventDate));
-    const minYear =
-      d3.min(dates, (d: Date) => d.getFullYear()) ?? new Date().getFullYear();
-    const maxYear =
-      d3.max(dates, (d: Date) => d.getFullYear()) ?? new Date().getFullYear();
+    const minYear = d3.min(dates, (d: Date) => d.getFullYear()) ??
+      new Date().getFullYear();
+    const maxYear = d3.max(dates, (d: Date) => d.getFullYear()) ??
+      new Date().getFullYear();
     const years = d3.range(minYear, maxYear + 1);
 
     const height = TOP_MARGIN + years.length * ROW_HEIGHT + 10;
@@ -135,11 +135,15 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
           rect
             .on("mouseover", (event: MouseEvent) => {
               const weekEnd = d3.timeDay.offset(wd.week, 6);
-              const dateRange = `${d3.timeFormat("%b %d")(wd.week)} — ${d3.timeFormat("%b %d")(weekEnd)}`;
+              const dateRange = `${d3.timeFormat("%b %d")(wd.week)} — ${
+                d3.timeFormat("%b %d")(weekEnd)
+              }`;
               const runLines = wd.runs.map((r: Run) => {
                 const date = d3.timeFormat("%b %d")(new Date(r.eventDate));
                 const name = getEventShortName(r.eventId) ?? r.eventName;
-                return { text: `${date}: ${name} ${formatTime(r.finishTimeSeconds)}` };
+                return {
+                  text: `${date}: ${name} ${formatTime(r.finishTimeSeconds)}`,
+                };
               });
               showTooltip(tooltip, event, [
                 { text: dateRange, bold: true },

@@ -17,7 +17,9 @@ interface PBPoint {
   run: Run;
 }
 
-export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartProps) {
+export function PBProgressionChart(
+  { runs, width = 600, height = 300 }: ChartProps,
+) {
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
@@ -28,7 +30,11 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
         .map((run) => {
           if (run.finishTimeSeconds < bestSoFar) {
             bestSoFar = run.finishTimeSeconds;
-            return { date: new Date(run.eventDate), time: run.finishTimeSeconds, run };
+            return {
+              date: new Date(run.eventDate),
+              time: run.finishTimeSeconds,
+              run,
+            };
           }
           return null;
         })
@@ -76,7 +82,10 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
         g.selectAll(".pb-point"),
         tooltip,
         (data) => [
-          { text: getEventShortName(data.run.eventId) ?? data.run.eventName, bold: true },
+          {
+            text: getEventShortName(data.run.eventId) ?? data.run.eventName,
+            bold: true,
+          },
           { text: data.date.toLocaleDateString() },
           { text: `Time: ${formatTime(data.time)}` },
         ],

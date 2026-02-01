@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 import { formatPace, formatTime } from "./format.ts";
 
 Deno.test("formatTime - formats seconds correctly", () => {

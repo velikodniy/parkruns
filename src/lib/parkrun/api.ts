@@ -4,11 +4,11 @@ export type AccessToken = string;
 
 /**
  * DISCLAIMER: This module uses the unofficial parkrun API.
- * 
+ *
  * The API credentials are reverse-engineered from the official parkrun mobile app.
  * This project is NOT affiliated with, endorsed by, or connected to parkrun Limited.
  * Use at your own risk and responsibility.
- * 
+ *
  * The credentials are loaded from environment variables to avoid exposing them
  * in the source code. They are required only during the data download phase
  * (CI/CD or local development), not in the browser runtime.
@@ -209,7 +209,8 @@ export async function getRuns(
         finishTime: r.RunTime,
         finishTimeSeconds: parseTimeToSeconds(r.RunTime),
         position: Number.parseInt(r.FinishPosition),
-        totalFinishers: runStats.get(statsKey) ?? Number.parseInt(r.FinishPosition),
+        totalFinishers: runStats.get(statsKey) ??
+          Number.parseInt(r.FinishPosition),
         genderPosition: Number.parseInt(r.GenderPosition),
         ageGrade: Number.parseFloat(r.AgeGrading) * 100,
         ageCategory: r.AgeCategory,

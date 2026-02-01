@@ -22,12 +22,17 @@ export function computeAllTimePBs(runs: Run[]): boolean[] {
   return result;
 }
 
-export function formatDelta(current: number, previous: number | null): { text: string; color: string } | null {
+export function formatDelta(
+  current: number,
+  previous: number | null,
+): { text: string; color: string } | null {
   if (previous === null) return null;
   const delta = current - previous;
   const isPositive = delta > 0;
   return {
-    text: `${isPositive ? "↑" : "↓"} ${isPositive ? "+" : ""}${delta.toFixed(1)}%`,
+    text: `${isPositive ? "↑" : "↓"} ${isPositive ? "+" : ""}${
+      delta.toFixed(1)
+    }%`,
     color: isPositive ? "green" : "red",
   };
 }

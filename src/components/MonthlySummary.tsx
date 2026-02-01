@@ -13,7 +13,20 @@ interface MonthData {
   count: number;
 }
 
-const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_NAMES = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 function getBarColor(count: number): string {
   if (count === 0) return "#dee2e6";
@@ -25,7 +38,7 @@ function getBarColor(count: number): string {
 export function MonthlySummary({ runs }: Props) {
   const monthlyData = useMemo(() => {
     const monthMap = new Map<string, number>();
-    
+
     for (const run of runs) {
       const date = new Date(run.eventDate);
       const key = `${date.getFullYear()}-${date.getMonth()}`;
@@ -34,10 +47,10 @@ export function MonthlySummary({ runs }: Props) {
 
     const result: MonthData[] = [];
     const now = new Date();
-    const startDate = runs.length > 0 
-      ? new Date(Math.min(...runs.map(r => new Date(r.eventDate).getTime())))
+    const startDate = runs.length > 0
+      ? new Date(Math.min(...runs.map((r) => new Date(r.eventDate).getTime())))
       : now;
-    
+
     const startYear = startDate.getFullYear();
     const startMonth = startDate.getMonth();
     const endYear = now.getFullYear();
@@ -46,7 +59,7 @@ export function MonthlySummary({ runs }: Props) {
     for (let y = endYear; y >= startYear; y--) {
       const monthStart = (y === endYear) ? endMonth : 11;
       const monthEnd = (y === startYear) ? startMonth : 0;
-      
+
       for (let m = monthStart; m >= monthEnd; m--) {
         const key = `${y}-${m}`;
         const count = monthMap.get(key) ?? 0;
@@ -62,14 +75,17 @@ export function MonthlySummary({ runs }: Props) {
     return result;
   }, [runs]);
 
-  const maxCount = useMemo(() => Math.max(...monthlyData.map(d => d.count), 1), [monthlyData]);
+  const maxCount = useMemo(
+    () => Math.max(...monthlyData.map((d) => d.count), 1),
+    [monthlyData],
+  );
 
   return (
     <Stack gap={4}>
       {monthlyData.map((data) => (
-        <Group 
-          key={`${data.year}-${data.month}`} 
-          gap="xs" 
+        <Group
+          key={`${data.year}-${data.month}`}
+          gap="xs"
           wrap="nowrap"
           style={{ minHeight: 28 }}
         >
@@ -90,8 +106,8 @@ export function MonthlySummary({ runs }: Props) {
               }}
             />
           </Box>
-          <Text 
-            size="xs" 
+          <Text
+            size="xs"
             fw={data.count > 0 ? 500 : 400}
             c={data.count > 0 ? undefined : "dimmed"}
             style={{ width: 20, textAlign: "right", flexShrink: 0 }}

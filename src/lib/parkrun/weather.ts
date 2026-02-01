@@ -46,7 +46,9 @@ async function fetchWeatherForLocation(
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.error(`Weather API error: ${response.status} for ${startDate}-${endDate}`);
+      console.error(
+        `Weather API error: ${response.status} for ${startDate}-${endDate}`,
+      );
       return null;
     }
 
@@ -56,7 +58,7 @@ async function fetchWeatherForLocation(
     for (let i = 0; i < data.hourly.time.length; i++) {
       const timestamp = data.hourly.time[i];
       const hour = new Date(timestamp).getHours();
-      
+
       if (hour === PARKRUN_START_HOUR) {
         const date = timestamp.split("T")[0];
         weatherByDate.set(date, {
@@ -70,7 +72,10 @@ async function fetchWeatherForLocation(
 
     return weatherByDate;
   } catch (error) {
-    console.error(`Failed to fetch weather for ${startDate}-${endDate}:`, error);
+    console.error(
+      `Failed to fetch weather for ${startDate}-${endDate}:`,
+      error,
+    );
     return null;
   }
 }
@@ -119,7 +124,12 @@ export async function fetchWeatherForRuns(
     const startDate = sortedDates[0];
     const endDate = sortedDates[sortedDates.length - 1];
 
-    const weatherByDate = await fetchWeatherForLocation(lat, lon, startDate, endDate);
+    const weatherByDate = await fetchWeatherForLocation(
+      lat,
+      lon,
+      startDate,
+      endDate,
+    );
 
     for (const date of dates) {
       const key = `${locKey},${date}`;

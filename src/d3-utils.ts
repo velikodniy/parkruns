@@ -28,8 +28,7 @@ export function createTooltip(colors: ChartColors) {
 
 export function sortRunsByDate(runs: Run[]): Run[] {
   return [...runs].sort(
-    (a, b) =>
-      new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
+    (a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
   );
 }
 
@@ -62,7 +61,10 @@ export function renderXAxis(
   options: XAxisOptions = {},
 ): void {
   const { tickFormat, tickPadding = 8, tickSpacing = 80 } = options;
-  const tickCount = Math.max(2, Math.min(10, Math.floor(innerWidth / tickSpacing)));
+  const tickCount = Math.max(
+    2,
+    Math.min(10, Math.floor(innerWidth / tickSpacing)),
+  );
 
   const axis = d3.axisBottom(scale).ticks(tickCount).tickPadding(tickPadding);
   if (tickFormat) {
@@ -135,12 +137,17 @@ export function createJitterOffset(runs: Run[]): (run: Run) => number {
 }
 
 /** Type alias for tooltip selection */
-export type TooltipSelection = d3.Selection<HTMLDivElement, unknown, HTMLElement, undefined>;
+export type TooltipSelection = d3.Selection<
+  HTMLDivElement,
+  unknown,
+  HTMLElement,
+  undefined
+>;
 
 /**
  * Attaches type-safe tooltip hover handlers to a D3 selection.
  * Removes the need for `d: unknown` and type assertions in chart code.
- * 
+ *
  * @example
  * attachTooltipHandlers<Run>(
  *   g.selectAll(".point"),
@@ -149,8 +156,7 @@ export type TooltipSelection = d3.Selection<HTMLDivElement, unknown, HTMLElement
  * );
  */
 export function attachTooltipHandlers<Datum>(
-  // biome-ignore lint/suspicious/noExplicitAny: D3 selection types are complex
-  selection: d3.Selection<any, Datum, any, any>,
+  selection: d3.Selection<d3.BaseType, Datum, d3.BaseType, unknown>,
   tooltip: TooltipSelection,
   contentFn: (d: Datum) => TooltipContent,
 ): void {

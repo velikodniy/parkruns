@@ -1,12 +1,13 @@
 import { useEffect, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Run } from "../types.ts";
 import { getEventById } from "../lib/parkrun/index.ts";
 
 const defaultIcon = new L.Icon({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
   iconSize: [25, 41],
@@ -72,13 +73,14 @@ export function EventsMap({ runs, height = 400 }: EventsMapProps) {
   }
 
   // Default center (will be overridden by FitBounds)
-  const defaultCenter: [number, number] = events[0]?.coordinates ?? [51.5, -0.1];
+  const defaultCenter: [number, number] = events[0]?.coordinates ??
+    [51.5, -0.1];
 
   return (
     <MapContainer
       center={defaultCenter}
       zoom={10}
-      scrollWheelZoom={true}
+      scrollWheelZoom
       style={{ height, width: "100%", borderRadius: 8 }}
     >
       <TileLayer

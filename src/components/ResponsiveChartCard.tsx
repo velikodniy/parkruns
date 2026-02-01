@@ -6,7 +6,9 @@ interface ResponsiveChartCardProps {
   children: (width: number) => React.ReactNode;
 }
 
-export function ResponsiveChartCard({ title, children }: ResponsiveChartCardProps) {
+export function ResponsiveChartCard(
+  { title, children }: ResponsiveChartCardProps,
+) {
   const { ref, width } = useElementSize();
   const chartWidth = Math.max(width - 32, 280);
 
