@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import type { Run } from "../types.ts";
-import { getChartColors } from "../theme.ts";
+import { useChartTheme } from "../context/ThemeContext.tsx";
 import { createTooltip, hideTooltip, showTooltip } from "../d3-utils.ts";
 import { formatTime } from "../format.ts";
 import { getEventShortName } from "../lib/parkrun/index.ts";
@@ -25,11 +25,11 @@ const TOP_MARGIN = 25;
 
 export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const { colors } = useChartTheme();
 
   useEffect(() => {
     if (!svgRef.current || runs.length === 0) return;
 
-    const colors = getChartColors();
     const dates = runs.map((r: Run) => new Date(r.eventDate));
     const minYear =
       d3.min(dates, (d: Date) => d.getFullYear()) ?? new Date().getFullYear();
@@ -52,7 +52,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     svg.selectAll("*").remove();
     svg.attr("height", height);
 
-    const tooltip = createTooltip();
+    const tooltip = createTooltip(colors);
 
     const g = svg
       .append("g")
@@ -154,7 +154,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     return () => {
       tooltip.remove();
     };
-  }, [runs]);
+  }, [runs, colors]);
 
   return (
     <svg

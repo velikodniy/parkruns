@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 import { createTooltip } from "../d3-utils.ts";
+import { useChartTheme, type ChartColors } from "../context/ThemeContext.tsx";
 import { chartMargins } from "../theme.ts";
 
 export interface ChartMargin {
@@ -23,6 +24,7 @@ export interface D3ChartContext {
   g: d3.Selection<SVGGElement, unknown, null, undefined>;
   tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, undefined>;
   dimensions: ChartDimensions;
+  colors: ChartColors;
 }
 
 type RenderFn = (ctx: D3ChartContext) => void;
@@ -35,6 +37,10 @@ export function useD3Chart(
   margin: ChartMargin = chartMargins,
 ): React.RefObject<SVGSVGElement | null> {
   const svgRef = useRef<SVGSVGElement>(null);
+  const { colors } = useChartTheme();
+
+  // Include colors in deps so charts re-render on theme change
+  const allDeps = [...deps, colors];
 
   // Deps are managed by the caller (similar to useMemo/useCallback pattern)
   // biome-ignore lint/correctness/useExhaustiveDependencies: deps passed by caller
@@ -51,7 +57,7 @@ export function useD3Chart(
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const tooltip = createTooltip();
+    const tooltip = createTooltip(colors);
 
     const dimensions: ChartDimensions = {
       width,
@@ -61,12 +67,12 @@ export function useD3Chart(
       margin,
     };
 
-    renderFn({ svg, g, tooltip, dimensions });
+    renderFn({ svg, g, tooltip, dimensions, colors });
 
     return () => {
       tooltip.remove();
     };
-  }, deps);
+  }, allDeps);
 
   return svgRef;
 }

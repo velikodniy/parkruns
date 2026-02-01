@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import type { Run } from "./types.ts";
-import { getChartColors } from "./theme.ts";
+import type { ChartColors } from "./context/ThemeContext.tsx";
 
 /** A single line of tooltip content */
 export interface TooltipLine {
@@ -10,8 +10,7 @@ export interface TooltipLine {
 
 export type TooltipContent = TooltipLine[];
 
-export function createTooltip() {
-  const colors = getChartColors();
+export function createTooltip(colors: ChartColors) {
   return d3
     .select("body")
     .append("div")
@@ -59,10 +58,10 @@ export function renderXAxis(
   scale: d3.AxisScale<Date | d3.NumberValue>,
   innerHeight: number,
   innerWidth: number,
+  colors: ChartColors,
   options: XAxisOptions = {},
 ): void {
   const { tickFormat, tickPadding = 8, tickSpacing = 80 } = options;
-  const colors = getChartColors();
   const tickCount = Math.max(2, Math.min(10, Math.floor(innerWidth / tickSpacing)));
 
   const axis = d3.axisBottom(scale).ticks(tickCount).tickPadding(tickPadding);
@@ -79,9 +78,9 @@ export function renderXAxis(
 export function renderYAxis(
   g: d3.Selection<SVGGElement, unknown, null, undefined>,
   scale: d3.AxisScale<d3.NumberValue>,
+  colors: ChartColors,
   tickFormat?: (d: d3.NumberValue) => string,
 ): void {
-  const colors = getChartColors();
   const axis = tickFormat
     ? d3.axisLeft(scale).tickFormat(tickFormat)
     : d3.axisLeft(scale);
@@ -119,4 +118,18 @@ export function hideTooltip(
   tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, undefined>,
 ): void {
   tooltip.style("opacity", 0);
+}
+
+/**
+ * Creates a jitter offset function for runs on the same date.
+ * Used to prevent overlapping points in scatter plots.
+ */
+export function createJitterOffset(runs: Run[]): (run: Run) => number {
+  const runsByDate = d3.group(runs, (d: Run) => d.eventDate);
+  return (run: Run): number => {
+    const runsOnDate = runsByDate.get(run.eventDate) ?? [];
+    if (runsOnDate.length <= 1) return 0;
+    const idx = runsOnDate.indexOf(run);
+    return (idx - (runsOnDate.length - 1) / 2) * 5;
+  };
 }

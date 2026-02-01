@@ -2,7 +2,6 @@ import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { getEventShortName } from "../lib/parkrun/index.ts";
 import { formatTime } from "../format.ts";
-import { getChartColors } from "../theme.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
   createTimeXScale,
@@ -21,9 +20,8 @@ interface PBPoint {
 
 export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartProps) {
   const svgRef = useD3Chart(
-    ({ g, tooltip, dimensions }) => {
+    ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
-      const colors = getChartColors();
       const sortedRuns = sortRunsByDate(runs);
 
       let bestSoFar = Number.POSITIVE_INFINITY;
@@ -46,10 +44,10 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
         .domain([minTime - 30, maxTime + 30])
         .range([innerHeight, 0]);
 
-      renderXAxis(g, x, innerHeight, innerWidth, {
+      renderXAxis(g, x, innerHeight, innerWidth, colors, {
         tickFormat: d3.timeFormat("%b '%y"),
       });
-      renderYAxis(g, y, (d) => formatTime(d as number));
+      renderYAxis(g, y, colors, (d) => formatTime(d as number));
 
       const stepLine = d3
         .line<PBPoint>()

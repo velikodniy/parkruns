@@ -2,39 +2,45 @@ import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { formatTime } from "../format.ts";
 import { hideTooltip, showTooltip } from "../d3-utils.ts";
-import { getChartColors } from "../theme.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 
 const EVENT_MIX_MARGIN = { top: 20, right: 80, bottom: 40, left: 150 };
 
 export function EventMixChart({ runs, width = 600, height = 400 }: ChartProps) {
   const svgRef = useD3Chart(
-    ({ g, tooltip, dimensions }) => {
+    ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
-      const colors = getChartColors();
+
+      interface EventStats {
+        count: number;
+        bestTime: number;
+        avgTime: number;
+      }
+
+      type EventEntry = { name: string } & EventStats;
 
       const eventData = d3.rollups(
         runs,
-        (v) => ({
+        (v: Run[]) => ({
           count: v.length,
-          bestTime: d3.min(v, (d) => d.finishTimeSeconds) ?? 0,
-          avgTime: d3.mean(v, (d) => d.finishTimeSeconds) ?? 0,
+          bestTime: d3.min(v, (d: Run) => d.finishTimeSeconds) ?? 0,
+          avgTime: d3.mean(v, (d: Run) => d.finishTimeSeconds) ?? 0,
         }),
         (d: Run) => d.eventName,
       );
 
-      const sortedData = eventData
-        .map(([name, stats]) => ({ name, ...stats }))
-        .sort((a, b) => b.count - a.count)
+      const sortedData: EventEntry[] = eventData
+        .map(([name, stats]: [string, EventStats]) => ({ name, ...stats }))
+        .sort((a: EventEntry, b: EventEntry) => b.count - a.count)
         .slice(0, 15);
 
       const y = d3
-        .scaleBand()
-        .domain(sortedData.map((d) => d.name))
+        .scaleBand<string>()
+        .domain(sortedData.map((d: EventEntry) => d.name))
         .range([0, innerHeight])
         .padding(0.2);
 
-      const maxCount = d3.max(sortedData, (d) => d.count) ?? 0;
+      const maxCount = d3.max(sortedData, (d: EventEntry) => d.count) ?? 0;
       const x = d3.scaleLinear().domain([0, maxCount]).range([0, innerWidth]);
 
       g.append("g").call(d3.axisLeft(y)).attr("color", colors.axis);
@@ -45,29 +51,29 @@ export function EventMixChart({ runs, width = 600, height = 400 }: ChartProps) {
         .call(d3.axisBottom(x).ticks(tickCount))
         .attr("color", colors.axis);
 
-      g.selectAll(".bar")
+      g.selectAll<SVGRectElement, EventEntry>(".bar")
         .data(sortedData)
         .enter()
         .append("rect")
         .attr("class", "bar")
-        .attr("y", (d) => y(d.name) ?? 0)
+        .attr("y", (d: EventEntry) => y(d.name) ?? 0)
         .attr("height", y.bandwidth())
         .attr("x", 0)
-        .attr("width", (d) => x(d.count))
+        .attr("width", (d: EventEntry) => x(d.count))
         .attr("fill", colors.primary)
         .attr("opacity", 0.8);
 
-      g.selectAll(".count-label")
+      g.selectAll<SVGTextElement, EventEntry>(".count-label")
         .data(sortedData)
         .enter()
         .append("text")
         .attr("class", "count-label")
-        .attr("y", (d) => (y(d.name) ?? 0) + y.bandwidth() / 2)
-        .attr("x", (d) => x(d.count) + 5)
+        .attr("y", (d: EventEntry) => (y(d.name) ?? 0) + y.bandwidth() / 2)
+        .attr("x", (d: EventEntry) => x(d.count) + 5)
         .attr("dy", "0.35em")
         .attr("font-size", "11px")
         .attr("fill", colors.text)
-        .text((d) => `${d.count} (${formatTime(d.bestTime)})`);
+        .text((d: EventEntry) => `${d.count} (${formatTime(d.bestTime)})`);
 
       g.selectAll(".bar")
         .on("mouseover", (event: MouseEvent, d: unknown) => {

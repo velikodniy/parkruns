@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Alert,
   Container,
@@ -30,7 +29,6 @@ import { useRunStats } from "./hooks/useRunStats.ts";
 export function App() {
   const { profile, loading, error } = useProfileData();
   const { sortedRuns, stats, visitedCountries } = useRunStats(profile);
-  const [chartKey, setChartKey] = useState(0);
 
   if (loading) {
     return (
@@ -75,7 +73,7 @@ export function App() {
         <Title order={1}>
           {athlete.fullName}
         </Title>
-        <ThemeToggle onToggle={() => setChartKey((k) => k + 1)} />
+        <ThemeToggle />
       </Group>
       <Text c="dimmed" mb="sm">
         {[
@@ -132,24 +130,24 @@ export function App() {
       </ChartCard>
 
       <ChartCard title="Consistency Calendar">
-        <ResponsiveCalendar key={chartKey} runs={sortedRuns} />
+        <ResponsiveCalendar runs={sortedRuns} />
       </ChartCard>
 
       <SimpleGrid cols={{ base: 1, md: 2 }} mb="xl">
         <ResponsiveChartCard title="Finish Time Over Time">
-          {(width) => <FinishTimeChart key={chartKey} runs={sortedRuns} width={width} height={280} />}
+          {(width) => <FinishTimeChart runs={sortedRuns} width={width} height={280} />}
         </ResponsiveChartCard>
 
         <ResponsiveChartCard title="PB Progression">
-          {(width) => <PBProgressionChart key={chartKey} runs={sortedRuns} width={width} height={280} />}
+          {(width) => <PBProgressionChart runs={sortedRuns} width={width} height={280} />}
         </ResponsiveChartCard>
 
         <ResponsiveChartCard title="Age Grade Over Time">
-          {(width) => <AgeGradeChart key={chartKey} runs={sortedRuns} width={width} height={280} />}
+          {(width) => <AgeGradeChart runs={sortedRuns} width={width} height={280} />}
         </ResponsiveChartCard>
 
         <ResponsiveChartCard title="Finish Time Distribution">
-          {(width) => <FinishTimeDistribution key={chartKey} runs={sortedRuns} width={width} height={280} />}
+          {(width) => <FinishTimeDistribution runs={sortedRuns} width={width} height={280} />}
         </ResponsiveChartCard>
       </SimpleGrid>
 

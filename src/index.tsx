@@ -3,7 +3,8 @@ import { MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { App } from "./App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
-import { THEME_STORAGE_KEY, type ColorScheme, setChartColorScheme } from "./theme.ts";
+import { ThemeProvider, type ColorScheme } from "./context/ThemeContext.tsx";
+import { THEME_STORAGE_KEY } from "./theme.ts";
 
 function getInitialColorScheme(): ColorScheme {
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
@@ -11,13 +12,14 @@ function getInitialColorScheme(): ColorScheme {
 }
 
 const initialScheme = getInitialColorScheme();
-setChartColorScheme(initialScheme);
 
 const root = createRoot(document.getElementById("root")!);
 root.render(
   <MantineProvider defaultColorScheme={initialScheme}>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </ThemeProvider>
   </MantineProvider>,
 );

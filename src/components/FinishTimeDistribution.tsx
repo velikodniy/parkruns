@@ -1,7 +1,6 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { formatTime } from "../format.ts";
-import { chartMargins, getChartColors } from "../theme.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import { hideTooltip, renderYAxis, showTooltip } from "../d3-utils.ts";
 
@@ -23,9 +22,8 @@ export function FinishTimeDistribution({
   height = 300,
 }: ChartProps) {
   const svgRef = useD3Chart(
-    ({ g, tooltip, dimensions }) => {
+    ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
-      const colors = getChartColors();
 
       const byMonth = d3.rollups(
         runs,
@@ -87,7 +85,7 @@ export function FinishTimeDistribution({
         .attr("transform", "rotate(-45)")
         .style("text-anchor", "end");
 
-      renderYAxis(g, y, (d) => formatTime(d as number));
+      renderYAxis(g, y, colors, (d) => formatTime(d as number));
 
       const boxWidth = x.bandwidth();
 

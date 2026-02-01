@@ -1,9 +1,9 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { getEventShortName } from "../lib/parkrun/index.ts";
-import { getChartColors } from "../theme.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
+  createJitterOffset,
   createTimeXScale,
   hideTooltip,
   renderXAxis,
@@ -14,9 +14,8 @@ import {
 
 export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
   const svgRef = useD3Chart(
-    ({ g, tooltip, dimensions }) => {
+    ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
-      const colors = getChartColors();
       const sortedRuns = sortRunsByDate(runs);
 
       const ageGradeBands = [
@@ -100,10 +99,10 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
           .on("touchend", () => hideTooltip(tooltip));
       }
 
-      renderXAxis(g, x, innerHeight, innerWidth, {
+      renderXAxis(g, x, innerHeight, innerWidth, colors, {
         tickFormat: d3.timeFormat("%b '%y"),
       });
-      renderYAxis(g, y, (d) => `${d}%`);
+      renderYAxis(g, y, colors, (d) => `${d}%`);
 
       const line = d3
         .line<Run>()
@@ -117,13 +116,7 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
         .attr("stroke-width", 1.5)
         .attr("d", line);
 
-      const runsByDate = d3.group(sortedRuns, (d: Run) => d.eventDate);
-      const getJitterOffset = (run: Run): number => {
-        const runsOnDate = runsByDate.get(run.eventDate) ?? [];
-        if (runsOnDate.length <= 1) return 0;
-        const idx = runsOnDate.indexOf(run);
-        return (idx - (runsOnDate.length - 1) / 2) * 5;
-      };
+      const getJitterOffset = createJitterOffset(sortedRuns);
 
       g.selectAll(".point")
         .data(sortedRuns)
