@@ -9,6 +9,7 @@
     "npm:@mantine/hooks@7": "7.17.8_react@18.3.1",
     "npm:@rsbuild/core@*": "1.6.15_@swc+helpers@0.5.17",
     "npm:@rsbuild/plugin-react@*": "1.4.2_@rsbuild+core@1.6.15__@swc+helpers@0.5.17_react-refresh@0.18.0",
+    "npm:@tabler/icons-react@3": "3.36.1_react@18.3.1",
     "npm:d3@7": "7.9.0_d3-selection@3.0.0",
     "npm:leaflet@1": "1.9.4",
     "npm:react-dom@18": "18.3.1_react@18.3.1",
@@ -272,6 +273,16 @@
       "dependencies": [
         "tslib"
       ]
+    },
+    "@tabler/icons-react@3.36.1_react@18.3.1": {
+      "integrity": "sha512-/8nOXeNeMoze9xY/QyEKG65wuvRhkT3q9aytaur6Gj8bYU2A98YVJyLc9MRmc5nVvpy+bRlrrwK/Ykr8WGyUWg==",
+      "dependencies": [
+        "@tabler/icons",
+        "react"
+      ]
+    },
+    "@tabler/icons@3.36.1": {
+      "integrity": "sha512-f4Jg3Fof/Vru5ioix/UO4GX+sdDsF9wQo47FbtvG+utIYYVQ/QVAC0QYgcBbAjQGfbdOh2CCf0BgiFOF9Ixtjw=="
     },
     "@tybys/wasm-util@0.10.1": {
       "integrity": "sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg==",
@@ -681,6 +692,7 @@
       "npm:@mantine/hooks@7",
       "npm:@rsbuild/core@*",
       "npm:@rsbuild/plugin-react@*",
+      "npm:@tabler/icons-react@3",
       "npm:d3@7",
       "npm:leaflet@1",
       "npm:react-dom@18",

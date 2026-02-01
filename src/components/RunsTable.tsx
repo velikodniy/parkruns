@@ -1,5 +1,16 @@
-import { useMemo } from "react";
-import { Badge, Card, ScrollArea, Table, Text, Title } from "@mantine/core";
+import { useMemo, useState } from "react";
+import {
+  Badge,
+  Box,
+  Card,
+  Group,
+  Pagination,
+  ScrollArea,
+  Stack,
+  Table,
+  Text,
+  Title,
+} from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
@@ -130,107 +141,156 @@ function TimeCell({ finishTimeSeconds, wasPb, isAllTimePB }: TimeCellProps) {
   );
 }
 
+const PAGE_SIZE = 10;
+
 export function RunsTable({ runs }: Props) {
+  const [activePage, setPage] = useState(1);
+  const totalPages = Math.ceil(runs.length / PAGE_SIZE);
+
   const allTimePBs = useMemo(() => computeAllTimePBs(runs), [runs]);
+
+  const displayedRuns = useMemo(() => {
+    const start = (activePage - 1) * PAGE_SIZE;
+    return runs.slice(start, start + PAGE_SIZE);
+  }, [runs, activePage]);
 
   return (
     <Card withBorder>
-      <Title order={3} mb="md">
-        All Runs
-      </Title>
-      <ScrollArea>
-        <Table striped highlightOnHover miw={600}>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Date</Table.Th>
-              <Table.Th>Event</Table.Th>
-              <Table.Th>Position</Table.Th>
-              <Table.Th>Time</Table.Th>
-              <Table.Th>Age Grade</Table.Th>
-              <Table.Th>Weather</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {runs.map((run: Run, index: number) => {
-              const date = new Date(run.eventDate);
-              const previousRun = index < runs.length - 1
-                ? runs[index + 1]
-                : null;
-              const previousAgeGrade = previousRun?.ageGrade ?? null;
-              const isAllTimePB = allTimePBs[index];
-              const delta = formatDelta(run.ageGrade, previousAgeGrade);
+      <Stack gap="md">
+        <Group justify="space-between" align="center">
+          <Title order={3}>All Runs</Title>
+          <Group gap="xs">
+            <Text size="xs" c="dimmed" fw={500} visibleFrom="sm">
+              {Math.min(runs.length, (activePage - 1) * PAGE_SIZE + 1)}–{Math
+                .min(
+                  activePage * PAGE_SIZE,
+                  runs.length,
+                )} of {runs.length}
+            </Text>
+            <Pagination
+              total={totalPages}
+              value={activePage}
+              onChange={setPage}
+              size="sm"
+              radius="md"
+              siblings={1}
+              boundaries={1}
+            >
+              <Group gap={5} wrap="nowrap">
+                <Pagination.Previous />
+                <Box visibleFrom="xs">
+                  <Pagination.Items />
+                </Box>
+                <Box hiddenFrom="xs">
+                  <Pagination.Control>
+                    {activePage}
+                  </Pagination.Control>
+                </Box>
+                <Pagination.Next />
+              </Group>
+            </Pagination>
+          </Group>
+        </Group>
 
-              return (
-                <Table.Tr key={`${run.eventDate}-${run.eventId}`}>
-                  <Table.Td>
-                    <Cell
-                      primary={
-                        <>
-                          {date.toLocaleDateString()}
-                          {"\u00A0"}
-                          <Text span size="xs" c="dimmed">
-                            {DAYS[date.getDay()]}
-                          </Text>
-                        </>
-                      }
-                    />
-                  </Table.Td>
+        <ScrollArea>
+          <Table striped highlightOnHover miw={600}>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Date</Table.Th>
+                <Table.Th>Event</Table.Th>
+                <Table.Th>Position</Table.Th>
+                <Table.Th>Time</Table.Th>
+                <Table.Th>Age Grade</Table.Th>
+                <Table.Th>Weather</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {displayedRuns.map((run: Run, index: number) => {
+                const globalIndex = (activePage - 1) * PAGE_SIZE + index;
+                const date = new Date(run.eventDate);
+                const previousRun = globalIndex < runs.length - 1
+                  ? runs[globalIndex + 1]
+                  : null;
+                const previousAgeGrade = previousRun?.ageGrade ?? null;
+                const isAllTimePB = allTimePBs[globalIndex];
+                const delta = formatDelta(run.ageGrade, previousAgeGrade);
 
-                  <Table.Td>
-                    <EventCell
-                      eventName={run.eventName}
-                      eventEdition={run.eventEdition}
-                      countryISO={run.countryISO}
-                      eventUrl={run.eventUrl}
-                      resultsUrl={run.resultsUrl}
-                    />
-                  </Table.Td>
+                return (
+                  <Table.Tr key={`${run.eventDate}-${run.eventId}`}>
+                    <Table.Td>
+                      <Cell
+                        primary={
+                          <>
+                            {date.toLocaleDateString()}
+                            {"\u00A0"}
+                            <Text span size="xs" c="dimmed">
+                              {DAYS[date.getDay()]}
+                            </Text>
+                          </>
+                        }
+                      />
+                    </Table.Td>
 
-                  <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
-                    <Cell
-                      primary={
-                        <>
-                          {run.position}
-                          <Text span c="dimmed" inherit>
-                            {"\u00A0/\u00A0"}
-                            {run.totalFinishers}
-                          </Text>
-                        </>
-                      }
-                      secondary={`${
-                        getGenderSymbol(run.ageCategory)
-                      }\u00A0${run.genderPosition} · Top\u00A0${
-                        Math.round((run.position / run.totalFinishers) * 100)
-                      }\u00A0%`}
-                    />
-                  </Table.Td>
+                    <Table.Td>
+                      <EventCell
+                        eventName={run.eventName}
+                        eventEdition={run.eventEdition}
+                        countryISO={run.countryISO}
+                        eventUrl={run.eventUrl}
+                        resultsUrl={run.resultsUrl}
+                      />
+                    </Table.Td>
 
-                  <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
-                    <TimeCell
-                      finishTimeSeconds={run.finishTimeSeconds}
-                      wasPb={run.wasPb}
-                      isAllTimePB={isAllTimePB}
-                    />
-                  </Table.Td>
+                    <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
+                      <Cell
+                        primary={
+                          <>
+                            {run.position}
+                            <Text span c="dimmed" inherit>
+                              {"\u00A0/\u00A0"}
+                              {run.totalFinishers}
+                            </Text>
+                          </>
+                        }
+                        secondary={`${
+                          getGenderSymbol(run.ageCategory)
+                        }\u00A0${run.genderPosition} · Top\u00A0${
+                          Math.round((run.position / run.totalFinishers) * 100)
+                        }\u00A0%`}
+                      />
+                    </Table.Td>
 
-                  <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
-                    <Cell
-                      primary={`${run.ageGrade.toFixed(1)}%`}
-                      secondary={delta
-                        ? <Text span c={delta.color} inherit>{delta.text}</Text>
-                        : "—"}
-                    />
-                  </Table.Td>
+                    <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
+                      <TimeCell
+                        finishTimeSeconds={run.finishTimeSeconds}
+                        wasPb={run.wasPb}
+                        isAllTimePB={isAllTimePB}
+                      />
+                    </Table.Td>
 
-                  <Table.Td>
-                    <WeatherBadge weather={run.weather} />
-                  </Table.Td>
-                </Table.Tr>
-              );
-            })}
-          </Table.Tbody>
-        </Table>
-      </ScrollArea>
+                    <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
+                      <Cell
+                        primary={`${run.ageGrade.toFixed(1)}%`}
+                        secondary={delta
+                          ? (
+                            <Text span c={delta.color} inherit>
+                              {delta.text}
+                            </Text>
+                          )
+                          : "—"}
+                      />
+                    </Table.Td>
+
+                    <Table.Td>
+                      <WeatherBadge weather={run.weather} />
+                    </Table.Td>
+                  </Table.Tr>
+                );
+              })}
+            </Table.Tbody>
+          </Table>
+        </ScrollArea>
+      </Stack>
     </Card>
   );
 }

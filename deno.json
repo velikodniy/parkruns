@@ -12,6 +12,7 @@
     "react-dom/client": "npm:react-dom@^18/client",
     "@mantine/core": "npm:@mantine/core@^7",
     "@mantine/hooks": "npm:@mantine/hooks@^7",
+    "@tabler/icons-react": "npm:@tabler/icons-react@^3",
     "@rsbuild/core": "npm:@rsbuild/core",
     "@rsbuild/plugin-react": "npm:@rsbuild/plugin-react",
     "zod": "npm:zod@^3",
