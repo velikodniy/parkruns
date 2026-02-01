@@ -12,3 +12,9 @@ repos:
         entry: deno lint
         language: system
         files: \.(js|jsx|ts|tsx)$
+      - id: deno-check
+        name: Deno Check
+        entry: deno check src/index.tsx
+        language: system
+        pass_filenames: false
+        always_run: true
