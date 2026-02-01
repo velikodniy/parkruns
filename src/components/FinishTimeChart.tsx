@@ -11,6 +11,9 @@ import {
   sortRunsByDate,
 } from "../d3-utils.ts";
 
+const AXIS_GAP_SECONDS = 15;
+const MAX_TIME_SECONDS = 3600;
+
 export function FinishTimeChart(
   { runs, width = 600, height = 300 }: ChartProps,
 ) {
@@ -21,18 +24,34 @@ export function FinishTimeChart(
 
       const x = createTimeXScale(sortedRuns, innerWidth);
 
-      const minTime = d3.min(sortedRuns, (d: Run) => d.finishTimeSeconds) ?? 0;
-      const maxTime = d3.max(sortedRuns, (d: Run) => d.finishTimeSeconds) ?? 0;
+      const allTimes = sortedRuns.map((d) => d.finishTimeSeconds);
+      const minTime = d3.min(allTimes) ?? 0;
+      const maxTime = d3.max(allTimes) ?? MAX_TIME_SECONDS;
+
+      // Detect outliers (Tukey's Fences) ---
+      const q1 = d3.quantile(allTimes, 0.25) ?? minTime;
+      const q3 = d3.quantile(allTimes, 0.75) ?? maxTime;
+      const iqr = q3 - q1;
+
+      // Points > q3 + 1.5 * iqr are considered outliers.
+      // We find the largest point that is NOT an outlier.
+      const upperThreshold = q3 + 1.5 * iqr;
+      const normalTimes = allTimes.filter((t) => t <= upperThreshold);
+      const effectiveMaxTime = d3.max(normalTimes) ?? maxTime;
+
       const y = d3
         .scaleLinear()
-        .domain([minTime - 60, maxTime + 60])
+        .domain([
+          minTime - AXIS_GAP_SECONDS,
+          effectiveMaxTime + AXIS_GAP_SECONDS,
+        ])
         .range([innerHeight, 0]);
 
       const windowSize = Math.min(7, Math.floor(sortedRuns.length / 3));
-      const rollingAvg = sortedRuns.map((_: Run, i: number) => {
+      const rollingMedian = sortedRuns.map((_: Run, i: number) => {
         const start = Math.max(0, i - windowSize + 1);
         const window = sortedRuns.slice(start, i + 1);
-        return d3.mean(window, (d: Run) => d.finishTimeSeconds) ?? 0;
+        return d3.median(window, (d: Run) => d.finishTimeSeconds) ?? 0;
       });
 
       renderXAxis(g, x, innerHeight, innerWidth, colors, {
@@ -53,19 +72,19 @@ export function FinishTimeChart(
         .attr("d", line);
 
       if (windowSize > 1) {
-        const avgLine = d3
+        const medianLine = d3
           .line<number>()
           .x((_: number, i: number) => x(new Date(sortedRuns[i].eventDate)))
           .y((d: number) => y(d))
           .curve(d3.curveMonotoneX);
 
         g.append("path")
-          .datum(rollingAvg)
+          .datum(rollingMedian)
           .attr("fill", "none")
           .attr("stroke", colors.warning)
           .attr("stroke-width", 2)
           .attr("stroke-dasharray", "5,5")
-          .attr("d", avgLine);
+          .attr("d", medianLine);
       }
 
       const getJitterOffset = createJitterOffset(sortedRuns);
@@ -110,7 +129,7 @@ export function FinishTimeChart(
         "font-size",
         "11px",
       )
-        .attr("fill", colors.axis).text(`${windowSize}-run average`);
+        .attr("fill", colors.axis).text(`${windowSize}-run median`);
 
       legend
         .append("circle")
@@ -149,7 +168,7 @@ export function FinishTimeChart(
       width={width}
       height={height}
       role="img"
-      aria-label="Line chart showing finish times over time with rolling average"
+      aria-label="Line chart showing finish times over time with rolling median"
     />
   );
 }
