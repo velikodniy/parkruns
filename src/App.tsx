@@ -2,7 +2,6 @@ import {
   Alert,
   Container,
   Group,
-  Loader,
   SimpleGrid,
   Text,
   Title,
@@ -11,9 +10,11 @@ import {
   AgeGradeChart,
   ChartCard,
   CountryFlag,
+  ErrorState,
   EventsMap,
   FinishTimeChart,
   FinishTimeDistribution,
+  LoadingState,
   PBProgressionChart,
   ResponsiveCalendar,
   ResponsiveChartCard,
@@ -31,23 +32,11 @@ export function App() {
   const { sortedRuns, stats, visitedCountries } = useRunStats(profile);
 
   if (loading) {
-    return (
-      <Container size="lg" py="xl">
-        <Group justify="center">
-          <Loader size="lg" />
-        </Group>
-      </Container>
-    );
+    return <LoadingState />;
   }
 
   if (error) {
-    return (
-      <Container size="lg" py="xl">
-        <Alert color="red" title="Error loading data">
-          {error}
-        </Alert>
-      </Container>
-    );
+    return <ErrorState title="Error loading data" message={error} />;
   }
 
   if (!profile) return null;
