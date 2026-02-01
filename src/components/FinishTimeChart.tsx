@@ -143,7 +143,7 @@ export function FinishTimeChart(
       )
         .attr("fill", colors.axis).text("PB");
 
-      attachTooltipHandlers(
+      attachTooltipHandlers<Run>(
         g.selectAll<SVGCircleElement, Run>(".point"),
         tooltip,
         (run) => [

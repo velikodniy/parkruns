@@ -35,7 +35,7 @@ export function useD3Chart(
   width: number,
   height: number,
   margin: ChartMargin = chartMargins,
-): React.RefObject<SVGSVGElement | null> {
+): React.RefObject<SVGSVGElement> {
   const svgRef = useRef<SVGSVGElement>(null);
   const { colors } = useChartTheme();
 

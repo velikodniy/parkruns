@@ -8,8 +8,10 @@
     "@std/dotenv": "jsr:@std/dotenv@^0.225",
     "@std/assert": "jsr:@std/assert@^1",
     "react": "npm:react@^18",
+    "@types/react": "npm:@types/react@^18",
     "react-dom": "npm:react-dom@^18",
     "react-dom/client": "npm:react-dom@^18/client",
+    "@types/react-dom": "npm:@types/react-dom@^18",
     "@mantine/core": "npm:@mantine/core@^7",
     "@mantine/hooks": "npm:@mantine/hooks@^7",
     "@tabler/icons-react": "npm:@tabler/icons-react@^3",
@@ -18,6 +20,7 @@
     "zod": "npm:zod@^3",
     "d3": "npm:d3@^7",
     "leaflet": "npm:leaflet@^1",
+    "@types/leaflet": "npm:@types/leaflet@^1",
     "leaflet/dist/leaflet.css": "npm:leaflet@^1/dist/leaflet.css",
     "react-leaflet": "npm:react-leaflet@^4"
   },
