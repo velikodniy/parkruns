@@ -8,7 +8,7 @@ export { RunsTable } from "./RunsTable.tsx";
 export { CountryFlag } from "./CountryFlag.tsx";
 export { EventsMap } from "./EventsMap.tsx";
 export { ErrorBoundary } from "./ErrorBoundary.tsx";
-export { IconMoon, IconSun } from "./ThemeIcons.tsx";
+export { IconMoon, IconSun } from "@tabler/icons-react";
 export { StatsCard } from "./StatsCard.tsx";
 export { ChartCard } from "./ChartCard.tsx";
 export { ResponsiveChartCard } from "./ResponsiveChartCard.tsx";
