@@ -4,7 +4,6 @@ import type { Run } from "../types.ts";
 import { useChartTheme } from "../context/ThemeContext.tsx";
 import { createTooltip, hideTooltip, showTooltip } from "../d3-utils.ts";
 import { formatTime } from "../format.ts";
-import { getEventShortName } from "../lib/parkrun/index.ts";
 
 interface Props {
   runs: Run[];
@@ -140,9 +139,10 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
               }`;
               const runLines = wd.runs.map((r: Run) => {
                 const date = d3.timeFormat("%b %d")(new Date(r.eventDate));
-                const name = getEventShortName(r.eventId) ?? r.eventName;
                 return {
-                  text: `${date}: ${name} ${formatTime(r.finishTimeSeconds)}`,
+                  text: `${date}: ${r.eventName} ${
+                    formatTime(r.finishTimeSeconds)
+                  }`,
                 };
               });
               showTooltip(tooltip, event, [

@@ -23,10 +23,7 @@ import {
   ThemeToggle,
 } from "./components/index.ts";
 import { formatPace, formatTime } from "./format.ts";
-import {
-  getCountryNameByISO,
-  getShortNameByLongName,
-} from "./lib/parkrun/index.ts";
+import { getCountryNameByISO } from "./lib/parkrun/countries.ts";
 import { useProfileData } from "./hooks/useProfileData.ts";
 import { useRunStats } from "./hooks/useRunStats.ts";
 
@@ -70,7 +67,7 @@ export function App() {
       <Text c="dimmed" mb="sm">
         {[
           athlete.homeRun &&
-          `Home: ${getShortNameByLongName(athlete.homeRun) ?? athlete.homeRun}`,
+          `Home: ${athlete.homeRunShortName ?? athlete.homeRun}`,
           athlete.clubName && athlete.clubName !== "Unattached" &&
           `Club: ${athlete.clubName}`,
         ].filter(Boolean).join(" | ") || "—"}

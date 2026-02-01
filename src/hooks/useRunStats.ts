@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import type { Profile, Run } from "../types.ts";
 import { computeRunStats, sortRunsByDateDesc } from "../stats.ts";
-import { getEventCountryISO } from "../lib/parkrun/index.ts";
 
 type RunStats = ReturnType<typeof computeRunStats>;
 
@@ -26,8 +25,7 @@ export function useRunStats(profile: Profile | null): UseRunStatsResult {
     if (sortedRuns.length === 0) return [];
     const countrySet = new Set<string>();
     for (const run of sortedRuns) {
-      const iso = getEventCountryISO(run.eventId);
-      if (iso) countrySet.add(iso);
+      if (run.countryISO) countrySet.add(run.countryISO);
     }
     return [...countrySet].sort();
   }, [sortedRuns]);

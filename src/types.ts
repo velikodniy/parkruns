@@ -6,6 +6,7 @@ export const AthleteSchema = z.object({
   lastName: z.string(),
   clubName: z.string().nullable(),
   homeRun: z.string().nullable(),
+  homeRunShortName: z.string().nullable().optional(),
 });
 
 export const WeatherSchema = z.object({
@@ -29,6 +30,10 @@ export const RunSchema = z.object({
   ageCategory: z.string().min(1),
   wasPb: z.boolean(),
   wasFirstVisit: z.boolean(),
+  countryISO: z.string().nullable().optional(),
+  eventUrl: z.string().nullable().optional(),
+  resultsUrl: z.string().nullable().optional(),
+  coordinates: z.tuple([z.number(), z.number()]).nullable().optional(),
   weather: WeatherSchema.nullable().optional(),
 });
 
@@ -40,6 +45,7 @@ export const ProfileSchema = z.object({
     fullName: z.string(),
     clubName: z.string().nullable(),
     homeRun: z.string().nullable(),
+    homeRunShortName: z.string().nullable().optional(),
   }),
   runs: z.array(RunSchema),
 });

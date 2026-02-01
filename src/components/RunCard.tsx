@@ -1,12 +1,6 @@
 import { Badge, Box, Group, Paper, Stack, Text } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
-import {
-  getEventCountryISO,
-  getEventResultsUrl,
-  getEventShortName,
-  getEventUrl,
-} from "../lib/parkrun/index.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 import { WeatherBadge } from "./WeatherBadge.tsx";
 import { DAYS, formatDelta, getGenderSymbol } from "./run-utils.ts";
@@ -20,10 +14,6 @@ interface Props {
 export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
   const date = new Date(run.eventDate);
   const delta = formatDelta(run.ageGrade, previousAgeGrade);
-  const countryISO = getEventCountryISO(run.eventId);
-  const eventUrl = getEventUrl(run.eventId);
-  const resultsUrl = getEventResultsUrl(run.eventId, run.eventEdition);
-  const eventName = getEventShortName(run.eventId) ?? run.eventName;
   const topPercent = Math.round((run.position / run.totalFinishers) * 100);
   const genderSymbol = getGenderSymbol(run.ageCategory);
 
@@ -31,31 +21,31 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
     <Paper withBorder p="sm" radius="sm">
       <Box mb="xs">
         <Group gap={6} wrap="nowrap" align="center">
-          {countryISO && (
+          {run.countryISO && (
             <Box
               style={{ flexShrink: 0, display: "flex", alignItems: "center" }}
             >
-              <CountryFlag countryCode={countryISO} size={14} />
+              <CountryFlag countryCode={run.countryISO} size={14} />
             </Box>
           )}
           <Text size="sm" fw={500} truncate style={{ minWidth: 0 }}>
-            {eventUrl
+            {run.eventUrl
               ? (
                 <a
-                  href={eventUrl}
+                  href={run.eventUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: "inherit", textDecoration: "none" }}
                 >
-                  {eventName}
+                  {run.eventName}
                 </a>
               )
-              : eventName}
+              : run.eventName}
           </Text>
-          {resultsUrl
+          {run.resultsUrl
             ? (
               <a
-                href={resultsUrl}
+                href={run.resultsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{

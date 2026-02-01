@@ -2,7 +2,11 @@ import "@std/dotenv/load";
 import { authenticate, getAthlete, getRuns } from "../src/lib/parkrun/api.ts";
 import {
   getEventCoordinates,
+  getEventCountryISO,
+  getEventResultsUrl,
   getEventShortName,
+  getEventUrl,
+  getShortNameByLongName,
 } from "../src/lib/parkrun/index.ts";
 import {
   fetchWeatherForRuns,
@@ -54,8 +58,12 @@ async function downloadData(
 
     return {
       ...runData,
+      coordinates,
+      countryISO: getEventCountryISO(run.eventId),
       eventName: getEventShortName(run.eventId) ??
         run.eventName.replace(/ parkrun$/i, ""),
+      eventUrl: getEventUrl(run.eventId),
+      resultsUrl: getEventResultsUrl(run.eventId, run.eventEdition),
       weather,
     };
   });
@@ -70,6 +78,9 @@ async function downloadData(
       }`,
       clubName: athlete.clubName,
       homeRun: athlete.homeRun,
+      homeRunShortName: athlete.homeRun
+        ? getShortNameByLongName(athlete.homeRun)
+        : null,
     },
     runs: enrichedRuns,
   };

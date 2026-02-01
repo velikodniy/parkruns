@@ -1,6 +1,5 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
-import { getEventShortName } from "../lib/parkrun/index.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
   attachTooltipHandlers,
@@ -155,7 +154,7 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
         g.selectAll(".point"),
         tooltip,
         (run) => [
-          { text: getEventShortName(run.eventId) ?? run.eventName, bold: true },
+          { text: run.eventName, bold: true },
           { text: new Date(run.eventDate).toLocaleDateString() },
           { text: `Age Grade: ${run.ageGrade.toFixed(1)}%` },
           { text: `Category: ${run.ageCategory}` },

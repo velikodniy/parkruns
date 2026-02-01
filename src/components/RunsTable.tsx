@@ -2,12 +2,6 @@ import { useMemo } from "react";
 import { Badge, Card, ScrollArea, Table, Text, Title } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
-import {
-  getEventCountryISO,
-  getEventResultsUrl,
-  getEventShortName,
-  getEventUrl,
-} from "../lib/parkrun/index.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 import { WeatherBadge } from "./WeatherBadge.tsx";
 import {
@@ -60,17 +54,20 @@ function EventLink(
 }
 
 interface EventCellProps {
-  eventId: number;
   eventName: string;
   eventEdition: number;
+  countryISO?: string | null;
+  eventUrl?: string | null;
+  resultsUrl?: string | null;
 }
 
-function EventCell({ eventId, eventName, eventEdition }: EventCellProps) {
-  const countryISO = getEventCountryISO(eventId);
-  const url = getEventUrl(eventId);
-  const resultsUrl = getEventResultsUrl(eventId, eventEdition);
-  const name = getEventShortName(eventId) ?? eventName;
-
+function EventCell({
+  eventName,
+  eventEdition,
+  countryISO,
+  eventUrl,
+  resultsUrl,
+}: EventCellProps) {
   return (
     <Cell
       primary={
@@ -84,8 +81,8 @@ function EventCell({ eventId, eventName, eventEdition }: EventCellProps) {
           >
             {countryISO && <CountryFlag countryCode={countryISO} size={10} />}
           </span>
-          <EventLink url={url}>{name}</EventLink>
-          <EventLink url={resultsUrl}>
+          <EventLink url={eventUrl || null}>{eventName}</EventLink>
+          <EventLink url={resultsUrl || null}>
             <Text span size="xs" c="dimmed">#{eventEdition}</Text>
           </EventLink>
         </span>
@@ -181,9 +178,11 @@ export function RunsTable({ runs }: Props) {
 
                   <Table.Td>
                     <EventCell
-                      eventId={run.eventId}
                       eventName={run.eventName}
                       eventEdition={run.eventEdition}
+                      countryISO={run.countryISO}
+                      eventUrl={run.eventUrl}
+                      resultsUrl={run.resultsUrl}
                     />
                   </Table.Td>
 

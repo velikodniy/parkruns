@@ -1,6 +1,5 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
-import { getEventShortName } from "../lib/parkrun/index.ts";
 import { formatTime } from "../format.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
@@ -83,7 +82,7 @@ export function PBProgressionChart(
         tooltip,
         (data) => [
           {
-            text: getEventShortName(data.run.eventId) ?? data.run.eventName,
+            text: data.run.eventName,
             bold: true,
           },
           { text: data.date.toLocaleDateString() },

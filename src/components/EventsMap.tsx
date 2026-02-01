@@ -3,7 +3,6 @@ import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Run } from "../types.ts";
-import { getEventById } from "../lib/parkrun/index.ts";
 
 const defaultIcon = new L.Icon({
   iconRetinaUrl:
@@ -47,10 +46,8 @@ export function EventsMap({ runs, height = 400 }: EventsMapProps) {
     const visitedEvents = new Map<number, VisitedEvent>();
 
     for (const run of runs) {
-      const event = getEventById(run.eventId);
-      if (!event) continue;
+      if (!run.coordinates) continue;
 
-      const [lon, lat] = event.geometry.coordinates;
       const existing = visitedEvents.get(run.eventId);
 
       if (existing) {
@@ -58,8 +55,8 @@ export function EventsMap({ runs, height = 400 }: EventsMapProps) {
       } else {
         visitedEvents.set(run.eventId, {
           id: run.eventId,
-          name: event.properties.EventShortName,
-          coordinates: [lat, lon], // Leaflet uses [lat, lon]
+          name: run.eventName,
+          coordinates: run.coordinates, // Leaflet uses [lat, lon]
           visitCount: 1,
         });
       }

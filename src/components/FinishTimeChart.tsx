@@ -1,6 +1,5 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
-import { getEventShortName } from "../lib/parkrun/index.ts";
 import { formatTime } from "../format.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
@@ -129,7 +128,7 @@ export function FinishTimeChart(
         g.selectAll<SVGCircleElement, Run>(".point"),
         tooltip,
         (run) => [
-          { text: getEventShortName(run.eventId) ?? run.eventName, bold: true },
+          { text: run.eventName, bold: true },
           { text: new Date(run.eventDate).toLocaleDateString() },
           {
             text: `Time: ${formatTime(run.finishTimeSeconds)}${
