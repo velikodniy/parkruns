@@ -6,6 +6,7 @@ repos:
         entry: deno fmt
         language: system
         files: \.(js|jsx|ts|tsx|json|md)$
+        exclude: src/lib/parkrun/events\.json
       - id: deno-lint
         name: Deno Lint
         entry: deno lint
