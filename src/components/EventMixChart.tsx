@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { formatTime } from "../format.ts";
-import { hideTooltip, showTooltip } from "../d3-utils.ts";
+import { attachTooltipHandlers } from "../d3-utils.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 
 const EVENT_MIX_MARGIN = { top: 20, right: 80, bottom: 40, left: 150 };
@@ -75,22 +75,16 @@ export function EventMixChart({ runs, width = 600, height = 400 }: ChartProps) {
         .attr("fill", colors.text)
         .text((d: EventEntry) => `${d.count} (${formatTime(d.bestTime)})`);
 
-      g.selectAll(".bar")
-        .on("mouseover", (event: MouseEvent, d: unknown) => {
-          const data = d as {
-            name: string;
-            count: number;
-            bestTime: number;
-            avgTime: number;
-          };
-          showTooltip(tooltip, event, [
-            { text: data.name, bold: true },
-            { text: `Runs: ${data.count}` },
-            { text: `Best: ${formatTime(data.bestTime)}` },
-            { text: `Avg: ${formatTime(Math.round(data.avgTime))}` },
-          ]);
-        })
-        .on("mouseout", () => hideTooltip(tooltip));
+      attachTooltipHandlers<EventEntry>(
+        g.selectAll(".bar"),
+        tooltip,
+        (data) => [
+          { text: data.name, bold: true },
+          { text: `Runs: ${data.count}` },
+          { text: `Best: ${formatTime(data.bestTime)}` },
+          { text: `Avg: ${formatTime(Math.round(data.avgTime))}` },
+        ],
+      );
     },
     [runs, width, height],
     width,

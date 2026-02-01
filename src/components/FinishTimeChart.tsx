@@ -4,12 +4,11 @@ import { getEventShortName } from "../lib/parkrun/index.ts";
 import { formatTime } from "../format.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
+  attachTooltipHandlers,
   createJitterOffset,
   createTimeXScale,
-  hideTooltip,
   renderXAxis,
   renderYAxis,
-  showTooltip,
   sortRunsByDate,
 } from "../d3-utils.ts";
 
@@ -118,16 +117,15 @@ export function FinishTimeChart({ runs, width = 600, height = 300 }: ChartProps)
       legend.append("text").attr("x", 25).attr("y", 34).attr("font-size", "11px")
         .attr("fill", colors.axis).text("PB");
 
-      g.selectAll(".point")
-        .on("mouseover", (event: MouseEvent, d: unknown) => {
-          const run = d as Run;
-          showTooltip(tooltip, event, [
-            { text: getEventShortName(run.eventId) ?? run.eventName, bold: true },
-            { text: new Date(run.eventDate).toLocaleDateString() },
-            { text: `Time: ${formatTime(run.finishTimeSeconds)}${run.wasPb ? " (PB!)" : ""}` },
-          ]);
-        })
-        .on("mouseout", () => hideTooltip(tooltip));
+      attachTooltipHandlers(
+        g.selectAll<SVGCircleElement, Run>(".point"),
+        tooltip,
+        (run) => [
+          { text: getEventShortName(run.eventId) ?? run.eventName, bold: true },
+          { text: new Date(run.eventDate).toLocaleDateString() },
+          { text: `Time: ${formatTime(run.finishTimeSeconds)}${run.wasPb ? " (PB!)" : ""}` },
+        ],
+      );
     },
     [runs, width, height],
     width,

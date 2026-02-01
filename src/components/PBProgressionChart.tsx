@@ -4,11 +4,10 @@ import { getEventShortName } from "../lib/parkrun/index.ts";
 import { formatTime } from "../format.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
+  attachTooltipHandlers,
   createTimeXScale,
-  hideTooltip,
   renderXAxis,
   renderYAxis,
-  showTooltip,
   sortRunsByDate,
 } from "../d3-utils.ts";
 
@@ -73,16 +72,15 @@ export function PBProgressionChart({ runs, width = 600, height = 300 }: ChartPro
         .attr("fill", colors.success)
         .attr("opacity", 0.85);
 
-      g.selectAll(".pb-point")
-        .on("mouseover", (event: MouseEvent, d: unknown) => {
-          const data = d as PBPoint;
-          showTooltip(tooltip, event, [
-            { text: getEventShortName(data.run.eventId) ?? data.run.eventName, bold: true },
-            { text: data.date.toLocaleDateString() },
-            { text: `Time: ${formatTime(data.time)}` },
-          ]);
-        })
-        .on("mouseout", () => hideTooltip(tooltip));
+      attachTooltipHandlers<PBPoint>(
+        g.selectAll(".pb-point"),
+        tooltip,
+        (data) => [
+          { text: getEventShortName(data.run.eventId) ?? data.run.eventName, bold: true },
+          { text: data.date.toLocaleDateString() },
+          { text: `Time: ${formatTime(data.time)}` },
+        ],
+      );
     },
     [runs, width, height],
     width,

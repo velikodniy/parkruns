@@ -3,6 +3,7 @@ import type { ChartProps, Run } from "../types.ts";
 import { getEventShortName } from "../lib/parkrun/index.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
+  attachTooltipHandlers,
   createJitterOffset,
   createTimeXScale,
   hideTooltip,
@@ -129,17 +130,16 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
         .attr("fill", colors.primary)
         .attr("opacity", 0.8);
 
-      g.selectAll(".point")
-        .on("mouseover", (event: MouseEvent, d: unknown) => {
-          const run = d as Run;
-          showTooltip(tooltip, event, [
-            { text: getEventShortName(run.eventId) ?? run.eventName, bold: true },
-            { text: new Date(run.eventDate).toLocaleDateString() },
-            { text: `Age Grade: ${run.ageGrade.toFixed(1)}%` },
-            { text: `Category: ${run.ageCategory}` },
-          ]);
-        })
-        .on("mouseout", () => hideTooltip(tooltip));
+      attachTooltipHandlers<Run>(
+        g.selectAll(".point"),
+        tooltip,
+        (run) => [
+          { text: getEventShortName(run.eventId) ?? run.eventName, bold: true },
+          { text: new Date(run.eventDate).toLocaleDateString() },
+          { text: `Age Grade: ${run.ageGrade.toFixed(1)}%` },
+          { text: `Category: ${run.ageCategory}` },
+        ],
+      );
     },
     [runs, width, height],
     width,

@@ -133,3 +133,30 @@ export function createJitterOffset(runs: Run[]): (run: Run) => number {
     return (idx - (runsOnDate.length - 1) / 2) * 5;
   };
 }
+
+/** Type alias for tooltip selection */
+export type TooltipSelection = d3.Selection<HTMLDivElement, unknown, HTMLElement, undefined>;
+
+/**
+ * Attaches type-safe tooltip hover handlers to a D3 selection.
+ * Removes the need for `d: unknown` and type assertions in chart code.
+ * 
+ * @example
+ * attachTooltipHandlers<Run>(
+ *   g.selectAll(".point"),
+ *   tooltip,
+ *   (run) => [{ text: run.eventName, bold: true }]
+ * );
+ */
+export function attachTooltipHandlers<Datum>(
+  // biome-ignore lint/suspicious/noExplicitAny: D3 selection types are complex
+  selection: d3.Selection<any, Datum, any, any>,
+  tooltip: TooltipSelection,
+  contentFn: (d: Datum) => TooltipContent,
+): void {
+  selection
+    .on("mouseover", (event: MouseEvent, d: Datum) => {
+      showTooltip(tooltip, event, contentFn(d));
+    })
+    .on("mouseout", () => hideTooltip(tooltip));
+}
