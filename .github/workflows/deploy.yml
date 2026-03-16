@@ -33,6 +33,13 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      - name: Restore weather cache
+        uses: actions/cache@v5
+        with:
+          path: .cache/weather.json
+          key: weather-cache-${{ github.run_id }}
+          restore-keys: |
+            weather-cache-
       - name: Download data
         env:
           PARKRUN_ATHLETE_ID: ${{ secrets.PARKRUN_ATHLETE_ID }}

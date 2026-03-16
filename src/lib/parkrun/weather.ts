@@ -86,7 +86,12 @@ export async function fetchWeatherForRuns(
     eventDate: string;
     coordinates: [number, number] | null;
   }>,
+  cachedWeather?: Map<string, Weather | null>,
 ): Promise<Map<string, Weather | null>> {
+  const results = cachedWeather
+    ? new Map(cachedWeather)
+    : new Map<string, Weather | null>();
+
   const locationGroups = new Map<
     string,
     { lat: number; lon: number; dates: Set<string> }
@@ -96,14 +101,18 @@ export async function fetchWeatherForRuns(
     if (!run.coordinates) continue;
 
     const [lat, lon] = run.coordinates;
-    const key = locationKey(lat, lon);
+    const locKey = locationKey(lat, lon);
     const date = run.eventDate.split("T")[0];
+    const weatherKey = `${locKey},${date}`;
 
-    const existing = locationGroups.get(key);
+    // Skip runs already in cache
+    if (results.has(weatherKey)) continue;
+
+    const existing = locationGroups.get(locKey);
     if (existing) {
       existing.dates.add(date);
     } else {
-      locationGroups.set(key, { lat, lon, dates: new Set([date]) });
+      locationGroups.set(locKey, { lat, lon, dates: new Set([date]) });
     }
   }
 
@@ -111,11 +120,15 @@ export async function fetchWeatherForRuns(
     (sum, g) => sum + g.dates.size,
     0,
   );
+  const cachedCount = cachedWeather?.size ?? 0;
   console.log(
-    `Fetching weather: ${totalDates} dates across ${locationGroups.size} locations (${locationGroups.size} API calls)`,
+    `Weather: ${cachedCount} cached, ${totalDates} to fetch across ${locationGroups.size} locations`,
   );
 
-  const results = new Map<string, Weather | null>();
+  if (totalDates === 0) {
+    return results;
+  }
+
   const locations = Array.from(locationGroups.entries());
 
   for (let i = 0; i < locations.length; i++) {

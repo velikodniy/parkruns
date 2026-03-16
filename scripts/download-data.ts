@@ -11,8 +11,30 @@ import {
 import {
   fetchWeatherForRuns,
   getWeatherKey,
+  type Weather,
 } from "../src/lib/parkrun/weather.ts";
 import type { Profile } from "../src/types.ts";
+
+const CACHE_PATH = ".cache/weather.json";
+const CACHE_DIR = CACHE_PATH.replace(/\/[^/]+$/, "");
+
+async function readWeatherCache(): Promise<Map<string, Weather | null>> {
+  try {
+    const text = await Deno.readTextFile(CACHE_PATH);
+    return new Map(Object.entries(JSON.parse(text)));
+  } catch (e) {
+    if (!(e instanceof Deno.errors.NotFound)) throw e;
+    return new Map();
+  }
+}
+
+async function writeWeatherCache(
+  weather: Map<string, Weather | null>,
+): Promise<void> {
+  await Deno.mkdir(CACHE_DIR, { recursive: true });
+  const obj = Object.fromEntries(weather);
+  await Deno.writeTextFile(CACHE_PATH, JSON.stringify(obj, null, 2) + "\n");
+}
 
 const ATHLETE_ID = Deno.env.get("PARKRUN_ATHLETE_ID");
 const PASSWORD = Deno.env.get("PARKRUN_PASSWORD");
@@ -48,7 +70,12 @@ async function downloadData(
   }));
 
   console.log("Fetching weather data...");
-  const weatherMap = await fetchWeatherForRuns(runsWithCoordinates);
+  const cachedWeather = await readWeatherCache();
+  const weatherMap = await fetchWeatherForRuns(
+    runsWithCoordinates,
+    cachedWeather,
+  );
+  await writeWeatherCache(weatherMap);
 
   const enrichedRuns = runsWithCoordinates.map((run) => {
     const { coordinates, ...runData } = run;
