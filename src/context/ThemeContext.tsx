@@ -1,4 +1,10 @@
-import { createContext, type ReactNode, useContext, useMemo } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+} from "react";
 import { useMantineColorScheme } from "@mantine/core";
 import { THEME_STORAGE_KEY } from "../theme.ts";
 
@@ -96,15 +102,15 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     [resolvedScheme],
   );
 
-  const toggle = () => {
+  const toggle = useCallback(() => {
     const next: ColorScheme = resolvedScheme === "dark" ? "light" : "dark";
     setColorScheme(next);
     localStorage.setItem(THEME_STORAGE_KEY, next);
-  };
+  }, [resolvedScheme, setColorScheme]);
 
   const value = useMemo(
     () => ({ colorScheme: resolvedScheme, colors, toggle }),
-    [resolvedScheme, colors],
+    [resolvedScheme, colors, toggle],
   );
 
   return (
