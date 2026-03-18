@@ -47,7 +47,7 @@ if (!ATHLETE_ID || !PASSWORD) {
 }
 
 function capitalize(str: string): string {
-  return str.toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+  return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 async function downloadData(
