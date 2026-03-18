@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Update events data
-        run: curl -sSL https://images.parkrun.com/events.json -o src/lib/parkrun/events.json
+        run: curl -sSL --fail https://images.parkrun.com/events.json -o src/lib/parkrun/events.json
       - name: Commit events.json if changed
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
@@ -28,8 +28,6 @@ jobs:
     needs: update-events
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.ref }}
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
