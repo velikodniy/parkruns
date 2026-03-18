@@ -27,7 +27,7 @@ export function FinishTimeDistribution({
 
       const byMonth = d3.rollups(
         runs,
-        (v: Run[]) => v.map((r) => r.finishTimeSeconds).sort((a, b) => a - b),
+        (v: Run[]) => v.map((r) => r.finishTimeSeconds).sort(d3.ascending),
         (d: Run) => d3.timeFormat("%Y-%m")(new Date(d.eventDate)),
       );
 

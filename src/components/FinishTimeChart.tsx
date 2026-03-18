@@ -24,7 +24,9 @@ export function FinishTimeChart(
 
       const x = createTimeXScale(sortedRuns, innerWidth);
 
-      const allTimes = sortedRuns.map((d) => d.finishTimeSeconds);
+      const allTimes = sortedRuns.map((d) => d.finishTimeSeconds).sort(
+        d3.ascending,
+      );
       const minTime = d3.min(allTimes) ?? 0;
       const maxTime = d3.max(allTimes) ?? MAX_TIME_SECONDS;
 
