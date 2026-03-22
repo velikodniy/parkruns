@@ -33,7 +33,7 @@ export const RunSchema = z.object({
   countryISO: z.string().nullable().optional(),
   eventUrl: z.string().nullable().optional(),
   resultsUrl: z.string().nullable().optional(),
-  coordinates: z.tuple([z.number(), z.number()]).nullable().optional(),
+  coordinates: z.tuple([z.number(), z.number()]).nullable().optional(), // [lat, lng] (LatLng order)
   weather: WeatherSchema.nullable().optional(),
 });
 

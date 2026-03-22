@@ -1,6 +1,7 @@
 // Open-Meteo Historical Weather API: https://open-meteo.com/en/docs/historical-weather-api
 
 import { JsonCache } from "../cache.ts";
+import type { LatLng } from "./types.ts";
 
 const cache = new JsonCache<Weather | null>("weather.json");
 const OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive";
@@ -86,7 +87,7 @@ export function fetchWeatherForRuns(
   runs: Array<{
     eventId: number;
     eventDate: string;
-    coordinates: [number, number] | null;
+    coordinates: LatLng | null;
   }>,
 ): Promise<Map<string, Weather | null>> {
   const keys = runs
@@ -146,7 +147,7 @@ export function fetchWeatherForRuns(
 }
 
 export function getWeatherKey(
-  coordinates: [number, number],
+  coordinates: LatLng,
   eventDate: string,
 ): string {
   const [latitude, longitude] = coordinates;

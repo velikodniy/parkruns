@@ -1,16 +1,16 @@
 import { JsonCache } from "../cache.ts";
-import type { Coordinates } from "./types.ts";
+import type { LngLat } from "./types.ts";
 
 const cache = new JsonCache<string>("regions.json");
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse";
 const USER_AGENT = "parkrun-dashboard/1.0";
 const RATE_LIMIT_MS = 1100;
 
-function coordsKey(coordinates: Coordinates): string {
+function coordsKey(coordinates: LngLat): string {
   return `${coordinates[0]},${coordinates[1]}`;
 }
 
-async function fetchRegion(coordinates: Coordinates): Promise<string> {
+async function fetchRegion(coordinates: LngLat): Promise<string> {
   const [longitude, latitude] = coordinates;
   const url =
     `${NOMINATIM_URL}?format=json&lat=${latitude}&lon=${longitude}&zoom=5`;
@@ -30,7 +30,7 @@ async function fetchRegion(coordinates: Coordinates): Promise<string> {
 }
 
 export function resolveRegions(
-  events: ReadonlyArray<{ coordinates: Coordinates }>,
+  events: ReadonlyArray<{ coordinates: LngLat }>,
 ): Promise<Map<string, string>> {
   const keyToCoords = new Map(
     events.map((e) => [coordsKey(e.coordinates), e.coordinates]),
@@ -48,6 +48,6 @@ export function resolveRegions(
   });
 }
 
-export function getRegionKey(coordinates: Coordinates): string {
+export function getRegionKey(coordinates: LngLat): string {
   return coordsKey(coordinates);
 }

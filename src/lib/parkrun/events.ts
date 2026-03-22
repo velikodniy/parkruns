@@ -1,5 +1,5 @@
 import eventsJson from "./events.json" with { type: "json" };
-import type { EventFeature, EventsData } from "./types.ts";
+import type { EventFeature, EventsData, LatLng } from "./types.ts";
 import { numericToISO } from "./countries.ts";
 
 const data = eventsJson as unknown as EventsData;
@@ -33,7 +33,7 @@ export function getShortNameByLongName(longName: string): string | null {
     .EventShortName ?? null;
 }
 
-export function getEventCoordinates(id: number): [number, number] | null {
+export function getEventCoordinates(id: number): LatLng | null {
   const event = eventById.get(id);
   if (!event) return null;
   const [longitude, latitude] = event.geometry.coordinates;

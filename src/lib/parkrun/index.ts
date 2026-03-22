@@ -1,9 +1,10 @@
 export type {
-  Coordinates,
   CountryInfo,
   EventFeature,
   EventProperties,
   EventsData,
+  LatLng,
+  LngLat,
   PointGeometry,
 } from "./types.ts";
 

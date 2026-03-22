@@ -1,8 +1,11 @@
-export type Coordinates = [number, number];
+/** GeoJSON coordinate order per RFC 7946 */
+export type LngLat = [longitude: number, latitude: number];
+/** Map/API coordinate order (Leaflet, Open-Meteo, Nominatim) */
+export type LatLng = [latitude: number, longitude: number];
 
 export interface PointGeometry {
   type: "Point";
-  coordinates: Coordinates;
+  coordinates: LngLat;
 }
 
 export interface EventProperties {
