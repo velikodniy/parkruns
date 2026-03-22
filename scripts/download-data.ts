@@ -55,13 +55,9 @@ async function downloadData(
   console.log("Resolving regions...");
   const ukEvents = runsWithCoordinates
     .filter((r) => getEventCountryISO(r.eventId) === "gb" && r.coordinates)
-    .map((r) => {
-      const event = getEventById(r.eventId)!;
-      return {
-        eventName: event.properties.eventname,
-        coordinates: event.geometry.coordinates,
-      };
-    });
+    .map((r) => ({
+      coordinates: getEventById(r.eventId)!.geometry.coordinates,
+    }));
   const regionMap = await resolveRegions(ukEvents);
 
   const enrichedRuns = runsWithCoordinates.map((run) => {

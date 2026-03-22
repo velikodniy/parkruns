@@ -30,7 +30,7 @@ async function fetchRegion(coordinates: Coordinates): Promise<string> {
 }
 
 export function resolveRegions(
-  events: Array<{ coordinates: Coordinates }>,
+  events: ReadonlyArray<{ coordinates: Coordinates }>,
 ): Promise<Map<string, string>> {
   const keyToCoords = new Map(
     events.map((e) => [coordsKey(e.coordinates), e.coordinates]),
@@ -38,12 +38,11 @@ export function resolveRegions(
 
   return cache.resolve([...keyToCoords.keys()], async (missing) => {
     const results = new Map<string, string>();
+    console.log(`Fetching ${missing.length} region(s) from Nominatim`);
     for (let i = 0; i < missing.length; i++) {
       if (i > 0) await new Promise((r) => setTimeout(r, RATE_LIMIT_MS));
       results.set(missing[i], await fetchRegion(keyToCoords.get(missing[i])!));
-    }
-    if (missing.length > 0) {
-      console.log(`Fetched ${missing.length} region(s) from Nominatim`);
+      console.log(`  Region progress: ${i + 1}/${missing.length}`);
     }
     return results;
   });
