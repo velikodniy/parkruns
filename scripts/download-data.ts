@@ -1,6 +1,7 @@
 import "@std/dotenv/load";
 import { authenticate, getAthlete, getRuns } from "../src/lib/parkrun/api.ts";
 import {
+  getEventById,
   getEventCoordinates,
   getEventCountryISO,
   getEventResultsUrl,
@@ -8,33 +9,12 @@ import {
   getEventUrl,
   getShortNameByLongName,
 } from "../src/lib/parkrun/index.ts";
+import { getRegionKey, resolveRegions } from "../src/lib/parkrun/regions.ts";
 import {
   fetchWeatherForRuns,
   getWeatherKey,
-  type Weather,
 } from "../src/lib/parkrun/weather.ts";
 import type { Profile } from "../src/types.ts";
-
-const CACHE_PATH = ".cache/weather.json";
-const CACHE_DIR = CACHE_PATH.replace(/\/[^/]+$/, "");
-
-async function readWeatherCache(): Promise<Map<string, Weather | null>> {
-  try {
-    const text = await Deno.readTextFile(CACHE_PATH);
-    return new Map(Object.entries(JSON.parse(text)));
-  } catch (e) {
-    if (!(e instanceof Deno.errors.NotFound)) throw e;
-    return new Map();
-  }
-}
-
-async function writeWeatherCache(
-  weather: Map<string, Weather | null>,
-): Promise<void> {
-  await Deno.mkdir(CACHE_DIR, { recursive: true });
-  const obj = Object.fromEntries(weather);
-  await Deno.writeTextFile(CACHE_PATH, JSON.stringify(obj, null, 2) + "\n");
-}
 
 const ATHLETE_ID = Deno.env.get("PARKRUN_ATHLETE_ID");
 const PASSWORD = Deno.env.get("PARKRUN_PASSWORD");
@@ -70,12 +50,19 @@ async function downloadData(
   }));
 
   console.log("Fetching weather data...");
-  const cachedWeather = await readWeatherCache();
-  const weatherMap = await fetchWeatherForRuns(
-    runsWithCoordinates,
-    cachedWeather,
-  );
-  await writeWeatherCache(weatherMap);
+  const weatherMap = await fetchWeatherForRuns(runsWithCoordinates);
+
+  console.log("Resolving regions...");
+  const ukEvents = runsWithCoordinates
+    .filter((r) => getEventCountryISO(r.eventId) === "gb" && r.coordinates)
+    .map((r) => {
+      const event = getEventById(r.eventId)!;
+      return {
+        eventName: event.properties.eventname,
+        coordinates: event.geometry.coordinates,
+      };
+    });
+  const regionMap = await resolveRegions(ukEvents);
 
   const enrichedRuns = runsWithCoordinates.map((run) => {
     const { coordinates, ...runData } = run;
@@ -83,10 +70,20 @@ async function downloadData(
       ? weatherMap.get(getWeatherKey(coordinates, run.eventDate)) ?? null
       : null;
 
+    let countryISO = getEventCountryISO(run.eventId);
+    if (countryISO === "gb") {
+      const event = getEventById(run.eventId);
+      if (event) {
+        countryISO = regionMap.get(
+          getRegionKey(event.geometry.coordinates),
+        ) ?? countryISO;
+      }
+    }
+
     return {
       ...runData,
       coordinates,
-      countryISO: getEventCountryISO(run.eventId),
+      countryISO,
       eventName: getEventShortName(run.eventId) ??
         run.eventName.replace(/ parkrun$/i, ""),
       eventUrl: getEventUrl(run.eventId),
