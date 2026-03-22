@@ -83,6 +83,35 @@ async function fetchWeatherForLocation(
   }
 }
 
+interface LocationGroup {
+  latitude: number;
+  longitude: number;
+  dates: Set<string>;
+}
+
+function groupKeysByLocation(
+  keys: string[],
+): Map<string, LocationGroup> {
+  const groups = new Map<string, LocationGroup>();
+
+  for (const key of keys) {
+    const [latitudeStr, longitudeStr, date] = key.split(",");
+    const locKey = `${latitudeStr},${longitudeStr}`;
+    const existing = groups.get(locKey);
+    if (existing) {
+      existing.dates.add(date);
+    } else {
+      groups.set(locKey, {
+        latitude: Number(latitudeStr),
+        longitude: Number(longitudeStr),
+        dates: new Set([date]),
+      });
+    }
+  }
+
+  return groups;
+}
+
 export function fetchWeatherForRuns(
   runs: Array<{
     eventId: number;
@@ -95,25 +124,7 @@ export function fetchWeatherForRuns(
     .map((r) => getWeatherKey(r.coordinates!, r.eventDate));
 
   return cache.resolve(keys, async (missing) => {
-    const locationGroups = new Map<
-      string,
-      { latitude: number; longitude: number; dates: Set<string> }
-    >();
-
-    for (const key of missing) {
-      const [latitudeStr, longitudeStr, date] = key.split(",");
-      const locKey = `${latitudeStr},${longitudeStr}`;
-      const existing = locationGroups.get(locKey);
-      if (existing) {
-        existing.dates.add(date);
-      } else {
-        locationGroups.set(locKey, {
-          latitude: Number(latitudeStr),
-          longitude: Number(longitudeStr),
-          dates: new Set([date]),
-        });
-      }
-    }
+    const locationGroups = groupKeysByLocation(missing);
 
     console.log(
       `Fetching weather for ${missing.length} runs across ${locationGroups.size} locations`,
