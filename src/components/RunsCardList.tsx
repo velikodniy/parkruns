@@ -3,7 +3,7 @@ import { Card, Group, Pagination, Stack, Text, Title } from "@mantine/core";
 import { usePagination } from "@mantine/hooks";
 import type { Run } from "../types.ts";
 import { RunCard } from "./RunCard.tsx";
-import { computeAllTimePBs } from "./run-utils.ts";
+import { computeAllTimePBs, runKey } from "./run-utils.ts";
 
 interface Props {
   runs: Run[];
@@ -18,17 +18,16 @@ export function RunsCardList({ runs }: Props) {
     initialPage: 1,
   });
 
-  const allTimePBs = useMemo(() => computeAllTimePBs(runs), [runs]);
+  const pbRuns = useMemo(() => computeAllTimePBs(runs), [runs]);
 
+  const pageStart = (pagination.active - 1) * PAGE_SIZE;
   const displayedRuns = useMemo(() => {
-    const start = (pagination.active - 1) * PAGE_SIZE;
-    return runs.slice(start, start + PAGE_SIZE);
-  }, [runs, pagination.active]);
+    return runs.slice(pageStart, pageStart + PAGE_SIZE);
+  }, [runs, pageStart]);
 
-  const startIdx = (pagination.active - 1) * PAGE_SIZE + 1;
   const endIdx = Math.min(pagination.active * PAGE_SIZE, runs.length);
   const rangeText = runs.length > 0
-    ? `${startIdx}–${endIdx} of ${runs.length}`
+    ? `${pageStart + 1}–${endIdx} of ${runs.length}`
     : "0 runs";
 
   return (
@@ -51,19 +50,17 @@ export function RunsCardList({ runs }: Props) {
 
       <Stack gap="sm">
         {displayedRuns.map((run: Run, index: number) => {
-          const globalIndex = (pagination.active - 1) * PAGE_SIZE + index;
+          const globalIndex = pageStart + index;
           const previousRun = globalIndex < runs.length - 1
             ? runs[globalIndex + 1]
             : null;
-          const previousAgeGrade = previousRun?.ageGrade ?? null;
-          const isAllTimePB = allTimePBs[globalIndex];
 
           return (
             <RunCard
-              key={`${run.eventDate}-${run.eventId}`}
+              key={runKey(run)}
               run={run}
-              isAllTimePB={isAllTimePB}
-              previousAgeGrade={previousAgeGrade}
+              isAllTimePB={pbRuns.has(runKey(run))}
+              previousAgeGrade={previousRun?.ageGrade ?? null}
             />
           );
         })}

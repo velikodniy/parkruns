@@ -20,6 +20,7 @@ import {
   DAYS,
   formatDelta,
   getGenderSymbol,
+  runKey,
 } from "./run-utils.ts";
 
 interface Props {
@@ -150,17 +151,16 @@ export function RunsTable({ runs }: Props) {
     initialPage: 1,
   });
 
-  const allTimePBs = useMemo(() => computeAllTimePBs(runs), [runs]);
+  const pbRuns = useMemo(() => computeAllTimePBs(runs), [runs]);
 
+  const pageStart = (pagination.active - 1) * PAGE_SIZE;
   const displayedRuns = useMemo(() => {
-    const start = (pagination.active - 1) * PAGE_SIZE;
-    return runs.slice(start, start + PAGE_SIZE);
-  }, [runs, pagination.active]);
+    return runs.slice(pageStart, pageStart + PAGE_SIZE);
+  }, [runs, pageStart]);
 
-  const startIdx = (pagination.active - 1) * PAGE_SIZE + 1;
   const endIdx = Math.min(pagination.active * PAGE_SIZE, runs.length);
   const rangeText = runs.length > 0
-    ? `${startIdx}–${endIdx} of ${runs.length}`
+    ? `${pageStart + 1}–${endIdx} of ${runs.length}`
     : "0 runs";
 
   return (
@@ -201,17 +201,19 @@ export function RunsTable({ runs }: Props) {
             </Table.Thead>
             <Table.Tbody>
               {displayedRuns.map((run: Run, index: number) => {
-                const globalIndex = (pagination.active - 1) * PAGE_SIZE + index;
+                const globalIndex = pageStart + index;
                 const date = new Date(run.eventDate);
                 const previousRun = globalIndex < runs.length - 1
                   ? runs[globalIndex + 1]
                   : null;
-                const previousAgeGrade = previousRun?.ageGrade ?? null;
-                const isAllTimePB = allTimePBs[globalIndex];
-                const delta = formatDelta(run.ageGrade, previousAgeGrade);
+                const isAllTimePB = pbRuns.has(runKey(run));
+                const delta = formatDelta(
+                  run.ageGrade,
+                  previousRun?.ageGrade ?? null,
+                );
 
                 return (
-                  <Table.Tr key={`${run.eventDate}-${run.eventId}`}>
+                  <Table.Tr key={runKey(run)}>
                     <Table.Td>
                       <Cell
                         primary={

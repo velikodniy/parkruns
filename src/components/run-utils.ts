@@ -9,17 +9,21 @@ export function getGenderSymbol(ageCategory: string): string {
   return ageCategory.startsWith("JM") ? "♂" : "♀";
 }
 
-export function computeAllTimePBs(runs: Run[]): boolean[] {
-  const result: boolean[] = new Array(runs.length).fill(false);
+export function runKey(run: Run): string {
+  return `${run.eventDate}-${run.eventId}`;
+}
+
+export function computeAllTimePBs(runs: Run[]): Set<string> {
+  const pbs = new Set<string>();
   let bestTime = Number.POSITIVE_INFINITY;
 
   for (let i = runs.length - 1; i >= 0; i--) {
     if (runs[i].finishTimeSeconds < bestTime) {
       bestTime = runs[i].finishTimeSeconds;
-      result[i] = true;
+      pbs.add(runKey(runs[i]));
     }
   }
-  return result;
+  return pbs;
 }
 
 export function formatDelta(
