@@ -1,6 +1,6 @@
 import eventsJson from "./events.json" with { type: "json" };
 import type { EventFeature, EventsData } from "./types.ts";
-import { getCountryISO } from "./countries.ts";
+import { numericToISO } from "./countries.ts";
 
 const data = eventsJson as unknown as EventsData;
 
@@ -13,6 +13,12 @@ const eventByLongName = new Map<string, EventFeature>(
     f,
   ) => [f.properties.EventLongName.toLowerCase(), f]),
 );
+
+const eventISO = new Map<number, string>();
+for (const event of data.events.features) {
+  const iso = numericToISO(event.properties.countrycode);
+  if (iso) eventISO.set(event.id, iso);
+}
 
 export function getEventById(id: number): EventFeature | undefined {
   return eventById.get(id);
@@ -30,18 +36,12 @@ export function getShortNameByLongName(longName: string): string | null {
 export function getEventCoordinates(id: number): [number, number] | null {
   const event = eventById.get(id);
   if (!event) return null;
-  const [lon, lat] = event.geometry.coordinates;
-  return [lat, lon];
-}
-
-export function getEventCountryCode(id: number): number | null {
-  return eventById.get(id)?.properties.countrycode ?? null;
+  const [longitude, latitude] = event.geometry.coordinates;
+  return [latitude, longitude];
 }
 
 export function getEventCountryISO(id: number): string | null {
-  const countryCode = getEventCountryCode(id);
-  if (countryCode === null) return null;
-  return getCountryISO(countryCode);
+  return eventISO.get(id) ?? null;
 }
 
 export function getAllEvents(): EventFeature[] {

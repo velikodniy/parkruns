@@ -7,18 +7,12 @@ export type {
   PointGeometry,
 } from "./types.ts";
 
-export {
-  getAllCountryCodes,
-  getCountryISO,
-  getCountryName,
-  getCountryNameByISO,
-} from "./countries.ts";
+export { getCountryName } from "./countries.ts";
 
 export {
   getAllEvents,
   getEventById,
   getEventCoordinates,
-  getEventCountryCode,
   getEventCountryISO,
   getEventResultsUrl,
   getEventShortName,

@@ -1,47 +1,62 @@
-interface CountryMapping {
-  iso: string;
-  name: string;
-}
-
-const COUNTRY_CODES: Record<number, CountryMapping> = {
-  3: { iso: "AU", name: "Australia" },
-  4: { iso: "AT", name: "Austria" },
-  14: { iso: "CA", name: "Canada" },
-  23: { iso: "DK", name: "Denmark" },
-  30: { iso: "FI", name: "Finland" },
-  32: { iso: "DE", name: "Germany" },
-  42: { iso: "IE", name: "Ireland" },
-  44: { iso: "IT", name: "Italy" },
-  46: { iso: "JP", name: "Japan" },
-  54: { iso: "LT", name: "Lithuania" },
-  57: { iso: "MY", name: "Malaysia" },
-  64: { iso: "NL", name: "Netherlands" },
-  65: { iso: "NZ", name: "New Zealand" },
-  67: { iso: "NO", name: "Norway" },
-  74: { iso: "PL", name: "Poland" },
-  82: { iso: "SG", name: "Singapore" },
-  85: { iso: "ZA", name: "South Africa" },
-  88: { iso: "SE", name: "Sweden" },
-  97: { iso: "GB", name: "United Kingdom" },
-  98: { iso: "US", name: "United States" },
+const NUMERIC_TO_ISO: Record<number, string> = {
+  3: "au",
+  4: "at",
+  14: "ca",
+  23: "dk",
+  30: "fi",
+  32: "de",
+  42: "ie",
+  44: "it",
+  46: "jp",
+  54: "lt",
+  57: "my",
+  64: "nl",
+  65: "nz",
+  67: "no",
+  74: "pl",
+  82: "sg",
+  85: "za",
+  88: "se",
+  97: "gb",
+  98: "us",
 };
 
-export function getCountryISO(numericCode: number): string | null {
-  return COUNTRY_CODES[numericCode]?.iso ?? null;
+const NAMES: Record<string, string> = {
+  au: "Australia",
+  at: "Austria",
+  ca: "Canada",
+  dk: "Denmark",
+  fi: "Finland",
+  de: "Germany",
+  ie: "Ireland",
+  it: "Italy",
+  jp: "Japan",
+  lt: "Lithuania",
+  my: "Malaysia",
+  nl: "Netherlands",
+  nz: "New Zealand",
+  no: "Norway",
+  pl: "Poland",
+  sg: "Singapore",
+  za: "South Africa",
+  se: "Sweden",
+  gb: "United Kingdom",
+  us: "United States",
+  "gb-eng": "England",
+  "gb-sct": "Scotland",
+  "gb-wls": "Wales",
+  "gb-nir": "Northern Ireland",
+  je: "Jersey",
+  gg: "Guernsey",
+  im: "Isle of Man",
+  gi: "Gibraltar",
+  fk: "Falkland Islands",
+};
+
+export function numericToISO(code: number): string | null {
+  return NUMERIC_TO_ISO[code] ?? null;
 }
 
-export function getCountryName(numericCode: number): string | null {
-  return COUNTRY_CODES[numericCode]?.name ?? null;
-}
-
-export function getAllCountryCodes(): number[] {
-  return Object.keys(COUNTRY_CODES).map(Number);
-}
-
-const ISO_TO_NAME: Record<string, string> = Object.fromEntries(
-  Object.values(COUNTRY_CODES).map(({ iso, name }) => [iso, name]),
-);
-
-export function getCountryNameByISO(iso: string): string | null {
-  return ISO_TO_NAME[iso.toUpperCase()] ?? null;
+export function getCountryName(iso: string): string | null {
+  return NAMES[iso.toLowerCase()] ?? null;
 }

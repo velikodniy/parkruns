@@ -23,7 +23,7 @@ import {
   ThemeToggle,
 } from "./components/index.ts";
 import { formatPace, formatTime } from "./format.ts";
-import { getCountryNameByISO } from "./lib/parkrun/countries.ts";
+import { getCountryName } from "./lib/parkrun/countries.ts";
 import { useProfileData } from "./hooks/useProfileData.ts";
 import { useRunStats } from "./hooks/useRunStats.ts";
 
@@ -92,7 +92,7 @@ export function App() {
               key={iso}
               countryCode={iso}
               size={18}
-              title={getCountryNameByISO(iso) ?? iso}
+              title={getCountryName(iso) ?? iso}
             />
           ))}
         </Group>
