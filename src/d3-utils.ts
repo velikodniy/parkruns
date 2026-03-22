@@ -26,12 +26,6 @@ export function createTooltip(colors: ChartColors) {
     .style("opacity", 0);
 }
 
-export function sortRunsByDate(runs: Run[]): Run[] {
-  return [...runs].sort(
-    (a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
-  );
-}
-
 export function createTimeXScale(
   runs: Run[],
   innerWidth: number,

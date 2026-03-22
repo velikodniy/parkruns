@@ -9,14 +9,14 @@ import {
   renderXAxis,
   renderYAxis,
   showTooltip,
-  sortRunsByDate,
 } from "../d3-utils.ts";
+import { sortRunsByDateAsc } from "../stats.ts";
 
 export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
-      const sortedRuns = sortRunsByDate(runs);
+      const sortedRuns = sortRunsByDateAsc(runs);
 
       const ageGradeBands = [
         {

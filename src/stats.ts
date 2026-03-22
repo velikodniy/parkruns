@@ -1,5 +1,11 @@
 import type { Run } from "./types.ts";
 
+export function sortRunsByDateAsc(runs: Run[]): Run[] {
+  return [...runs].sort(
+    (a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
+  );
+}
+
 export function sortRunsByDateDesc(runs: Run[]): Run[] {
   return [...runs].sort(
     (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
