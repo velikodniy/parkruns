@@ -14,19 +14,33 @@ async function fetchRegion(coordinates: LngLat): Promise<string> {
   const [longitude, latitude] = coordinates;
   const url =
     `${NOMINATIM_URL}?format=json&lat=${latitude}&lon=${longitude}&zoom=5`;
-  const resp = await fetch(url, {
-    headers: { "User-Agent": USER_AGENT },
-  });
-  if (!resp.ok) throw new Error(`Nominatim error: ${resp.status}`);
-  const data = await resp.json();
 
-  const iso2 = data.address?.["ISO3166-2-lvl4"] as string | undefined;
-  if (iso2) return iso2.toLowerCase();
+  try {
+    const resp = await fetch(url, {
+      headers: { "User-Agent": USER_AGENT },
+    });
+    if (!resp.ok) {
+      console.error(
+        `Nominatim error: ${resp.status} for ${latitude},${longitude}`,
+      );
+      return "gb";
+    }
+    const data = await resp.json();
 
-  const country = data.address?.country_code as string | undefined;
-  if (country) return country.toLowerCase();
+    const iso2 = data.address?.["ISO3166-2-lvl4"] as string | undefined;
+    if (iso2) return iso2.toLowerCase();
 
-  return "gb";
+    const country = data.address?.country_code as string | undefined;
+    if (country) return country.toLowerCase();
+
+    return "gb";
+  } catch (error) {
+    console.error(
+      `Failed to fetch region for ${latitude},${longitude}:`,
+      error,
+    );
+    return "gb";
+  }
 }
 
 export function resolveRegions(
