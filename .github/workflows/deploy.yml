@@ -53,4 +53,4 @@ jobs:
         run: |
           # workaround for deno deploy not uploding files ignored by .gitignore
           rm .gitignore
-          deno deploy --org vlcdn --app parkruns --prod --no-wait
+          deno deploy --org vlcdn --app parkruns --prod
