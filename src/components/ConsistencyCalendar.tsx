@@ -202,7 +202,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     return () => {
       tooltip.remove();
     };
-  }, [runs, colors]);
+  }, [runs, colors, width]);
 
   return (
     <svg
