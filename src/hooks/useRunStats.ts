@@ -24,10 +24,12 @@ export function useRunStats(profile: Profile | null): UseRunStatsResult {
   const visitedCountries = useMemo(() => {
     if (sortedRuns.length === 0) return [];
     const countrySet = new Set<string>();
-    for (const run of sortedRuns) {
+    // Iterate from oldest to newest to preserve first-visit order
+    for (let i = sortedRuns.length - 1; i >= 0; i--) {
+      const run = sortedRuns[i];
       if (run.countryISO) countrySet.add(run.countryISO);
     }
-    return [...countrySet].sort();
+    return [...countrySet];
   }, [sortedRuns]);
 
   return { sortedRuns, stats, visitedCountries };
