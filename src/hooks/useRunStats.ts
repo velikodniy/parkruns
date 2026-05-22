@@ -25,8 +25,7 @@ export function useRunStats(profile: Profile | null): UseRunStatsResult {
     if (sortedRuns.length === 0) return [];
     const countrySet = new Set<string>();
     // Iterate from oldest to newest to preserve first-visit order
-    for (let i = sortedRuns.length - 1; i >= 0; i--) {
-      const run = sortedRuns[i];
+    for (const run of [...sortedRuns].reverse()) {
       if (run.countryISO) countrySet.add(run.countryISO);
     }
     return [...countrySet];
