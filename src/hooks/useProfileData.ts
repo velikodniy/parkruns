@@ -13,7 +13,9 @@ export function useProfileData(): UseProfileDataResult {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/data.json")
+    const controller = new AbortController();
+
+    fetch("/data.json", { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -24,9 +26,16 @@ export function useProfileData(): UseProfileDataResult {
           throw new Error(`Invalid data: ${parsed.error.message}`);
         }
         setProfile(parsed.data);
+        setLoading(false);
       })
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+      .catch((err: Error) => {
+        if (err.name !== "AbortError") {
+          setError(err.message);
+          setLoading(false);
+        }
+      });
+
+    return () => controller.abort();
   }, []);
 
   return { profile, loading, error };
