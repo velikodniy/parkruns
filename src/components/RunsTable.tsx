@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import {
+  Anchor,
   Badge,
+  Box,
   Card,
   Group,
   Pagination,
@@ -35,9 +37,9 @@ interface CellProps {
 function Cell({ primary, secondary }: CellProps) {
   return (
     <div>
-      <div style={{ lineHeight: 1.4 }}>{primary}</div>
+      <Box lh={1.4}>{primary}</Box>
       {secondary && (
-        <Text size="xs" c="dimmed" style={{ lineHeight: 1.4 }}>
+        <Text size="xs" c="dimmed" lh={1.4}>
           {secondary}
         </Text>
       )}
@@ -45,23 +47,20 @@ function Cell({ primary, secondary }: CellProps) {
   );
 }
 
-const linkStyle = { color: "inherit", textDecoration: "none" };
-
 function EventLink(
   { url, children }: { url: string | null; children: React.ReactNode },
 ) {
   if (!url) return <>{children}</>;
   return (
-    <a
+    <Anchor
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      style={linkStyle}
-      onMouseEnter={(e) => e.currentTarget.style.textDecoration = "underline"}
-      onMouseLeave={(e) => e.currentTarget.style.textDecoration = "none"}
+      c="inherit"
+      underline="hover"
     >
       {children}
-    </a>
+    </Anchor>
   );
 }
 

@@ -1,4 +1,4 @@
-import { Badge, Box, Group, Paper, Stack, Text } from "@mantine/core";
+import { Anchor, Badge, Box, Group, Paper, Stack, Text } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
@@ -31,33 +31,34 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
           <Text size="sm" fw={500} truncate style={{ minWidth: 0 }}>
             {run.eventUrl
               ? (
-                <a
+                <Anchor
                   href={run.eventUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: "inherit", textDecoration: "none" }}
+                  c="inherit"
+                  underline="hover"
                 >
                   {run.eventName}
-                </a>
+                </Anchor>
               )
               : run.eventName}
           </Text>
           {run.resultsUrl
             ? (
-              <a
+              <Anchor
                 href={run.resultsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                c="inherit"
+                underline="hover"
                 style={{
-                  color: "inherit",
-                  textDecoration: "none",
                   flexShrink: 0,
                   display: "inline-flex",
                   alignItems: "center",
                 }}
               >
                 <Text size="xs" c="dimmed" span>#{run.eventEdition}</Text>
-              </a>
+              </Anchor>
             )
             : (
               <Text size="xs" c="dimmed" span style={{ flexShrink: 0 }}>
