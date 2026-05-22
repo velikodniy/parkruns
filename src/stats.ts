@@ -2,17 +2,18 @@ import type { Run } from "./types.ts";
 
 export function sortRunsByDateAsc(runs: Run[]): Run[] {
   return [...runs].sort(
-    (a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime(),
+    (a, b) => a.eventDate.localeCompare(b.eventDate),
   );
 }
 
 export function sortRunsByDateDesc(runs: Run[]): Run[] {
   return [...runs].sort(
-    (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime(),
+    (a, b) => b.eventDate.localeCompare(a.eventDate),
   );
 }
 
 function median(sorted: number[]): number {
+  if (sorted.length === 0) return 0;
   const mid = Math.floor(sorted.length / 2);
   if (sorted.length % 2 === 0) {
     return Math.round((sorted[mid - 1] + sorted[mid]) / 2);
