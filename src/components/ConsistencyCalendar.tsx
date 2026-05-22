@@ -29,13 +29,15 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   const totalWeeks = 54;
   const extraPadding = 5;
 
-  // Dynamically calculate the maximum cell size that fits the screen to avoid horizontal scrolling
+  const cellSize = isMobile ? 12 : 14;
   const availableWidth = width - leftMargin - extraPadding;
-  const maxCellSize = Math.floor(availableWidth / totalWeeks) - cellGap;
-  const cellSize = Math.min(Math.max(maxCellSize, 3), 14);
+  const colsPerRow = Math.max(
+    1,
+    Math.floor(availableWidth / (cellSize + cellGap)),
+  );
 
-  const rowHeight = cellSize + (isMobile ? 6 : 8);
-  const minSvgWidth = leftMargin + totalWeeks * (cellSize + cellGap) +
+  const actualCols = Math.min(colsPerRow, totalWeeks);
+  const minSvgWidth = leftMargin + actualCols * (cellSize + cellGap) +
     extraPadding;
   const svgWidth = Math.max(width, minSvgWidth);
 
@@ -49,8 +51,6 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
       new Date().getFullYear();
     const years = d3.range(minYear, maxYear + 1);
 
-    const height = topMargin + years.length * rowHeight + 10;
-
     const runsByWeek = new Map<string, Run[]>();
     for (const run of runs) {
       const weekStart = d3.timeSunday.floor(new Date(run.eventDate));
@@ -63,7 +63,6 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     svg.attr("width", svgWidth);
-    svg.attr("height", height);
 
     const tooltip = createTooltip(colors);
 
@@ -91,19 +90,22 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     );
     const months = d3.timeMonths(refFirstDay, refLastDay);
 
-    for (const month of months) {
-      const weekIndex = refWeeks.findIndex(
-        (w: Date) =>
-          w.getTime() <= month.getTime() &&
-          d3.timeWeek.offset(w, 1).getTime() > month.getTime(),
-      );
-      if (weekIndex >= 0) {
-        g.append("text")
-          .attr("x", weekIndex * (cellSize + cellGap))
-          .attr("y", -8)
-          .attr("font-size", "10px")
-          .attr("fill", colors.axis)
-          .text(d3.timeFormat("%b")(month));
+    // Only show month labels if we are not wrapping
+    if (colsPerRow >= totalWeeks) {
+      for (const month of months) {
+        const weekIndex = refWeeks.findIndex(
+          (w: Date) =>
+            w.getTime() <= month.getTime() &&
+            d3.timeWeek.offset(w, 1).getTime() > month.getTime(),
+        );
+        if (weekIndex >= 0) {
+          g.append("text")
+            .attr("x", weekIndex * (cellSize + cellGap))
+            .attr("y", -8)
+            .attr("font-size", "10px")
+            .attr("fill", colors.axis)
+            .text(d3.timeFormat("%b")(month));
+        }
       }
     }
 
@@ -112,7 +114,9 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
       return thursday.getFullYear();
     };
 
-    years.forEach((year: number, rowIndex: number) => {
+    let currentY = 0;
+
+    years.forEach((year: number) => {
       const firstDay = new Date(year, 0, 1);
       const lastDay = new Date(year, 11, 31);
       const weeks = d3.timeWeeks(
@@ -130,7 +134,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
 
       g.append("text")
         .attr("x", -8)
-        .attr("y", rowIndex * rowHeight + cellSize / 2)
+        .attr("y", currentY + cellSize / 2)
         .attr("dy", "0.35em")
         .attr("font-size", "12px")
         .attr("fill", colors.axis)
@@ -138,6 +142,9 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
         .text(year);
 
       weekData.forEach((wd: WeekData, wi: number) => {
+        const col = wi % colsPerRow;
+        const subRow = Math.floor(wi / colsPerRow);
+
         const weekTime = wd.week.getTime();
         let fill = "";
 
@@ -153,8 +160,8 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
 
         const rect = g
           .append("rect")
-          .attr("x", wi * (cellSize + cellGap))
-          .attr("y", rowIndex * rowHeight)
+          .attr("x", col * (cellSize + cellGap))
+          .attr("y", currentY + subRow * (cellSize + cellGap))
           .attr("width", cellSize)
           .attr("height", cellSize)
           .attr("rx", 2)
@@ -185,7 +192,12 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
             .on("mouseout", () => hideTooltip(tooltip));
         }
       });
+
+      const totalSubRows = Math.ceil(weekData.length / colsPerRow);
+      currentY += totalSubRows * (cellSize + cellGap) + (isMobile ? 12 : 18);
     });
+
+    svg.attr("height", topMargin + currentY);
 
     return () => {
       tooltip.remove();

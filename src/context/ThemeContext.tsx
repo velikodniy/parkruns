@@ -43,7 +43,7 @@ const darkChartColors: ChartColors = {
   box: "#364fc7",
   boxStroke: "#4c6ef5",
   inactive: "#2c2e33",
-  skipped: "#5c2b2b",
+  skipped: "#c92a2a", // Brighter red for dark mode
   ageGrade: {
     worldClass: "#ae3ec9",
     nationalClass: "#40c057",
