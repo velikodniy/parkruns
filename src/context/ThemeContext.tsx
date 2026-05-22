@@ -28,6 +28,7 @@ export interface ChartColors {
   box: string;
   boxStroke: string;
   inactive: string;
+  skipped: string;
   ageGrade: AgeGradeTiers;
 }
 
@@ -42,6 +43,7 @@ const darkChartColors: ChartColors = {
   box: "#364fc7",
   boxStroke: "#4c6ef5",
   inactive: "#2c2e33",
+  skipped: "#5c2b2b",
   ageGrade: {
     worldClass: "#ae3ec9",
     nationalClass: "#40c057",
@@ -61,6 +63,7 @@ const lightChartColors: ChartColors = {
   box: "#4263eb",
   boxStroke: "#5c7cfa",
   inactive: "#e9ecef",
+  skipped: "#ffe3e3",
   ageGrade: {
     worldClass: "#9c36b5",
     nationalClass: "#2f9e44",

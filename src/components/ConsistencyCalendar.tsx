@@ -18,14 +18,21 @@ interface WeekData {
 
 export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const { colors, colorScheme } = useChartTheme();
+  const { colors } = useChartTheme();
 
   const isMobile = width < 600;
-  const CELL_SIZE = isMobile ? 10 : 14;
-  const CELL_GAP = isMobile ? 1 : 2;
-  const ROW_HEIGHT = CELL_SIZE + 8;
-  const LEFT_MARGIN = 40;
-  const TOP_MARGIN = 25;
+  const cellSize = isMobile ? 10 : 14;
+  const cellGap = isMobile ? 1 : 2;
+  const rowHeight = cellSize + 8;
+  const leftMargin = 40;
+  const topMargin = 25;
+
+  // A calendar year + overlap spans at most 54 weeks.
+  const totalWeeks = 54;
+  const extraPadding = 10;
+  const minSvgWidth = leftMargin + totalWeeks * (cellSize + cellGap) +
+    extraPadding;
+  const svgWidth = Math.max(width, minSvgWidth);
 
   useEffect(() => {
     if (!svgRef.current || runs.length === 0) return;
@@ -37,7 +44,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
       new Date().getFullYear();
     const years = d3.range(minYear, maxYear + 1);
 
-    const height = TOP_MARGIN + years.length * ROW_HEIGHT + 10;
+    const height = topMargin + years.length * rowHeight + 10;
 
     const runsByWeek = new Map<string, Run[]>();
     for (const run of runs) {
@@ -48,9 +55,6 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
       runsByWeek.set(weekKey, existing);
     }
 
-    const minWidth = LEFT_MARGIN + 54 * (CELL_SIZE + CELL_GAP) + 10;
-    const svgWidth = Math.max(width, minWidth);
-
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     svg.attr("width", svgWidth);
@@ -60,7 +64,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
 
     const g = svg
       .append("g")
-      .attr("transform", `translate(${LEFT_MARGIN}, ${TOP_MARGIN})`);
+      .attr("transform", `translate(${leftMargin}, ${topMargin})`);
 
     const colorScale = d3
       .scaleLinear<string>()
@@ -90,7 +94,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
       );
       if (weekIndex >= 0) {
         g.append("text")
-          .attr("x", weekIndex * (CELL_SIZE + CELL_GAP))
+          .attr("x", weekIndex * (cellSize + cellGap))
           .attr("y", -8)
           .attr("font-size", "10px")
           .attr("fill", colors.axis)
@@ -121,7 +125,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
 
       g.append("text")
         .attr("x", -8)
-        .attr("y", rowIndex * ROW_HEIGHT + CELL_SIZE / 2)
+        .attr("y", rowIndex * rowHeight + cellSize / 2)
         .attr("dy", "0.35em")
         .attr("font-size", "12px")
         .attr("fill", colors.axis)
@@ -138,16 +142,16 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
           if (weekTime < firstRunWeek || weekTime > currentWeek) {
             fill = colors.inactive; // gray
           } else {
-            fill = colorScheme === "dark" ? "#5c2b2b" : "#ffe3e3"; // pale red
+            fill = colors.skipped;
           }
         }
 
         const rect = g
           .append("rect")
-          .attr("x", wi * (CELL_SIZE + CELL_GAP))
-          .attr("y", rowIndex * ROW_HEIGHT)
-          .attr("width", CELL_SIZE)
-          .attr("height", CELL_SIZE)
+          .attr("x", wi * (cellSize + cellGap))
+          .attr("y", rowIndex * rowHeight)
+          .attr("width", cellSize)
+          .attr("height", cellSize)
           .attr("rx", 2)
           .attr("fill", fill)
           .attr("stroke", colors.background)
@@ -186,10 +190,8 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   return (
     <svg
       ref={svgRef}
-      style={{
-        overflow: "visible",
-        minWidth: LEFT_MARGIN + 54 * (10 + 1) + 10,
-      }}
+      width={svgWidth}
+      style={{ overflow: "visible" }}
       role="img"
       aria-label="Calendar heatmap showing weekly parkrun consistency by year"
     />
