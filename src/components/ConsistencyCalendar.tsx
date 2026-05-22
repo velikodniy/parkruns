@@ -21,15 +21,20 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   const { colors } = useChartTheme();
 
   const isMobile = width < 600;
-  const cellSize = isMobile ? 10 : 14;
-  const cellGap = isMobile ? 1 : 2;
-  const rowHeight = cellSize + 8;
-  const leftMargin = 40;
+  const leftMargin = isMobile ? 32 : 40;
   const topMargin = 25;
+  const cellGap = isMobile ? 1 : 2;
 
   // A calendar year + overlap spans at most 54 weeks.
   const totalWeeks = 54;
-  const extraPadding = 10;
+  const extraPadding = 5;
+
+  // Dynamically calculate the maximum cell size that fits the screen to avoid horizontal scrolling
+  const availableWidth = width - leftMargin - extraPadding;
+  const maxCellSize = Math.floor(availableWidth / totalWeeks) - cellGap;
+  const cellSize = Math.min(Math.max(maxCellSize, 3), 14);
+
+  const rowHeight = cellSize + (isMobile ? 6 : 8);
   const minSvgWidth = leftMargin + totalWeeks * (cellSize + cellGap) +
     extraPadding;
   const svgWidth = Math.max(width, minSvgWidth);
