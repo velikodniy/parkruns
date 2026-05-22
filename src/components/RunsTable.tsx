@@ -162,28 +162,32 @@ export function RunsTable({ runs }: Props) {
     ? `${pageStart + 1}–${endIdx} of ${runs.length}`
     : "0 runs";
 
+  const paginationControls = (
+    <Group gap="xs" wrap="nowrap">
+      <Text
+        size="xs"
+        c="dimmed"
+        fw={500}
+        style={{ whiteSpace: "nowrap" }}
+      >
+        {rangeText}
+      </Text>
+      <Pagination
+        total={totalPages}
+        value={pagination.active}
+        onChange={pagination.setPage}
+        withPages={false}
+        size="sm"
+      />
+    </Group>
+  );
+
   return (
     <Card withBorder>
       <Stack gap="md">
         <Group justify="space-between" align="center">
           <Title order={3}>All Runs</Title>
-          <Group gap="xs" wrap="nowrap">
-            <Text
-              size="xs"
-              c="dimmed"
-              fw={500}
-              style={{ whiteSpace: "nowrap" }}
-            >
-              {rangeText}
-            </Text>
-            <Pagination
-              total={totalPages}
-              value={pagination.active}
-              onChange={pagination.setPage}
-              withPages={false}
-              size="sm"
-            />
-          </Group>
+          {paginationControls}
         </Group>
 
         <ScrollArea>
@@ -286,6 +290,10 @@ export function RunsTable({ runs }: Props) {
             </Table.Tbody>
           </Table>
         </ScrollArea>
+
+        <Group justify="flex-end">
+          {paginationControls}
+        </Group>
       </Stack>
     </Card>
   );

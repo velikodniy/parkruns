@@ -30,22 +30,26 @@ export function RunsCardList({ runs }: Props) {
     ? `${pageStart + 1}–${endIdx} of ${runs.length}`
     : "0 runs";
 
+  const paginationControls = (
+    <Group gap="xs" wrap="nowrap">
+      <Text size="xs" c="dimmed" fw={500} style={{ whiteSpace: "nowrap" }}>
+        {rangeText}
+      </Text>
+      <Pagination
+        total={totalPages}
+        value={pagination.active}
+        onChange={pagination.setPage}
+        size="sm"
+        withPages={false}
+      />
+    </Group>
+  );
+
   return (
     <Card withBorder>
       <Group justify="space-between" align="center" mb="md">
         <Title order={3}>All Runs</Title>
-        <Group gap="xs" wrap="nowrap">
-          <Text size="xs" c="dimmed" fw={500} style={{ whiteSpace: "nowrap" }}>
-            {rangeText}
-          </Text>
-          <Pagination
-            total={totalPages}
-            value={pagination.active}
-            onChange={pagination.setPage}
-            size="sm"
-            withPages={false}
-          />
-        </Group>
+        {paginationControls}
       </Group>
 
       <Stack gap="sm">
@@ -65,6 +69,10 @@ export function RunsCardList({ runs }: Props) {
           );
         })}
       </Stack>
+
+      <Group justify="flex-end" mt="md">
+        {paginationControls}
+      </Group>
     </Card>
   );
 }
