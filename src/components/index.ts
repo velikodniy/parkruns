@@ -1,5 +1,4 @@
 export { FinishTimeChart } from "./FinishTimeChart.tsx";
-export { MonthlySummary } from "./MonthlySummary.tsx";
 export { ResponsiveCalendar } from "./ResponsiveCalendar.tsx";
 export { AgeGradeChart } from "./AgeGradeChart.tsx";
 export { FinishTimeDistribution } from "./FinishTimeDistribution.tsx";

@@ -16,15 +16,16 @@ interface WeekData {
   count: number;
 }
 
-const CELL_SIZE = 14;
-const CELL_GAP = 2;
-const ROW_HEIGHT = CELL_SIZE + 8;
-const LEFT_MARGIN = 45;
-const TOP_MARGIN = 25;
-
 export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const { colors } = useChartTheme();
+  const { colors, colorScheme } = useChartTheme();
+
+  const isMobile = width < 600;
+  const CELL_SIZE = isMobile ? 10 : 14;
+  const CELL_GAP = isMobile ? 1 : 2;
+  const ROW_HEIGHT = CELL_SIZE + 8;
+  const LEFT_MARGIN = 40;
+  const TOP_MARGIN = 25;
 
   useEffect(() => {
     if (!svgRef.current || runs.length === 0) return;
@@ -47,8 +48,12 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
       runsByWeek.set(weekKey, existing);
     }
 
+    const minWidth = LEFT_MARGIN + 54 * (CELL_SIZE + CELL_GAP) + 10;
+    const svgWidth = Math.max(width, minWidth);
+
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
+    svg.attr("width", svgWidth);
     svg.attr("height", height);
 
     const tooltip = createTooltip(colors);
@@ -59,9 +64,14 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
 
     const colorScale = d3
       .scaleLinear<string>()
-      .domain([0, 1, 2, 3])
-      .range(["#dee2e6", "#69db7c", "#40c057", "#2f9e44"])
+      .domain([1, 2, 3])
+      .range(["#69db7c", "#40c057", "#2f9e44"])
       .clamp(true);
+
+    const firstRunWeek = d3.timeSunday.floor(
+      new Date(runs[runs.length - 1].eventDate),
+    ).getTime();
+    const currentWeek = d3.timeSunday.floor(new Date()).getTime();
 
     const refYear = maxYear;
     const refFirstDay = new Date(refYear, 0, 1);
@@ -119,6 +129,19 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
         .text(year);
 
       weekData.forEach((wd: WeekData, wi: number) => {
+        const weekTime = wd.week.getTime();
+        let fill = "";
+
+        if (wd.count > 0) {
+          fill = colorScale(wd.count);
+        } else {
+          if (weekTime < firstRunWeek || weekTime > currentWeek) {
+            fill = colors.inactive; // gray
+          } else {
+            fill = colorScheme === "dark" ? "#5c2b2b" : "#ffe3e3"; // pale red
+          }
+        }
+
         const rect = g
           .append("rect")
           .attr("x", wi * (CELL_SIZE + CELL_GAP))
@@ -126,7 +149,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
           .attr("width", CELL_SIZE)
           .attr("height", CELL_SIZE)
           .attr("rx", 2)
-          .attr("fill", colorScale(wd.count))
+          .attr("fill", fill)
           .attr("stroke", colors.background)
           .attr("stroke-width", 1);
 
@@ -163,8 +186,10 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   return (
     <svg
       ref={svgRef}
-      width={width}
-      style={{ overflow: "visible" }}
+      style={{
+        overflow: "visible",
+        minWidth: LEFT_MARGIN + 54 * (10 + 1) + 10,
+      }}
       role="img"
       aria-label="Calendar heatmap showing weekly parkrun consistency by year"
     />
