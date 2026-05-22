@@ -63,7 +63,7 @@ const lightChartColors: ChartColors = {
   box: "#4263eb",
   boxStroke: "#5c7cfa",
   inactive: "#e9ecef",
-  skipped: "#ffe3e3",
+  skipped: "#ff6b6b",
   ageGrade: {
     worldClass: "#9c36b5",
     nationalClass: "#2f9e44",
