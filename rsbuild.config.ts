@@ -4,9 +4,14 @@ import fs from "node:fs";
 
 const themeInitScript = `
 (function() {
-  var key = 'parkrun-color-scheme';
-  var stored = localStorage.getItem(key);
-  var scheme = stored || 'dark';
+  var scheme = 'dark';
+  try {
+    var key = 'parkrun-color-scheme';
+    var stored = localStorage.getItem(key);
+    if (stored) scheme = stored;
+  } catch (_e) {
+    // ignore
+  }
   document.documentElement.setAttribute('data-mantine-color-scheme', scheme);
 })();
 `;

@@ -105,7 +105,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const toggle = useCallback(() => {
     const next: ColorScheme = resolvedScheme === "dark" ? "light" : "dark";
     setColorScheme(next);
-    localStorage.setItem(THEME_STORAGE_KEY, next);
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch (_e) {
+      // ignore
+    }
   }, [resolvedScheme, setColorScheme]);
 
   const value = useMemo(

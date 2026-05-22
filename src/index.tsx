@@ -7,8 +7,12 @@ import { type ColorScheme, ThemeProvider } from "./context/ThemeContext.tsx";
 import { THEME_STORAGE_KEY } from "./theme.ts";
 
 function getInitialColorScheme(): ColorScheme {
-  const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  return (stored === "light" || stored === "dark") ? stored : "dark";
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    return (stored === "light" || stored === "dark") ? stored : "dark";
+  } catch (_e) {
+    return "dark";
+  }
 }
 
 const initialScheme = getInitialColorScheme();
