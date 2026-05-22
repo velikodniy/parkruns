@@ -21,7 +21,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   const { colors } = useChartTheme();
 
   const isMobile = width < 600;
-  const leftMargin = isMobile ? 32 : 40;
+  const leftMargin = 40;
   const topMargin = 25;
   const cellGap = isMobile ? 1 : 2;
 
