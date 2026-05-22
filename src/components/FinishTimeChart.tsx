@@ -162,6 +162,7 @@ export function FinishTimeChart(
     [runs, width, height],
     width,
     height,
+    { top: 20, right: 10, bottom: 25, left: 45 },
   );
 
   return (
