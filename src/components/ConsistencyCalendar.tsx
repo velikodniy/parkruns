@@ -151,7 +151,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
         if (wd.count > 0) {
           fill = colorScale(wd.count);
         } else {
-          if (weekTime < firstRunWeek || weekTime > currentWeek) {
+          if (weekTime < firstRunWeek || weekTime >= currentWeek) {
             fill = colors.inactive; // gray
           } else {
             fill = colors.skipped;
