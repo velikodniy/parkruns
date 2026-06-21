@@ -10,6 +10,7 @@ import {
   getShortNameByLongName,
 } from "../src/lib/parkrun/index.ts";
 import { getRegionKey, resolveRegions } from "../src/lib/parkrun/regions.ts";
+import { writeTextFileAtomic } from "../src/lib/fs.ts";
 import {
   fetchWeatherForRuns,
   getWeatherKey,
@@ -106,8 +107,7 @@ async function downloadData(
   };
 
   const outputPath = "public/data.json";
-  await Deno.mkdir("public", { recursive: true });
-  await Deno.writeTextFile(outputPath, JSON.stringify(profile));
+  await writeTextFileAtomic(outputPath, JSON.stringify(profile));
   console.log(`Written ${runs.length} runs to ${outputPath}`);
 }
 
