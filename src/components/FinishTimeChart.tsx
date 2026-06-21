@@ -16,11 +16,19 @@ const AXIS_GAP_SECONDS = 15;
 const MAX_TIME_SECONDS = 3600;
 const MAX_VISIBLE_RUNS = 25;
 const MEDAL_COUNT = 3;
+// Minimum vertical spacing between right-end time labels when best times cluster.
+const MEDAL_LABEL_MIN_GAP = 12;
 
 // Indexed by rank - 1.
 const MEDAL_GLYPHS = ["🥇", "🥈", "🥉"];
 const MEDAL_ORDINALS = ["1st", "2nd", "3rd"];
 const MEDAL_LEGEND_LABELS = ["Best", "2nd best", "3rd best"];
+
+/** A best-time line's right-end label with a collision-adjusted y position. */
+interface MedalLabel {
+  finish: TopFinish;
+  labelY: number;
+}
 
 export function FinishTimeChart(
   { runs, width = 600, height = 300 }: ChartProps,
@@ -130,19 +138,29 @@ export function FinishTimeChart(
         .attr("opacity", 0.9);
 
       // Time label at the right end of each line; colour conveys the rank.
+      // Best times can be only seconds apart, so nudge labels apart vertically
+      // (top to bottom) to keep them legible when the lines nearly coincide.
+      const labelLayout: MedalLabel[] = topFinishes
+        .map((finish) => ({ finish, labelY: y(finish.finishTimeSeconds) - 3 }))
+        .sort((a, b) => a.labelY - b.labelY);
+      for (let i = 1; i < labelLayout.length; i++) {
+        const minY = labelLayout[i - 1].labelY + MEDAL_LABEL_MIN_GAP;
+        if (labelLayout[i].labelY < minY) labelLayout[i].labelY = minY;
+      }
+
       medalGroup
-        .selectAll<SVGTextElement, TopFinish>(".medal-label")
-        .data(topFinishes)
+        .selectAll<SVGTextElement, MedalLabel>(".medal-label")
+        .data(labelLayout)
         .enter()
         .append("text")
         .attr("class", "medal-label")
         .attr("x", innerWidth)
-        .attr("y", (d: TopFinish) => y(d.finishTimeSeconds) - 3)
+        .attr("y", (d: MedalLabel) => d.labelY)
         .attr("text-anchor", "end")
         .attr("font-size", "10px")
         .attr("font-weight", "bold")
-        .attr("fill", (d: TopFinish) => medalColor(d.rank))
-        .text((d: TopFinish) => formatTime(d.finishTimeSeconds));
+        .attr("fill", (d: MedalLabel) => medalColor(d.finish.rank))
+        .text((d: MedalLabel) => formatTime(d.finish.finishTimeSeconds));
 
       // Wide transparent hit area so the thin lines are easy to hover.
       const medalHitAreas = medalGroup
