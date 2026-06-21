@@ -134,14 +134,16 @@ export function FinishTimeChart(
         .attr("y1", (d: TopFinish) => y(d.finishTimeSeconds))
         .attr("y2", (d: TopFinish) => y(d.finishTimeSeconds))
         .attr("stroke", (d: TopFinish) => medalColor(d.rank))
-        .attr("stroke-width", 1.5)
-        .attr("opacity", 0.9);
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", "4,4")
+        .attr("opacity", 0.5);
 
-      // Time label at the right end of each line; colour conveys the rank.
-      // Best times can be only seconds apart, so nudge labels apart vertically
-      // (top to bottom) to keep them legible when the lines nearly coincide.
+      // Time labels live in the right gutter (outside the plot) so they never
+      // overlap the data, mirroring the Age Grade chart's band labels. Best
+      // times can be only seconds apart, so nudge labels apart vertically to
+      // keep them legible when the lines nearly coincide.
       const labelLayout: MedalLabel[] = topFinishes
-        .map((finish) => ({ finish, labelY: y(finish.finishTimeSeconds) - 3 }))
+        .map((finish) => ({ finish, labelY: y(finish.finishTimeSeconds) }))
         .sort((a, b) => a.labelY - b.labelY);
       for (let i = 1; i < labelLayout.length; i++) {
         const minY = labelLayout[i - 1].labelY + MEDAL_LABEL_MIN_GAP;
@@ -154,12 +156,12 @@ export function FinishTimeChart(
         .enter()
         .append("text")
         .attr("class", "medal-label")
-        .attr("x", innerWidth)
+        .attr("x", innerWidth + 5)
         .attr("y", (d: MedalLabel) => d.labelY)
-        .attr("text-anchor", "end")
+        .attr("dy", "0.35em")
         .attr("font-size", "10px")
-        .attr("font-weight", "bold")
         .attr("fill", (d: MedalLabel) => medalColor(d.finish.rank))
+        .attr("pointer-events", "none")
         .text((d: MedalLabel) => formatTime(d.finish.finishTimeSeconds));
 
       // Wide transparent hit area so the thin lines are easy to hover.
@@ -247,7 +249,8 @@ export function FinishTimeChart(
           .attr("y1", yOffset)
           .attr("y2", yOffset)
           .attr("stroke", medalColor(finish.rank))
-          .attr("stroke-width", 1.5);
+          .attr("stroke-width", 1.5)
+          .attr("stroke-dasharray", "4,4");
         legend.append("text").attr("x", 25).attr("y", yOffset + 4).attr(
           "font-size",
           "11px",
@@ -272,7 +275,7 @@ export function FinishTimeChart(
     [runs, width, height],
     width,
     height,
-    { top: 20, right: 10, bottom: 25, left: 45 },
+    { top: 20, right: 36, bottom: 25, left: 45 },
   );
 
   return (
