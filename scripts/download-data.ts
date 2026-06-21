@@ -9,12 +9,14 @@ import {
   getEventUrl,
   getShortNameByLongName,
 } from "../src/lib/parkrun/index.ts";
-import { getRegionKey, resolveRegions } from "../src/lib/parkrun/regions.ts";
+import { resolveRegions } from "../src/lib/parkrun/regions.ts";
 import { writeTextFileAtomic } from "../src/lib/fs.ts";
+import { fetchWeatherForRuns } from "../src/lib/parkrun/weather.ts";
 import {
-  fetchWeatherForRuns,
-  getWeatherKey,
-} from "../src/lib/parkrun/weather.ts";
+  attachCoordinates,
+  enrichRuns,
+  type EventLookups,
+} from "../src/lib/parkrun/enrich.ts";
 import type { Profile } from "../src/types.ts";
 
 const ATHLETE_ID = Deno.env.get("PARKRUN_ATHLETE_ID");
@@ -45,10 +47,16 @@ async function downloadData(
   console.log("Fetching runs...");
   const runs = await getRuns(accessToken, numericId);
 
-  const runsWithCoordinates = runs.map((run) => ({
-    ...run,
-    coordinates: getEventCoordinates(run.eventId),
-  }));
+  const eventLookups: EventLookups = {
+    getCoordinates: getEventCoordinates,
+    getCountryISO: getEventCountryISO,
+    getEvent: getEventById,
+    getShortName: getEventShortName,
+    getUrl: getEventUrl,
+    getResultsUrl: getEventResultsUrl,
+  };
+
+  const runsWithCoordinates = attachCoordinates(runs, eventLookups);
 
   console.log("Fetching weather data...");
   const weatherMap = await fetchWeatherForRuns(runsWithCoordinates);
@@ -61,33 +69,11 @@ async function downloadData(
     }));
   const regionMap = await resolveRegions(ukEvents);
 
-  const enrichedRuns = runsWithCoordinates.map((run) => {
-    const { coordinates, ...runData } = run;
-    const weather = coordinates
-      ? weatherMap.get(getWeatherKey(coordinates, run.eventDate)) ?? null
-      : null;
-
-    let countryISO = getEventCountryISO(run.eventId);
-    if (countryISO === "gb") {
-      const event = getEventById(run.eventId);
-      if (event) {
-        countryISO = regionMap.get(
-          getRegionKey(event.geometry.coordinates),
-        ) ?? countryISO;
-      }
-    }
-
-    return {
-      ...runData,
-      coordinates,
-      countryISO,
-      eventName: getEventShortName(run.eventId) ??
-        run.eventName.replace(/ parkrun$/i, ""),
-      eventUrl: getEventUrl(run.eventId),
-      resultsUrl: getEventResultsUrl(run.eventId, run.eventEdition),
-      weather,
-    };
-  });
+  const enrichedRuns = enrichRuns(
+    runsWithCoordinates,
+    { weather: weatherMap, regions: regionMap },
+    eventLookups,
+  );
 
   const profile: Profile = {
     schemaVersion: 1,
