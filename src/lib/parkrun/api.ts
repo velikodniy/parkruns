@@ -1,4 +1,5 @@
 import type { Athlete, Run } from "../../types.ts";
+import { fetchWithRetry } from "../http.ts";
 
 export type AccessToken = string;
 
@@ -91,10 +92,13 @@ async function apiRequest(
     headers["Content-Type"] = options.contentType;
   }
 
-  const response = await fetch(url.toString(), {
+  const response = await fetchWithRetry(url.toString(), {
     method: options.method ?? "GET",
     headers,
     body: options.body,
+  }, {
+    onRetry: (attempt, why) =>
+      console.warn(`Retrying ${path} (attempt ${attempt + 1}): ${why}`),
   });
 
   if (!response.ok) {
@@ -139,7 +143,11 @@ export async function getAthlete(
   });
 
   const json = await response.json();
-  const data: AthleteResponse = json.data.Athletes[0];
+  const athletes = json?.data?.Athletes;
+  if (!Array.isArray(athletes) || athletes.length === 0) {
+    throw new Error("Unexpected athlete response: missing data.Athletes");
+  }
+  const data: AthleteResponse = athletes[0];
 
   return {
     id: Number.parseInt(data.AthleteID),
@@ -162,7 +170,7 @@ async function getRunStats(
   });
 
   const json = await response.json();
-  const runs: RunSummaryResponse[] = json.data.Runs ?? [];
+  const runs: RunSummaryResponse[] = json?.data?.Runs ?? [];
 
   const statsMap = new Map<string, number>();
   for (const r of runs) {
@@ -181,8 +189,11 @@ export async function getRuns(
   const allRuns: Run[] = [];
   let offset = 0;
   const limit = 100;
+  // Safety valve: if the API ever ignored `offset` it would page forever. No
+  // athlete has anywhere near 100k runs, so this only ever trips on a bug.
+  const maxPages = 1000;
 
-  while (true) {
+  for (let page = 0; page < maxPages; page++) {
     const response = await apiRequest("/v1/results", {
       params: {
         access_token: accessToken,
@@ -195,9 +206,16 @@ export async function getRuns(
     });
 
     const json = await response.json();
-    const results: RunResultResponse[] = json.data.Results;
+    // Fail loud on a malformed envelope (e.g. a 200 with an error body) rather
+    // than letting a missing `data` look like the end of pagination and
+    // silently truncate the run history. An empty/absent Results array is the
+    // normal end-of-pages signal.
+    if (!json?.data) {
+      throw new Error("Unexpected runs response: missing data");
+    }
+    const results: RunResultResponse[] = json.data.Results ?? [];
 
-    if (!results || results.length === 0) break;
+    if (results.length === 0) break;
 
     for (const r of results) {
       const statsKey = `${r.EventNumber}-${r.abstractId}`;

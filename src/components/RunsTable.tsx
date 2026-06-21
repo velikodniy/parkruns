@@ -1,32 +1,26 @@
-import { useMemo } from "react";
 import {
   Anchor,
-  Badge,
   Box,
   Card,
   Group,
-  Pagination,
   ScrollArea,
   Stack,
   Table,
   Text,
   Title,
 } from "@mantine/core";
-import { usePagination } from "@mantine/hooks";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 import { WeatherBadge } from "./WeatherBadge.tsx";
-import {
-  computeAllTimePBs,
-  DAYS,
-  formatDelta,
-  getGenderSymbol,
-  runKey,
-} from "./run-utils.ts";
+import { PaginationControls } from "./PaginationControls.tsx";
+import { PBBadge } from "./PBBadge.tsx";
+import { useRunsList } from "../hooks/useRunsList.ts";
+import { DAYS, formatDelta, getGenderSymbol, runKey } from "./run-utils.ts";
 
 interface Props {
   runs: Run[];
+  pbRuns: Set<string>;
 }
 
 interface CellProps {
@@ -113,26 +107,7 @@ function TimeCell({ finishTimeSeconds, wasPb, isAllTimePB }: TimeCellProps) {
     <div>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
         <span>{formatTime(finishTimeSeconds)}</span>
-        {wasPb && isAllTimePB && (
-          <Badge
-            color="blue"
-            size="xs"
-            variant="filled"
-            style={{ flexShrink: 0 }}
-          >
-            PB
-          </Badge>
-        )}
-        {wasPb && !isAllTimePB && (
-          <Badge
-            color="gray"
-            size="xs"
-            variant="light"
-            style={{ flexShrink: 0 }}
-          >
-            PB
-          </Badge>
-        )}
+        <PBBadge wasPb={wasPb} isAllTimePB={isAllTimePB} />
       </span>
       <Text size="xs" c="dimmed" style={{ lineHeight: 1.4 }}>
         {formatPace(finishTimeSeconds)}
@@ -141,45 +116,16 @@ function TimeCell({ finishTimeSeconds, wasPb, isAllTimePB }: TimeCellProps) {
   );
 }
 
-const PAGE_SIZE = 10;
+export function RunsTable({ runs, pbRuns }: Props) {
+  const { items, pagination, totalPages, rangeText } = useRunsList(runs);
 
-export function RunsTable({ runs }: Props) {
-  const totalPages = Math.max(1, Math.ceil(runs.length / PAGE_SIZE));
-  const pagination = usePagination({
-    total: totalPages,
-    initialPage: 1,
-  });
-
-  const pbRuns = useMemo(() => computeAllTimePBs(runs), [runs]);
-
-  const pageStart = (pagination.active - 1) * PAGE_SIZE;
-  const displayedRuns = useMemo(() => {
-    return runs.slice(pageStart, pageStart + PAGE_SIZE);
-  }, [runs, pageStart]);
-
-  const endIdx = Math.min(pagination.active * PAGE_SIZE, runs.length);
-  const rangeText = runs.length > 0
-    ? `${pageStart + 1}–${endIdx} of ${runs.length}`
-    : "0 runs";
-
-  const paginationControls = (
-    <Group gap="xs" wrap="nowrap">
-      <Text
-        size="xs"
-        c="dimmed"
-        fw={500}
-        style={{ whiteSpace: "nowrap" }}
-      >
-        {rangeText}
-      </Text>
-      <Pagination
-        total={totalPages}
-        value={pagination.active}
-        onChange={pagination.setPage}
-        withPages={false}
-        size="sm"
-      />
-    </Group>
+  const controls = (
+    <PaginationControls
+      rangeText={rangeText}
+      total={totalPages}
+      value={pagination.active}
+      onChange={pagination.setPage}
+    />
   );
 
   return (
@@ -187,7 +133,7 @@ export function RunsTable({ runs }: Props) {
       <Stack gap="md">
         <Group justify="space-between" align="center">
           <Title order={3}>All Runs</Title>
-          {paginationControls}
+          {controls}
         </Group>
 
         <ScrollArea>
@@ -203,12 +149,8 @@ export function RunsTable({ runs }: Props) {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {displayedRuns.map((run: Run, index: number) => {
-                const globalIndex = pageStart + index;
+              {items.map(({ run, previousRun }) => {
                 const date = new Date(run.eventDate);
-                const previousRun = globalIndex < runs.length - 1
-                  ? runs[globalIndex + 1]
-                  : null;
                 const isAllTimePB = pbRuns.has(runKey(run));
                 const delta = formatDelta(
                   run.ageGrade,
@@ -292,7 +234,7 @@ export function RunsTable({ runs }: Props) {
         </ScrollArea>
 
         <Group justify="flex-end">
-          {paginationControls}
+          {controls}
         </Group>
       </Stack>
     </Card>

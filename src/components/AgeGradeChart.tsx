@@ -3,9 +3,10 @@ import type { ChartProps, Run } from "../types.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
   attachTooltipHandlers,
-  createJitterOffset,
   createTimeXScale,
   hideTooltip,
+  renderJitteredPoints,
+  renderRunLine,
   renderXAxis,
   renderYAxis,
   showTooltip,
@@ -125,33 +126,15 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
       });
       renderYAxis(g, y, colors, (d) => `${d}%`);
 
-      const line = d3
-        .line<Run>()
-        .x((d: Run) => x(new Date(d.eventDate)))
-        .y((d: Run) => y(d.ageGrade));
+      renderRunLine(g, sortedRuns, x, y, (d) => d.ageGrade, colors.primary);
 
-      g.append("path")
-        .datum(sortedRuns)
-        .attr("fill", "none")
-        .attr("stroke", colors.primary)
-        .attr("stroke-width", 1.5)
-        .attr("d", line);
-
-      const getJitterOffset = createJitterOffset(sortedRuns);
-
-      g.selectAll(".point")
-        .data(sortedRuns)
-        .enter()
-        .append("circle")
-        .attr("class", "point")
-        .attr("cx", (d: Run) => x(new Date(d.eventDate)) + getJitterOffset(d))
-        .attr("cy", (d: Run) => y(d.ageGrade))
-        .attr("r", 3)
-        .attr("fill", colors.primary)
-        .attr("opacity", 0.8);
+      const points = renderJitteredPoints(g, sortedRuns, x, y, {
+        value: (d) => d.ageGrade,
+        fill: () => colors.primary,
+      });
 
       attachTooltipHandlers<Run>(
-        g.selectAll(".point"),
+        points,
         tooltip,
         (run) => [
           { text: run.eventName, bold: true },

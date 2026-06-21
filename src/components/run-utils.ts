@@ -31,12 +31,18 @@ export function formatDelta(
   previous: number | null,
 ): { text: string; color: string } | null {
   if (previous === null) return null;
-  const delta = current - previous;
-  const isPositive = delta > 0;
-  return {
-    text: `${isPositive ? "↑" : "↓"} ${isPositive ? "+" : ""}${
-      delta.toFixed(1)
-    }%`,
-    color: isPositive ? "green" : "red",
-  };
+
+  // Decide direction from the value as displayed (1 decimal) so the arrow and
+  // colour can never disagree with the number — e.g. a +0.04 delta reads as
+  // "0.0%", which should look flat, not like an improvement.
+  const delta = Number((current - previous).toFixed(1));
+
+  if (delta > 0) {
+    return { text: `↑ +${delta.toFixed(1)}%`, color: "green" };
+  }
+  if (delta < 0) {
+    // toFixed already carries the minus sign for negatives.
+    return { text: `↓ ${delta.toFixed(1)}%`, color: "red" };
+  }
+  return { text: "→ 0.0%", color: "dimmed" };
 }

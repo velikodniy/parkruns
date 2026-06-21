@@ -237,6 +237,51 @@ Deno.test("computeRunStats - multiple runs same week count as 1", () => {
   assertEquals(stats.streak.best, 1);
 });
 
+Deno.test("computeRunStats - streak spans 53-week year boundary", () => {
+  // 2020 is a 53-week ISO year; 2020-12-26 and 2021-01-02 are consecutive
+  // Saturdays. The old YYYY-WW scheme hardcoded 52 and broke this.
+  const runs = [
+    createMockRun({ eventDate: "2021-01-02T09:00:00Z" }),
+    createMockRun({ eventDate: "2020-12-26T09:00:00Z" }),
+  ];
+  const stats = computeRunStats(runs);
+  assertEquals(stats.streak.best, 2);
+});
+
+Deno.test("computeRunStats - recentMedianTime uses 5 newest regardless of input order", () => {
+  // Deliberately unsorted; computeRunStats must select the 5 newest by date
+  // itself, excluding the oldest run (2000), rather than trusting input order.
+  const runs = [
+    createMockRun({
+      finishTimeSeconds: 1300,
+      eventDate: "2024-03-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 2000,
+      eventDate: "2024-01-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1000,
+      eventDate: "2024-06-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1200,
+      eventDate: "2024-04-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1100,
+      eventDate: "2024-05-01T09:00:00Z",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1400,
+      eventDate: "2024-02-01T09:00:00Z",
+    }),
+  ];
+  const stats = computeRunStats(runs);
+  // 5 newest by date: 1000, 1100, 1200, 1300, 1400 → median 1200 (2000 excluded)
+  assertEquals(stats.recentMedianTime, 1200);
+});
+
 Deno.test("sortRunsByDateDesc - handles empty array", () => {
   const sorted = sortRunsByDateDesc([]);
   assertEquals(sorted, []);
