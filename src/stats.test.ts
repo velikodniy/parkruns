@@ -1,5 +1,9 @@
 import { assertEquals } from "@std/assert";
-import { computeRunStats, sortRunsByDateDesc } from "./stats.ts";
+import {
+  computeRunStats,
+  getTopFinishes,
+  sortRunsByDateDesc,
+} from "./stats.ts";
 import type { Run } from "./types.ts";
 
 function createMockRun(overrides: Partial<Run> = {}): Run {
@@ -309,4 +313,61 @@ Deno.test("computeRunStats - handles empty array", () => {
   assertEquals(stats.bestAgeGrade, 0);
   assertEquals(stats.uniqueEvents, 0);
   assertEquals(stats.streak, { current: 0, best: 0 });
+});
+
+// === getTopFinishes tests ===
+
+Deno.test("getTopFinishes - returns three fastest times ranked ascending", () => {
+  const runs = [
+    createMockRun({ finishTimeSeconds: 1500 }),
+    createMockRun({ finishTimeSeconds: 1200 }),
+    createMockRun({ finishTimeSeconds: 1350 }),
+    createMockRun({ finishTimeSeconds: 1280 }),
+  ];
+  const top = getTopFinishes(runs, 3);
+  assertEquals(top.map((t) => t.finishTimeSeconds), [1200, 1280, 1350]);
+  assertEquals(top.map((t) => t.rank), [1, 2, 3]);
+});
+
+Deno.test("getTopFinishes - dedupes tied times so lines never overlap", () => {
+  const runs = [
+    createMockRun({ finishTimeSeconds: 1200 }),
+    createMockRun({ finishTimeSeconds: 1200 }),
+    createMockRun({ finishTimeSeconds: 1300 }),
+    createMockRun({ finishTimeSeconds: 1400 }),
+  ];
+  const top = getTopFinishes(runs, 3);
+  // 1200 appears once, not twice
+  assertEquals(top.map((t) => t.finishTimeSeconds), [1200, 1300, 1400]);
+});
+
+Deno.test("getTopFinishes - returns fewer entries than requested when distinct times are few", () => {
+  const runs = [
+    createMockRun({ finishTimeSeconds: 1200 }),
+    createMockRun({ finishTimeSeconds: 1200 }),
+  ];
+  const top = getTopFinishes(runs, 3);
+  assertEquals(top.length, 1);
+  assertEquals(top[0].rank, 1);
+});
+
+Deno.test("getTopFinishes - representative run is the earliest occurrence of a time", () => {
+  const runs = [
+    createMockRun({
+      finishTimeSeconds: 1200,
+      eventDate: "2024-05-01T09:00:00Z",
+      eventName: "Later PB",
+    }),
+    createMockRun({
+      finishTimeSeconds: 1200,
+      eventDate: "2024-01-01T09:00:00Z",
+      eventName: "First PB",
+    }),
+  ];
+  const top = getTopFinishes(runs, 3);
+  assertEquals(top[0].run.eventName, "First PB");
+});
+
+Deno.test("getTopFinishes - handles empty array", () => {
+  assertEquals(getTopFinishes([], 3), []);
 });

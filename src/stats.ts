@@ -12,6 +12,40 @@ export function sortRunsByDateDesc(runs: Run[]): Run[] {
   );
 }
 
+export interface TopFinish {
+  /** 1 = fastest, 2 = second fastest, ... */
+  rank: number;
+  finishTimeSeconds: number;
+  /** The earliest run that achieved this time (for tooltips). */
+  run: Run;
+}
+
+/**
+ * The `count` fastest *distinct* finish times across all runs, each paired with
+ * the earliest run that achieved it. Distinct times (rather than the raw N
+ * fastest runs) avoid duplicate entries when a time has been tied, so callers
+ * drawing one marker per entry never get overlapping markers. Returns fewer
+ * than `count` entries when there are fewer distinct times.
+ */
+export function getTopFinishes(runs: Run[], count = 3): TopFinish[] {
+  const earliestByTime = new Map<number, Run>();
+  for (const run of runs) {
+    const existing = earliestByTime.get(run.finishTimeSeconds);
+    if (!existing || run.eventDate.localeCompare(existing.eventDate) < 0) {
+      earliestByTime.set(run.finishTimeSeconds, run);
+    }
+  }
+
+  return [...earliestByTime.keys()]
+    .sort((a, b) => a - b)
+    .slice(0, count)
+    .map((finishTimeSeconds, i) => ({
+      rank: i + 1,
+      finishTimeSeconds,
+      run: earliestByTime.get(finishTimeSeconds) as Run,
+    }));
+}
+
 /**
  * Median of a pre-sorted numeric array. The even-length average is rounded to a
  * whole number because the only caller (recentMedianTime) is in whole seconds.
