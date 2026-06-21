@@ -4,8 +4,9 @@ import { formatTime } from "../format.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
   attachTooltipHandlers,
-  createJitterOffset,
   createTimeXScale,
+  renderJitteredPoints,
+  renderRunLine,
   renderXAxis,
   renderYAxis,
 } from "../d3-utils.ts";
@@ -61,17 +62,14 @@ export function FinishTimeChart(
       });
       renderYAxis(g, y, colors, (d) => formatTime(d as number));
 
-      const line = d3
-        .line<Run>()
-        .x((d: Run) => x(new Date(d.eventDate)))
-        .y((d: Run) => y(d.finishTimeSeconds));
-
-      g.append("path")
-        .datum(sortedRuns)
-        .attr("fill", "none")
-        .attr("stroke", colors.primary)
-        .attr("stroke-width", 1.5)
-        .attr("d", line);
+      renderRunLine(
+        g,
+        sortedRuns,
+        x,
+        y,
+        (d) => d.finishTimeSeconds,
+        colors.primary,
+      );
 
       if (windowSize > 1) {
         const medianLine = d3
@@ -89,18 +87,11 @@ export function FinishTimeChart(
           .attr("d", medianLine);
       }
 
-      const getJitterOffset = createJitterOffset(sortedRuns);
-
-      g.selectAll(".point")
-        .data(sortedRuns)
-        .enter()
-        .append("circle")
-        .attr("class", "point")
-        .attr("cx", (d: Run) => x(new Date(d.eventDate)) + getJitterOffset(d))
-        .attr("cy", (d: Run) => y(d.finishTimeSeconds))
-        .attr("r", (d: Run) => (d.wasPb ? 6 : 3))
-        .attr("fill", (d: Run) => (d.wasPb ? colors.success : colors.primary))
-        .attr("opacity", 0.8);
+      const points = renderJitteredPoints(g, sortedRuns, x, y, {
+        value: (d) => d.finishTimeSeconds,
+        radius: (d) => (d.wasPb ? 6 : 3),
+        fill: (d) => (d.wasPb ? colors.success : colors.primary),
+      });
 
       const legend = g.append("g").attr(
         "transform",
@@ -146,7 +137,7 @@ export function FinishTimeChart(
         .attr("fill", colors.axis).text("PB");
 
       attachTooltipHandlers<Run>(
-        g.selectAll<SVGCircleElement, Run>(".point"),
+        points,
         tooltip,
         (run) => [
           { text: run.eventName, bold: true },

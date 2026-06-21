@@ -130,6 +130,70 @@ export function createJitterOffset(runs: Run[]): (run: Run) => number {
   };
 }
 
+/**
+ * Draws a connecting line through runs, x by event date and y by `value`.
+ * Shared by the time-series scatter charts.
+ */
+export function renderRunLine(
+  g: d3.Selection<SVGGElement, unknown, null, undefined>,
+  runs: Run[],
+  x: d3.ScaleTime<number, number>,
+  y: d3.ScaleLinear<number, number>,
+  value: (d: Run) => number,
+  color: string,
+  strokeWidth = 1.5,
+): void {
+  const line = d3
+    .line<Run>()
+    .x((d: Run) => x(new Date(d.eventDate)))
+    .y((d: Run) => y(value(d)));
+
+  g.append("path")
+    .datum(runs)
+    .attr("fill", "none")
+    .attr("stroke", color)
+    .attr("stroke-width", strokeWidth)
+    .attr("d", line);
+}
+
+export interface JitteredPointsOptions {
+  /** Vertical position accessor. */
+  value: (d: Run) => number;
+  /** Circle radius accessor (default: constant 3). */
+  radius?: (d: Run) => number;
+  /** Fill colour accessor. */
+  fill: (d: Run) => string;
+  /** Circle opacity (default: 0.8). */
+  opacity?: number;
+}
+
+/**
+ * Renders one circle per run, x-jittered so runs sharing a date don't overlap.
+ * Returns the circle selection so the caller can attach tooltip handlers.
+ */
+export function renderJitteredPoints(
+  g: d3.Selection<SVGGElement, unknown, null, undefined>,
+  runs: Run[],
+  x: d3.ScaleTime<number, number>,
+  y: d3.ScaleLinear<number, number>,
+  options: JitteredPointsOptions,
+): d3.Selection<SVGCircleElement, Run, SVGGElement, unknown> {
+  const { value, radius = () => 3, fill, opacity = 0.8 } = options;
+  const jitter = createJitterOffset(runs);
+
+  return g
+    .selectAll<SVGCircleElement, Run>(".point")
+    .data(runs)
+    .enter()
+    .append("circle")
+    .attr("class", "point")
+    .attr("cx", (d: Run) => x(new Date(d.eventDate)) + jitter(d))
+    .attr("cy", (d: Run) => y(value(d)))
+    .attr("r", radius)
+    .attr("fill", fill)
+    .attr("opacity", opacity);
+}
+
 /** Type alias for tooltip selection */
 export type TooltipSelection = d3.Selection<
   HTMLDivElement,
