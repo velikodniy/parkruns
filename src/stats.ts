@@ -12,6 +12,10 @@ export function sortRunsByDateDesc(runs: Run[]): Run[] {
   );
 }
 
+/**
+ * Median of a pre-sorted numeric array. The even-length average is rounded to a
+ * whole number because the only caller (recentMedianTime) is in whole seconds.
+ */
 function median(sorted: number[]): number {
   if (sorted.length === 0) return 0;
   const mid = Math.floor(sorted.length / 2);
@@ -22,63 +26,46 @@ function median(sorted: number[]): number {
 }
 
 const MS_PER_DAY = 86400000;
+const MS_PER_WEEK = 7 * MS_PER_DAY;
 
-function getYearWeek(date: Date): string {
-  const year = date.getFullYear();
-  const jan1 = new Date(year, 0, 1);
-  const days = Math.floor((date.getTime() - jan1.getTime()) / MS_PER_DAY);
-  const week = Math.ceil((days + jan1.getDay() + 1) / 7);
-  return `${year}-${week.toString().padStart(2, "0")}`;
+/**
+ * Week bucket for a date: whole weeks since the Unix epoch, computed from the
+ * UTC calendar date so the bucket is independent of the viewer's timezone.
+ * parkruns are held on Saturdays, so consecutive events differ by exactly 1 —
+ * which makes streak counting plain integer arithmetic with no year-boundary
+ * special cases (53-week years included).
+ */
+function weekIndex(date: Date): number {
+  const utcMidnight = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+  );
+  return Math.floor(utcMidnight / MS_PER_WEEK);
 }
 
-function getPreviousWeek(weekStr: string): string {
-  const [year, week] = weekStr.split("-").map(Number);
-  if (week > 1) {
-    return `${year}-${(week - 1).toString().padStart(2, "0")}`;
-  }
-  return `${year - 1}-52`;
-}
-
-function getNextWeek(weekStr: string): string {
-  const [year, week] = weekStr.split("-").map(Number);
-  if (week < 52) {
-    return `${year}-${(week + 1).toString().padStart(2, "0")}`;
-  }
-  return `${year + 1}-01`;
-}
-
-function countCurrentStreak(weeks: Set<string>, currentWeek: string): number {
+/** Count consecutive weeks ending at (or just before) the current week. */
+function countCurrentStreak(weeks: Set<number>, currentWeek: number): number {
   let streak = 0;
-  let checkWeek = weeks.has(currentWeek)
-    ? currentWeek
-    : getPreviousWeek(currentWeek);
-
-  const sortedWeeks = [...weeks].sort().reverse();
-  for (const week of sortedWeeks) {
-    if (week === checkWeek) {
-      streak++;
-      checkWeek = getPreviousWeek(checkWeek);
-    } else if (week < checkWeek) {
-      break;
-    }
+  let week = weeks.has(currentWeek) ? currentWeek : currentWeek - 1;
+  while (weeks.has(week)) {
+    streak++;
+    week--;
   }
   return streak;
 }
 
-function countBestStreak(weeks: Set<string>): number {
-  const sortedWeeks = [...weeks].sort();
+/** Longest run of consecutive weeks anywhere in the history. */
+function countBestStreak(weeks: Set<number>): number {
+  const sorted = [...weeks].sort((a, b) => a - b);
   let best = 0;
   let streak = 0;
-  let prevWeek = "";
+  let prev: number | null = null;
 
-  for (const week of sortedWeeks) {
-    if (prevWeek === "" || week === getNextWeek(prevWeek)) {
-      streak++;
-    } else {
-      streak = 1;
-    }
+  for (const week of sorted) {
+    streak = prev !== null && week === prev + 1 ? streak + 1 : 1;
     best = Math.max(best, streak);
-    prevWeek = week;
+    prev = week;
   }
   return best;
 }
@@ -86,15 +73,13 @@ function countBestStreak(weeks: Set<string>): number {
 function computeStreak(runs: Run[]): { current: number; best: number } {
   if (runs.length === 0) return { current: 0, best: 0 };
 
-  const weeks = new Set<string>();
+  const weeks = new Set<number>();
   for (const run of runs) {
-    weeks.add(getYearWeek(new Date(run.eventDate)));
+    weeks.add(weekIndex(new Date(run.eventDate)));
   }
 
-  const currentWeek = getYearWeek(new Date());
-
   return {
-    current: countCurrentStreak(weeks, currentWeek),
+    current: countCurrentStreak(weeks, weekIndex(new Date())),
     best: countBestStreak(weeks),
   };
 }
@@ -133,11 +118,8 @@ export function computeRunStats(runs: Run[]): RunStats {
   let bestTopPercentRun: { position: number; totalFinishers: number } | null =
     null;
   const events = new Set<string>();
-  const recent5Times: number[] = [];
 
-  for (let i = 0; i < runs.length; i++) {
-    const run = runs[i];
-
+  for (const run of runs) {
     if (run.finishTimeSeconds < fastestTime) {
       fastestTime = run.finishTimeSeconds;
     }
@@ -157,16 +139,19 @@ export function computeRunStats(runs: Run[]): RunStats {
     }
 
     events.add(run.eventName);
-
-    if (i < 5) {
-      recent5Times.push(run.finishTimeSeconds);
-    }
   }
+
+  // Self-contained: take the 5 most recent runs by date regardless of the
+  // caller's ordering, so the median can't silently depend on input order.
+  const recentTimes = sortRunsByDateDesc(runs)
+    .slice(0, 5)
+    .map((r) => r.finishTimeSeconds)
+    .sort((a, b) => a - b);
 
   return {
     totalRuns: runs.length,
     fastestTime,
-    recentMedianTime: median([...recent5Times].sort((a, b) => a - b)),
+    recentMedianTime: median(recentTimes),
     bestAgeGrade,
     bestAgeGradeCategory,
     bestTopPercent,
