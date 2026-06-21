@@ -164,7 +164,7 @@ export function RunsTable({ runs, pbRuns }: Props) {
                         primary={
                           <>
                             {date.toLocaleDateString()}
-                            {" "}
+                            {"\u00A0"}
                             <Text span size="xs" c="dimmed">
                               {DAYS[date.getDay()]}
                             </Text>
@@ -189,16 +189,16 @@ export function RunsTable({ runs, pbRuns }: Props) {
                           <>
                             {run.position}
                             <Text span c="dimmed" inherit>
-                              {" / "}
+                              {"\u00A0/\u00A0"}
                               {run.totalFinishers}
                             </Text>
                           </>
                         }
                         secondary={`${
                           getGenderSymbol(run.ageCategory)
-                        } ${run.genderPosition} · Top ${
+                        }\u00A0${run.genderPosition} · Top\u00A0${
                           Math.round((run.position / run.totalFinishers) * 100)
-                        } %`}
+                        }\u00A0%`}
                       />
                     </Table.Td>
 
