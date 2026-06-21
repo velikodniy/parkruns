@@ -206,9 +206,16 @@ export async function getRuns(
     });
 
     const json = await response.json();
-    const results: RunResultResponse[] = json?.data?.Results;
+    // Fail loud on a malformed envelope (e.g. a 200 with an error body) rather
+    // than letting a missing `data` look like the end of pagination and
+    // silently truncate the run history. An empty/absent Results array is the
+    // normal end-of-pages signal.
+    if (!json?.data) {
+      throw new Error("Unexpected runs response: missing data");
+    }
+    const results: RunResultResponse[] = json.data.Results ?? [];
 
-    if (!results || results.length === 0) break;
+    if (results.length === 0) break;
 
     for (const r of results) {
       const statsKey = `${r.EventNumber}-${r.abstractId}`;
