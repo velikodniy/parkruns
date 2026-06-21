@@ -17,6 +17,12 @@ interface AgeGradeTiers {
   localClass: string;
 }
 
+interface MedalColors {
+  gold: string;
+  silver: string;
+  bronze: string;
+}
+
 export interface ChartColors {
   primary: string;
   success: string;
@@ -30,6 +36,7 @@ export interface ChartColors {
   inactive: string;
   skipped: string;
   ageGrade: AgeGradeTiers;
+  medal: MedalColors;
 }
 
 const darkChartColors: ChartColors = {
@@ -50,6 +57,11 @@ const darkChartColors: ChartColors = {
     regionalClass: "#fab005",
     localClass: "#ff6b6b",
   },
+  medal: {
+    gold: "#ffd43b",
+    silver: "#ced4da",
+    bronze: "#e8845e",
+  },
 };
 
 const lightChartColors: ChartColors = {
@@ -69,6 +81,11 @@ const lightChartColors: ChartColors = {
     nationalClass: "#2f9e44",
     regionalClass: "#f08c00",
     localClass: "#e03131",
+  },
+  medal: {
+    gold: "#d4af37",
+    silver: "#868e96",
+    bronze: "#b06a2c",
   },
 };
 
