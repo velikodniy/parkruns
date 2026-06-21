@@ -1,6 +1,7 @@
 // Open-Meteo Historical Weather API: https://open-meteo.com/en/docs/historical-weather-api
 
 import { JsonCache } from "../cache.ts";
+import { fetchWithRetry } from "../http.ts";
 import type { LatLng } from "./types.ts";
 
 const cache = new JsonCache<Weather | null>("weather.json");
@@ -47,7 +48,7 @@ async function fetchWeatherForLocation(
   url.searchParams.set("timezone", "auto");
 
   try {
-    const response = await fetch(url);
+    const response = await fetchWithRetry(url);
     if (!response.ok) {
       console.error(
         `Weather API error: ${response.status} for ${startDate}-${endDate}`,
