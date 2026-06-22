@@ -11,6 +11,7 @@ import {
   renderYAxis,
 } from "../d3-utils.ts";
 import { getTopFinishes, sortRunsByDateAsc, type TopFinish } from "../stats.ts";
+import { runKey } from "./run-utils.ts";
 
 const AXIS_GAP_SECONDS = 15;
 const MAX_TIME_SECONDS = 3600;
@@ -112,10 +113,21 @@ export function FinishTimeChart(
           .attr("d", medianLine);
       }
 
+      // Colour the dots for the all-time best finishes to match their medal
+      // lines (keyed by run so only the actual best runs light up, not every
+      // run that happens to share a best time).
+      const medalRankByRun = new Map(
+        topFinishes.map((f) => [runKey(f.run), f.rank]),
+      );
+
       const points = renderJitteredPoints(g, visibleRuns, x, y, {
         value: (d) => d.finishTimeSeconds,
-        radius: (d) => (d.wasPb ? 6 : 3),
-        fill: (d) => (d.wasPb ? colors.success : colors.primary),
+        radius: (d) => (medalRankByRun.has(runKey(d)) || d.wasPb ? 6 : 3),
+        fill: (d) => {
+          const rank = medalRankByRun.get(runKey(d));
+          if (rank) return medalColor(rank);
+          return d.wasPb ? colors.success : colors.primary;
+        },
       });
 
       // --- All-time best reference lines (gold/silver/bronze) ---
