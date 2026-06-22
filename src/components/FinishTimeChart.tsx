@@ -22,7 +22,6 @@ const MEDAL_LABEL_MIN_GAP = 12;
 // Indexed by rank - 1.
 const MEDAL_GLYPHS = ["🥇", "🥈", "🥉"];
 const MEDAL_ORDINALS = ["1st", "2nd", "3rd"];
-const MEDAL_LEGEND_LABELS = ["Best", "2nd best", "3rd best"];
 
 /** A best-time line's right-end label with a collision-adjusted y position. */
 interface MedalLabel {
@@ -195,68 +194,6 @@ export function FinishTimeChart(
           { text: `Time: ${formatTime(finish.finishTimeSeconds)}` },
         ],
       );
-
-      const legend = g.append("g").attr(
-        "transform",
-        `translate(${innerWidth - 140}, 0)`,
-      );
-
-      legend
-        .append("line")
-        .attr("x1", 0)
-        .attr("x2", 20)
-        .attr("y1", 0)
-        .attr("y2", 0)
-        .attr("stroke", colors.primary)
-        .attr("stroke-width", 1.5);
-      legend.append("text").attr("x", 25).attr("y", 4).attr("font-size", "11px")
-        .attr("fill", colors.axis).text("Finish time");
-
-      legend
-        .append("line")
-        .attr("x1", 0)
-        .attr("x2", 20)
-        .attr("y1", 15)
-        .attr("y2", 15)
-        .attr("stroke", colors.warning)
-        .attr("stroke-width", 2)
-        .attr("stroke-dasharray", "5,5");
-      legend.append("text").attr("x", 25).attr("y", 19).attr(
-        "font-size",
-        "11px",
-      )
-        .attr("fill", colors.axis).text(`${windowSize}-run median`);
-
-      legend
-        .append("circle")
-        .attr("cx", 10)
-        .attr("cy", 30)
-        .attr("r", 5)
-        .attr("fill", colors.success);
-      legend.append("text").attr("x", 25).attr("y", 34).attr(
-        "font-size",
-        "11px",
-      )
-        .attr("fill", colors.axis).text("PB");
-
-      // Medal legend rows, one per available best time.
-      topFinishes.forEach((finish, i) => {
-        const yOffset = 45 + i * 15;
-        legend
-          .append("line")
-          .attr("x1", 0)
-          .attr("x2", 20)
-          .attr("y1", yOffset)
-          .attr("y2", yOffset)
-          .attr("stroke", medalColor(finish.rank))
-          .attr("stroke-width", 1.5)
-          .attr("stroke-dasharray", "4,4");
-        legend.append("text").attr("x", 25).attr("y", yOffset + 4).attr(
-          "font-size",
-          "11px",
-        )
-          .attr("fill", colors.axis).text(MEDAL_LEGEND_LABELS[finish.rank - 1]);
-      });
 
       attachTooltipHandlers<Run>(
         points,
