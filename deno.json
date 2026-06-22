@@ -32,6 +32,9 @@
   "nodeModulesDir": "auto",
   "deploy": {
     "org": "vlcdn",
-    "app": "parkruns"
+    "app": "parkruns",
+    "exclude": [
+      "!dist"
+    ]
   }
 }
