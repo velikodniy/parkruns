@@ -144,7 +144,7 @@ export function App() {
       </ChartCard>
 
       <SimpleGrid cols={{ base: 1, md: 2 }} mb="xl">
-        <ResponsiveChartCard title="Finish Time Over Time">
+        <ResponsiveChartCard title="Finish Times">
           {(width) => (
             <FinishTimeChart runs={sortedRuns} width={width} height={280} />
           )}
