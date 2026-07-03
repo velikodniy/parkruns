@@ -1,4 +1,4 @@
-name: Build & Deploy
+name: deploy
 
 on:
   push:
@@ -9,35 +9,34 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-events:
+  deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+
       - name: Update events data
         run: curl -sSL --fail https://images.parkrun.com/events.json -o src/lib/parkrun/events.json
+
       - name: Commit events.json if changed
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: "chore: update parkrun events data"
+          commit_message: "chore: update parkrun events data [skip ci]"
           file_pattern: src/lib/parkrun/events.json
 
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    needs: update-events
-    steps:
-      - uses: actions/checkout@v6
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+
       - name: Restore data cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .cache
           key: data-cache-${{ github.run_id }}
           restore-keys: |
             data-cache-
+
       - name: Download data
         env:
           PARKRUN_ATHLETE_ID: ${{ secrets.PARKRUN_ATHLETE_ID }}
@@ -45,8 +44,10 @@ jobs:
           PARKRUN_CLIENT_ID: ${{ secrets.PARKRUN_CLIENT_ID }}
           PARKRUN_CLIENT_SECRET: ${{ secrets.PARKRUN_CLIENT_SECRET }}
         run: deno task download
+
       - name: Build
         run: deno task build
+
       - name: Deploy to Deno Deploy
         env:
           DENO_DEPLOY_TOKEN: ${{ secrets.DENO_DEPLOY_TOKEN }}
