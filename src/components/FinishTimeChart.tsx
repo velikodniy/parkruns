@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Group, SegmentedControl } from "@mantine/core";
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
@@ -30,9 +32,22 @@ interface MedalLabel {
   labelY: number;
 }
 
+/** Which value the y-axis (and its gutter labels) display. */
+type Metric = "time" | "pace";
+
+// Pace labels ("4:25/km") are wider than time labels ("22:05"), so the axis
+// gutters need extra room when pace is shown.
+const TIME_MARGIN = { top: 20, right: 36, bottom: 25, left: 45 };
+const PACE_MARGIN = { top: 20, right: 52, bottom: 25, left: 58 };
+
 export function FinishTimeChart(
   { runs, width = 600, height = 300 }: ChartProps,
 ) {
+  const [metric, setMetric] = useState<Metric>("time");
+  // The finish-time and pace lines are the same curve (every parkrun is 5km),
+  // so the toggle only swaps how the y-axis and gutter labels are formatted.
+  const formatMetric = metric === "pace" ? formatPace : formatTime;
+
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
@@ -86,7 +101,7 @@ export function FinishTimeChart(
       renderXAxis(g, x, innerHeight, innerWidth, colors, {
         tickFormat: d3.timeFormat("%b '%y"),
       });
-      renderYAxis(g, y, colors, (d) => formatTime(d as number));
+      renderYAxis(g, y, colors, (d) => formatMetric(d as number));
 
       renderRunLine(
         g,
@@ -173,7 +188,7 @@ export function FinishTimeChart(
         .attr("font-size", "10px")
         .attr("fill", (d: MedalLabel) => medalColor(d.finish.rank))
         .attr("pointer-events", "none")
-        .text((d: MedalLabel) => formatTime(d.finish.finishTimeSeconds));
+        .text((d: MedalLabel) => formatMetric(d.finish.finishTimeSeconds));
 
       // Wide transparent hit area so the thin lines are easy to hover.
       const medalHitAreas = medalGroup
@@ -223,19 +238,35 @@ export function FinishTimeChart(
         ],
       );
     },
-    [runs, width, height],
+    [runs, width, height, metric],
     width,
     height,
-    { top: 20, right: 36, bottom: 25, left: 45 },
+    metric === "pace" ? PACE_MARGIN : TIME_MARGIN,
   );
 
   return (
-    <svg
-      ref={svgRef}
-      width={width}
-      height={height}
-      role="img"
-      aria-label="Line chart of finish times for the last 25 runs, with gold, silver and bronze reference lines for the three fastest finish times overall"
-    />
+    <div>
+      <Group justify="flex-end" mb="xs">
+        <SegmentedControl
+          size="xs"
+          value={metric}
+          onChange={(value) => setMetric(value as Metric)}
+          data={[
+            { label: "Time", value: "time" },
+            { label: "Pace", value: "pace" },
+          ]}
+          aria-label="Show finish time or pace on the y-axis"
+        />
+      </Group>
+      <svg
+        ref={svgRef}
+        width={width}
+        height={height}
+        role="img"
+        aria-label={`Line chart of finish ${
+          metric === "pace" ? "pace" : "times"
+        } for the last 25 runs, with gold, silver and bronze reference lines for the three fastest finishes overall`}
+      />
+    </div>
   );
 }
