@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
-import { formatTime } from "../format.ts";
+import { formatPace, formatTime } from "../format.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import {
   attachTooltipHandlers,
@@ -204,6 +204,7 @@ export function FinishTimeChart(
           { text: finish.run.eventName },
           { text: new Date(finish.run.eventDate).toLocaleDateString() },
           { text: `Time: ${formatTime(finish.finishTimeSeconds)}` },
+          { text: `Pace: ${formatPace(finish.finishTimeSeconds)}` },
         ],
       );
 
@@ -218,6 +219,7 @@ export function FinishTimeChart(
               run.wasPb ? " (PB!)" : ""
             }`,
           },
+          { text: `Pace: ${formatPace(run.finishTimeSeconds)}` },
         ],
       );
     },
