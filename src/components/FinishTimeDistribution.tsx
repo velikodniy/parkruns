@@ -5,14 +5,32 @@ import { useD3Chart } from "../hooks/useD3Chart.ts";
 import { hideTooltip, renderYAxis, showTooltip } from "../d3-utils.ts";
 import { eventMonthKey } from "../event-date.ts";
 
-interface MonthData {
-  month: string;
+export interface FinishTimeSummary {
   min: number;
   q1: number;
   median: number;
   q3: number;
   max: number;
   count: number;
+}
+
+interface MonthData extends FinishTimeSummary {
+  month: string;
+}
+
+export function summarizeFinishTimes(
+  sortedTimes: number[],
+): FinishTimeSummary | null {
+  if (sortedTimes.length === 0) return null;
+
+  return {
+    min: sortedTimes[0],
+    q1: Math.round(d3.quantileSorted(sortedTimes, 0.25)!),
+    median: Math.round(d3.quantileSorted(sortedTimes, 0.5)!),
+    q3: Math.round(d3.quantileSorted(sortedTimes, 0.75)!),
+    max: sortedTimes[sortedTimes.length - 1],
+    count: sortedTimes.length,
+  };
 }
 
 const DISTRIBUTION_MARGIN = { top: 20, right: 30, bottom: 60, left: 50 };
@@ -34,19 +52,8 @@ export function FinishTimeDistribution({
 
       const monthlyData: MonthData[] = byMonth
         .map(([month, times]: [string, number[]]) => {
-          if (times.length === 0) return null;
-          const q1Index = Math.floor(times.length * 0.25);
-          const medianIndex = Math.floor(times.length * 0.5);
-          const q3Index = Math.floor(times.length * 0.75);
-          return {
-            month,
-            min: times[0],
-            q1: times[q1Index],
-            median: times[medianIndex],
-            q3: times[q3Index],
-            max: times[times.length - 1],
-            count: times.length,
-          };
+          const summary = summarizeFinishTimes(times);
+          return summary ? { month, ...summary } : null;
         })
         .filter((d: MonthData | null): d is MonthData => d !== null)
         .sort((a: MonthData, b: MonthData) => a.month.localeCompare(b.month));
