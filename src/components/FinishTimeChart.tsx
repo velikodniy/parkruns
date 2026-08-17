@@ -33,6 +33,30 @@ interface MedalLabel {
   labelY: number;
 }
 
+export function getFinishTimeDomain(
+  visibleRuns: Run[],
+  topFinishes: TopFinish[],
+): [number, number] {
+  const minTime = d3.min(
+    visibleRuns,
+    (run: Run) => run.finishTimeSeconds,
+  ) ?? 0;
+  const maxTime = d3.max(
+    visibleRuns,
+    (run: Run) => run.finishTimeSeconds,
+  ) ??
+    MAX_TIME_SECONDS;
+  const medalMin = d3.min(
+    topFinishes,
+    (finish: TopFinish) => finish.finishTimeSeconds,
+  ) ?? minTime;
+
+  return [
+    Math.min(minTime, medalMin) - AXIS_GAP_SECONDS,
+    maxTime + AXIS_GAP_SECONDS,
+  ];
+}
+
 /** Which value the y-axis (and its gutter labels) display. */
 type Metric = "time" | "pace";
 
@@ -62,35 +86,9 @@ export function FinishTimeChart(
 
       const x = createTimeXScale(visibleRuns, innerWidth);
 
-      const allTimes = visibleRuns.map((d) => d.finishTimeSeconds).sort(
-        d3.ascending,
-      );
-      const minTime = d3.min(allTimes) ?? 0;
-      const maxTime = d3.max(allTimes) ?? MAX_TIME_SECONDS;
-
-      // Detect outliers (Tukey's Fences) ---
-      const q1 = d3.quantile(allTimes, 0.25) ?? minTime;
-      const q3 = d3.quantile(allTimes, 0.75) ?? maxTime;
-      const iqr = q3 - q1;
-
-      // Points > q3 + 1.5 * iqr are considered outliers.
-      // We find the largest point that is NOT an outlier.
-      const upperThreshold = q3 + 1.5 * iqr;
-      const normalTimes = allTimes.filter((t) => t <= upperThreshold);
-      const effectiveMaxTime = d3.max(normalTimes) ?? maxTime;
-
-      // Extend the domain downward so all medal lines are visible, even when the
-      // all-time bests are faster than anything in the recent window.
-      const medalMin =
-        d3.min(topFinishes, (t: TopFinish) => t.finishTimeSeconds) ??
-          minTime;
-
       const y = d3
         .scaleLinear()
-        .domain([
-          Math.min(minTime, medalMin) - AXIS_GAP_SECONDS,
-          effectiveMaxTime + AXIS_GAP_SECONDS,
-        ])
+        .domain(getFinishTimeDomain(visibleRuns, topFinishes))
         .range([innerHeight, 0]);
 
       const windowSize = Math.min(7, Math.floor(visibleRuns.length / 3));
