@@ -60,3 +60,17 @@ export function numericToISO(code: number): string | null {
 export function getCountryName(iso: string): string | null {
   return NAMES[iso.toLowerCase()] ?? null;
 }
+
+export function getUnvisitedEventCountryISOs(
+  eventCountries: string[],
+  visitedCountries: string[],
+): string[] {
+  const eventCountrySet = new Set(eventCountries);
+  // GB runs are refined to home-nation or territory codes during enrichment.
+  // Those codes are absent from the top-level event-country list.
+  const visitedEventCountries = new Set(
+    visitedCountries.map((iso) => eventCountrySet.has(iso) ? iso : "gb"),
+  );
+
+  return eventCountries.filter((iso) => !visitedEventCountries.has(iso));
+}

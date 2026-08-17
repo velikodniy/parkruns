@@ -1,6 +1,7 @@
 import "@std/dotenv/load";
 import { authenticate, getAthlete, getRuns } from "../src/lib/parkrun/api.ts";
 import {
+  getAllEventCountryISOs,
   getEventById,
   getEventCoordinates,
   getEventCountryISO,
@@ -78,6 +79,7 @@ async function downloadData(
   const profile: Profile = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
+    eventCountries: getAllEventCountryISOs(),
     athlete: {
       id: athlete.id,
       fullName: `${capitalize(athlete.firstName)} ${

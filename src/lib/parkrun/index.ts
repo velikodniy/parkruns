@@ -11,6 +11,7 @@ export type {
 export { getCountryName } from "./countries.ts";
 
 export {
+  getAllEventCountryISOs,
   getAllEvents,
   getEventById,
   getEventCoordinates,

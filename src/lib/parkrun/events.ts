@@ -1,6 +1,6 @@
 import eventsJson from "./events.json" with { type: "json" };
 import type { EventFeature, EventsData, LatLng } from "./types.ts";
-import { numericToISO } from "./countries.ts";
+import { getCountryName, numericToISO } from "./countries.ts";
 
 const data = eventsJson as unknown as EventsData;
 
@@ -19,6 +19,10 @@ for (const event of data.events.features) {
   const iso = numericToISO(event.properties.countrycode);
   if (iso) eventISO.set(event.id, iso);
 }
+
+const eventCountryISOs = [...new Set(eventISO.values())].sort((a, b) =>
+  (getCountryName(a) ?? a).localeCompare(getCountryName(b) ?? b)
+);
 
 export function getEventById(id: number): EventFeature | undefined {
   return eventById.get(id);
@@ -46,6 +50,10 @@ export function getEventCountryISO(id: number): string | null {
 
 export function getAllEvents(): EventFeature[] {
   return data.events.features;
+}
+
+export function getAllEventCountryISOs(): string[] {
+  return eventCountryISOs;
 }
 
 function getEventBaseUrl(id: number): string | null {

@@ -23,7 +23,10 @@ import {
   ThemeToggle,
 } from "./components/index.ts";
 import { formatPace, formatTime } from "./format.ts";
-import { getCountryName } from "./lib/parkrun/countries.ts";
+import {
+  getCountryName,
+  getUnvisitedEventCountryISOs,
+} from "./lib/parkrun/countries.ts";
 import { useProfileData } from "./hooks/useProfileData.ts";
 import { useRunStats } from "./hooks/useRunStats.ts";
 
@@ -42,6 +45,10 @@ export function App() {
   if (!profile) return null;
 
   const { athlete } = profile;
+  const unvisitedCountries = getUnvisitedEventCountryISOs(
+    profile.eventCountries,
+    visitedCountries,
+  );
 
   if (!stats) {
     return (
@@ -95,6 +102,18 @@ export function App() {
               title={getCountryName(iso) ?? iso}
             />
           ))}
+          {unvisitedCountries.map((iso) => {
+            const countryName = getCountryName(iso) ?? iso;
+            return (
+              <CountryFlag
+                key={iso}
+                countryCode={iso}
+                size={18}
+                title={`${countryName} (not visited)`}
+                dimmed
+              />
+            );
+          })}
         </Group>
       )}
 

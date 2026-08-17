@@ -40,6 +40,7 @@ export const RunSchema = z.object({
 export const ProfileSchema = z.object({
   schemaVersion: z.literal(1),
   generatedAt: z.string(),
+  eventCountries: z.array(z.string().length(2)).default([]),
   athlete: z.object({
     id: z.number(),
     fullName: z.string(),

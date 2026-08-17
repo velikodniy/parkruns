@@ -2,10 +2,11 @@ interface CountryFlagProps {
   countryCode: string;
   size?: number;
   title?: string;
+  dimmed?: boolean;
 }
 
 export function CountryFlag(
-  { countryCode, size = 16, title }: CountryFlagProps,
+  { countryCode, size = 16, title, dimmed = false }: CountryFlagProps,
 ) {
   return (
     <img
@@ -13,7 +14,12 @@ export function CountryFlag(
       alt={title ?? countryCode}
       title={title}
       height={size}
-      style={{ display: "inline-block", verticalAlign: "middle" }}
+      style={{
+        display: "inline-block",
+        verticalAlign: "middle",
+        filter: dimmed ? "grayscale(1)" : undefined,
+        opacity: dimmed ? 0.3 : undefined,
+      }}
     />
   );
 }
