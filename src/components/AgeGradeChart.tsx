@@ -12,6 +12,7 @@ import {
   showTooltip,
 } from "../d3-utils.ts";
 import { sortRunsByDateAsc } from "../stats.ts";
+import { formatEventDate } from "../event-date.ts";
 
 export function getAgeGradeDomain(runs: Run[]): [number, number] {
   const minimum = Math.min(
@@ -127,7 +128,7 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
       }
 
       renderXAxis(g, x, innerHeight, innerWidth, colors, {
-        tickFormat: d3.timeFormat("%b '%y"),
+        tickFormat: d3.utcFormat("%b '%y"),
       });
       renderYAxis(g, y, colors, (d) => `${d}%`);
 
@@ -143,7 +144,7 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
         tooltip,
         (run) => [
           { text: run.eventName, bold: true },
-          { text: new Date(run.eventDate).toLocaleDateString() },
+          { text: formatEventDate(run.eventDate) },
           { text: `Age Grade: ${run.ageGrade.toFixed(1)}%` },
           { text: `Category: ${run.ageCategory}` },
         ],

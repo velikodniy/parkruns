@@ -14,6 +14,7 @@ import {
 } from "../d3-utils.ts";
 import { getTopFinishes, sortRunsByDateAsc, type TopFinish } from "../stats.ts";
 import { runKey } from "./run-utils.ts";
+import { eventDateToDate, formatEventDate } from "../event-date.ts";
 
 const AXIS_GAP_SECONDS = 15;
 const MAX_TIME_SECONDS = 3600;
@@ -100,7 +101,7 @@ export function FinishTimeChart(
       });
 
       renderXAxis(g, x, innerHeight, innerWidth, colors, {
-        tickFormat: d3.timeFormat("%b '%y"),
+        tickFormat: d3.utcFormat("%b '%y"),
       });
       renderYAxis(g, y, colors, (d) => formatMetric(d as number));
 
@@ -126,7 +127,9 @@ export function FinishTimeChart(
       if (windowSize > 1) {
         const medianLine = d3
           .line<number>()
-          .x((_: number, i: number) => x(new Date(visibleRuns[i].eventDate)))
+          .x((_: number, i: number) =>
+            x(eventDateToDate(visibleRuns[i].eventDate))
+          )
           .y((d: number) => y(d))
           .curve(d3.curveMonotoneX);
 
@@ -228,7 +231,7 @@ export function FinishTimeChart(
             bold: true,
           },
           { text: finish.run.eventName },
-          { text: new Date(finish.run.eventDate).toLocaleDateString() },
+          { text: formatEventDate(finish.run.eventDate) },
           { text: `Time: ${formatTime(finish.finishTimeSeconds)}` },
           { text: `Pace: ${formatPace(finish.finishTimeSeconds)}` },
         ],
@@ -239,7 +242,7 @@ export function FinishTimeChart(
         tooltip,
         (run) => [
           { text: run.eventName, bold: true },
-          { text: new Date(run.eventDate).toLocaleDateString() },
+          { text: formatEventDate(run.eventDate) },
           {
             text: `Time: ${formatTime(run.finishTimeSeconds)}${
               run.wasPb ? " (PB!)" : ""

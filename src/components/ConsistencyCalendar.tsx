@@ -4,6 +4,7 @@ import type { Run } from "../types.ts";
 import { useChartTheme } from "../context/ThemeContext.tsx";
 import { createTooltip, hideTooltip, showTooltip } from "../d3-utils.ts";
 import { formatTime } from "../format.ts";
+import { eventDateToDate } from "../event-date.ts";
 
 interface Props {
   runs: Run[];
@@ -44,17 +45,17 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   useEffect(() => {
     if (!svgRef.current || runs.length === 0) return;
 
-    const dates = runs.map((r: Run) => new Date(r.eventDate));
-    const minYear = d3.min(dates, (d: Date) => d.getFullYear()) ??
-      new Date().getFullYear();
-    const maxYear = d3.max(dates, (d: Date) => d.getFullYear()) ??
-      new Date().getFullYear();
+    const dates = runs.map((r: Run) => eventDateToDate(r.eventDate));
+    const minYear = d3.min(dates, (d: Date) => d.getUTCFullYear()) ??
+      new Date().getUTCFullYear();
+    const maxYear = d3.max(dates, (d: Date) => d.getUTCFullYear()) ??
+      new Date().getUTCFullYear();
     const years = d3.range(minYear, maxYear + 1);
 
     const runsByWeek = new Map<string, Run[]>();
     for (const run of runs) {
-      const weekStart = d3.timeSunday.floor(new Date(run.eventDate));
-      const weekKey = d3.timeFormat("%Y-%W")(weekStart);
+      const weekStart = d3.utcSunday.floor(eventDateToDate(run.eventDate));
+      const weekKey = d3.utcFormat("%Y-%W")(weekStart);
       const existing = runsByWeek.get(weekKey) ?? [];
       existing.push(run);
       runsByWeek.set(weekKey, existing);
@@ -76,19 +77,19 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
       .range(["#69db7c", "#40c057", "#2f9e44"])
       .clamp(true);
 
-    const firstRunWeek = d3.timeSunday.floor(
-      new Date(runs[runs.length - 1].eventDate),
+    const firstRunWeek = d3.utcSunday.floor(
+      eventDateToDate(runs[runs.length - 1].eventDate),
     ).getTime();
-    const currentWeek = d3.timeSunday.floor(new Date()).getTime();
+    const currentWeek = d3.utcSunday.floor(new Date()).getTime();
 
     const refYear = maxYear;
-    const refFirstDay = new Date(refYear, 0, 1);
-    const refLastDay = new Date(refYear, 11, 31);
-    const refWeeks = d3.timeWeeks(
-      d3.timeSunday.floor(refFirstDay),
-      d3.timeSunday.ceil(refLastDay),
+    const refFirstDay = new Date(Date.UTC(refYear, 0, 1));
+    const refLastDay = new Date(Date.UTC(refYear, 11, 31));
+    const refWeeks = d3.utcWeeks(
+      d3.utcSunday.floor(refFirstDay),
+      d3.utcSunday.ceil(refLastDay),
     );
-    const months = d3.timeMonths(refFirstDay, refLastDay);
+    const months = d3.utcMonths(refFirstDay, refLastDay);
 
     // Only show month labels if we are not wrapping
     if (colsPerRow >= totalWeeks) {
@@ -96,7 +97,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
         const weekIndex = refWeeks.findIndex(
           (w: Date) =>
             w.getTime() <= month.getTime() &&
-            d3.timeWeek.offset(w, 1).getTime() > month.getTime(),
+            d3.utcWeek.offset(w, 1).getTime() > month.getTime(),
         );
         if (weekIndex >= 0) {
           g.append("text")
@@ -104,30 +105,30 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
             .attr("y", -8)
             .attr("font-size", "10px")
             .attr("fill", colors.axis)
-            .text(d3.timeFormat("%b")(month));
+            .text(d3.utcFormat("%b")(month));
         }
       }
     }
 
     const getWeekYear = (weekStart: Date): number => {
-      const thursday = d3.timeDay.offset(weekStart, 4);
-      return thursday.getFullYear();
+      const thursday = d3.utcDay.offset(weekStart, 4);
+      return thursday.getUTCFullYear();
     };
 
     let currentY = 0;
 
     years.forEach((year: number) => {
-      const firstDay = new Date(year, 0, 1);
-      const lastDay = new Date(year, 11, 31);
-      const weeks = d3.timeWeeks(
-        d3.timeSunday.floor(d3.timeDay.offset(firstDay, -6)),
-        d3.timeSunday.ceil(d3.timeDay.offset(lastDay, 6)),
+      const firstDay = new Date(Date.UTC(year, 0, 1));
+      const lastDay = new Date(Date.UTC(year, 11, 31));
+      const weeks = d3.utcWeeks(
+        d3.utcSunday.floor(d3.utcDay.offset(firstDay, -6)),
+        d3.utcSunday.ceil(d3.utcDay.offset(lastDay, 6)),
       );
 
       const weekData: WeekData[] = weeks
         .filter((week: Date) => getWeekYear(week) === year)
         .map((week: Date) => {
-          const weekKey = d3.timeFormat("%Y-%W")(week);
+          const weekKey = d3.utcFormat("%Y-%W")(week);
           const weekRuns = runsByWeek.get(weekKey) ?? [];
           return { week, runs: weekRuns, count: weekRuns.length };
         });
@@ -172,12 +173,14 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
         if (wd.count > 0) {
           rect
             .on("mouseover", (event: MouseEvent) => {
-              const weekEnd = d3.timeDay.offset(wd.week, 6);
-              const dateRange = `${d3.timeFormat("%b %d")(wd.week)} — ${
-                d3.timeFormat("%b %d")(weekEnd)
+              const weekEnd = d3.utcDay.offset(wd.week, 6);
+              const dateRange = `${d3.utcFormat("%b %d")(wd.week)} — ${
+                d3.utcFormat("%b %d")(weekEnd)
               }`;
               const runLines = wd.runs.map((r: Run) => {
-                const date = d3.timeFormat("%b %d")(new Date(r.eventDate));
+                const date = d3.utcFormat("%b %d")(
+                  eventDateToDate(r.eventDate),
+                );
                 return {
                   text: `${date}: ${r.eventName} ${
                     formatTime(r.finishTimeSeconds)

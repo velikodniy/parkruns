@@ -1,4 +1,5 @@
 import type { Athlete, Run } from "../../types.ts";
+import { eventDateToISOString } from "../../event-date.ts";
 import { fetchWithRetry } from "../http.ts";
 
 export type AccessToken = string;
@@ -261,7 +262,7 @@ export async function getRuns(
         eventName: r.EventLongName,
         eventId: Number.parseInt(r.EventNumber),
         eventEdition: Number.parseInt(r.abstractId),
-        eventDate: new Date(r.EventDate).toISOString(),
+        eventDate: eventDateToISOString(r.EventDate),
         finishTime: r.RunTime,
         finishTimeSeconds: parseTimeToSeconds(r.RunTime),
         position: Number.parseInt(r.FinishPosition),

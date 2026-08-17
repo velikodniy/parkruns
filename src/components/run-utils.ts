@@ -1,7 +1,5 @@
 import type { Run } from "../types.ts";
 
-export const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
 export function getGenderSymbol(ageCategory: string): string {
   if (ageCategory.startsWith("V") || ageCategory.startsWith("S")) {
     return ageCategory.charAt(1) === "M" ? "♂" : "♀";

@@ -16,7 +16,8 @@ import { WeatherBadge } from "./WeatherBadge.tsx";
 import { PaginationControls } from "./PaginationControls.tsx";
 import { getMedalHighlightStyle, MedalIcon } from "./MedalIcon.tsx";
 import { useRunsList } from "../hooks/useRunsList.ts";
-import { DAYS, formatDelta, getGenderSymbol, runKey } from "./run-utils.ts";
+import { formatDelta, getGenderSymbol, runKey } from "./run-utils.ts";
+import { formatEventDate, formatEventWeekday } from "../event-date.ts";
 
 interface Props {
   runs: Run[];
@@ -149,7 +150,6 @@ export function RunsTable({ runs, medalRanks }: Props) {
             </Table.Thead>
             <Table.Tbody>
               {items.map(({ run, previousRun }) => {
-                const date = new Date(run.eventDate);
                 const medalRank = medalRanks.get(runKey(run));
                 const delta = formatDelta(
                   run.ageGrade,
@@ -165,10 +165,10 @@ export function RunsTable({ runs, medalRanks }: Props) {
                       <Cell
                         primary={
                           <>
-                            {date.toLocaleDateString()}
+                            {formatEventDate(run.eventDate)}
                             {"\u00A0"}
                             <Text span size="xs" c="dimmed">
-                              {DAYS[date.getDay()]}
+                              {formatEventWeekday(run.eventDate)}
                             </Text>
                           </>
                         }

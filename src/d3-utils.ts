@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import type { Run } from "./types.ts";
 import type { ChartColors } from "./context/ThemeContext.tsx";
+import { eventDateToDate } from "./event-date.ts";
 
 /** A single line of tooltip content */
 export interface TooltipLine {
@@ -30,11 +31,11 @@ export function createTimeXScale(
   runs: Run[],
   innerWidth: number,
 ): d3.ScaleTime<number, number> {
-  const extent = d3.extent(runs, (d: Run) => new Date(d.eventDate)) as [
+  const extent = d3.extent(runs, (d: Run) => eventDateToDate(d.eventDate)) as [
     Date,
     Date,
   ];
-  return d3.scaleTime().domain(extent).range([0, innerWidth]);
+  return d3.scaleUtc().domain(extent).range([0, innerWidth]);
 }
 
 export interface XAxisOptions {
@@ -145,7 +146,7 @@ export function renderRunLine(
 ): void {
   const line = d3
     .line<Run>()
-    .x((d: Run) => x(new Date(d.eventDate)))
+    .x((d: Run) => x(eventDateToDate(d.eventDate)))
     .y((d: Run) => y(value(d)));
 
   g.append("path")
@@ -187,7 +188,7 @@ export function renderJitteredPoints(
     .enter()
     .append("circle")
     .attr("class", "point")
-    .attr("cx", (d: Run) => x(new Date(d.eventDate)) + jitter(d))
+    .attr("cx", (d: Run) => x(eventDateToDate(d.eventDate)) + jitter(d))
     .attr("cy", (d: Run) => y(value(d)))
     .attr("r", radius)
     .attr("fill", fill)

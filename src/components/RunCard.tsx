@@ -4,7 +4,8 @@ import { formatPace, formatTime } from "../format.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 import { WeatherBadge } from "./WeatherBadge.tsx";
 import { getMedalHighlightStyle, MedalIcon } from "./MedalIcon.tsx";
-import { DAYS, formatDelta, getGenderSymbol } from "./run-utils.ts";
+import { formatDelta, getGenderSymbol } from "./run-utils.ts";
+import { formatEventDate, formatEventWeekday } from "../event-date.ts";
 
 interface Props {
   run: Run;
@@ -13,7 +14,6 @@ interface Props {
 }
 
 export function RunCard({ run, medalRank, previousAgeGrade }: Props) {
-  const date = new Date(run.eventDate);
   const delta = formatDelta(run.ageGrade, previousAgeGrade);
   const topPercent = Math.round((run.position / run.totalFinishers) * 100);
   const genderSymbol = getGenderSymbol(run.ageCategory);
@@ -73,7 +73,7 @@ export function RunCard({ run, medalRank, previousAgeGrade }: Props) {
             )}
         </Group>
         <Text size="xs" c="dimmed">
-          {DAYS[date.getDay()]} {date.toLocaleDateString()}
+          {formatEventWeekday(run.eventDate)} {formatEventDate(run.eventDate)}
         </Text>
       </Box>
 

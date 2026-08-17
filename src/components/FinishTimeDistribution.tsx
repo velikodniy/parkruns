@@ -3,6 +3,7 @@ import type { ChartProps, Run } from "../types.ts";
 import { formatTime } from "../format.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import { hideTooltip, renderYAxis, showTooltip } from "../d3-utils.ts";
+import { eventMonthKey } from "../event-date.ts";
 
 interface MonthData {
   month: string;
@@ -28,7 +29,7 @@ export function FinishTimeDistribution({
       const byMonth = d3.rollups(
         runs,
         (v: Run[]) => v.map((r) => r.finishTimeSeconds).sort(d3.ascending),
-        (d: Run) => d3.timeFormat("%Y-%m")(new Date(d.eventDate)),
+        (d: Run) => eventMonthKey(d.eventDate),
       );
 
       const monthlyData: MonthData[] = byMonth
