@@ -48,11 +48,56 @@ interface RunResultResponse {
   abstractId: string;
 }
 
-interface RunSummaryResponse {
-  EventNumber: string;
-  EventDate: string;
-  NumberRunners: string;
-  abstractId: string;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function parsePositiveInteger(value: unknown, field: string): number {
+  if (typeof value !== "string" || !/^\d+$/.test(value)) {
+    throw new Error(`Unexpected run summary: invalid ${field}`);
+  }
+
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new Error(`Unexpected run summary: invalid ${field}`);
+  }
+  return parsed;
+}
+
+export function parseRunStatsResponse(json: unknown): Map<string, number> {
+  if (
+    !isRecord(json) || !isRecord(json.data) ||
+    !Array.isArray(json.data.Runs)
+  ) {
+    throw new Error("Unexpected run summary response: missing data.Runs");
+  }
+
+  const stats = new Map<string, number>();
+  for (const value of json.data.Runs) {
+    if (!isRecord(value)) {
+      throw new Error("Unexpected run summary: expected an object");
+    }
+
+    const eventId = parsePositiveInteger(value.EventNumber, "EventNumber");
+    const edition = parsePositiveInteger(value.abstractId, "abstractId");
+    const finishers = parsePositiveInteger(
+      value.NumberRunners,
+      "NumberRunners",
+    );
+    stats.set(`${eventId}-${edition}`, finishers);
+  }
+  return stats;
+}
+
+export function requireTotalFinishers(
+  stats: Map<string, number>,
+  key: string,
+): number {
+  const total = stats.get(key);
+  if (total === undefined) {
+    throw new Error(`Missing run summary for event ${key}`);
+  }
+  return total;
 }
 
 function parseTimeToSeconds(time: string): number {
@@ -169,15 +214,7 @@ async function getRunStats(
     },
   });
 
-  const json = await response.json();
-  const runs: RunSummaryResponse[] = json?.data?.Runs ?? [];
-
-  const statsMap = new Map<string, number>();
-  for (const r of runs) {
-    const key = `${r.EventNumber}-${r.abstractId}`;
-    statsMap.set(key, Number.parseInt(r.NumberRunners));
-  }
-  return statsMap;
+  return parseRunStatsResponse(await response.json());
 }
 
 export async function getRuns(
@@ -219,6 +256,7 @@ export async function getRuns(
 
     for (const r of results) {
       const statsKey = `${r.EventNumber}-${r.abstractId}`;
+      const totalFinishers = requireTotalFinishers(runStats, statsKey);
       allRuns.push({
         eventName: r.EventLongName,
         eventId: Number.parseInt(r.EventNumber),
@@ -227,8 +265,7 @@ export async function getRuns(
         finishTime: r.RunTime,
         finishTimeSeconds: parseTimeToSeconds(r.RunTime),
         position: Number.parseInt(r.FinishPosition),
-        totalFinishers: runStats.get(statsKey) ??
-          Number.parseInt(r.FinishPosition),
+        totalFinishers,
         genderPosition: Number.parseInt(r.GenderPosition),
         ageGrade: Number.parseFloat(r.AgeGrading) * 100,
         ageCategory: r.AgeCategory,
