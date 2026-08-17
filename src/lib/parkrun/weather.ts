@@ -5,7 +5,6 @@ import { fetchWithRetry } from "../http.ts";
 import type { LatLng } from "./types.ts";
 
 const OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive";
-const PARKRUN_START_HOUR = 9;
 
 export interface Weather {
   temperatureC: number;
@@ -29,7 +28,7 @@ function isWeather(value: unknown): value is Weather {
 
 const cache = new JsonCache<Weather>("weather.json", { isValid: isWeather });
 
-interface OpenMeteoResponse {
+export interface OpenMeteoResponse {
   hourly: {
     time: string[];
     temperature_2m: number[];
@@ -48,6 +47,7 @@ async function fetchWeatherForLocation(
   longitude: number,
   startDate: string,
   endDate: string,
+  weatherHour: number,
 ): Promise<Map<string, Weather> | null> {
   const url = new URL(OPEN_METEO_URL);
   url.searchParams.set("latitude", latitude.toString());
@@ -71,24 +71,7 @@ async function fetchWeatherForLocation(
     }
 
     const data: OpenMeteoResponse = await response.json();
-    const weatherByDate = new Map<string, Weather>();
-
-    for (let i = 0; i < data.hourly.time.length; i++) {
-      const timestamp = data.hourly.time[i];
-      const hour = new Date(timestamp).getHours();
-
-      if (hour === PARKRUN_START_HOUR) {
-        const date = timestamp.split("T")[0];
-        weatherByDate.set(date, {
-          temperatureC: data.hourly.temperature_2m[i],
-          weatherCode: data.hourly.weather_code[i],
-          windSpeedMs: data.hourly.wind_speed_10m[i],
-          windDirectionDeg: data.hourly.wind_direction_10m[i],
-        });
-      }
-    }
-
-    return weatherByDate;
+    return weatherByDateAtHour(data, weatherHour);
   } catch (error) {
     console.error(
       `Failed to fetch weather for ${startDate}-${endDate}:`,
@@ -101,7 +84,31 @@ async function fetchWeatherForLocation(
 interface LocationGroup {
   latitude: number;
   longitude: number;
+  weatherHour: number;
   dates: Set<string>;
+}
+
+export function weatherByDateAtHour(
+  data: OpenMeteoResponse,
+  weatherHour: number,
+): Map<string, Weather> {
+  const weatherByDate = new Map<string, Weather>();
+
+  for (let i = 0; i < data.hourly.time.length; i++) {
+    const timestamp = data.hourly.time[i];
+    const hour = Number(timestamp.slice(11, 13));
+
+    if (hour === weatherHour) {
+      weatherByDate.set(timestamp.slice(0, 10), {
+        temperatureC: data.hourly.temperature_2m[i],
+        weatherCode: data.hourly.weather_code[i],
+        windSpeedMs: data.hourly.wind_speed_10m[i],
+        windDirectionDeg: data.hourly.wind_direction_10m[i],
+      });
+    }
+  }
+
+  return weatherByDate;
 }
 
 function groupKeysByLocation(
@@ -110,8 +117,9 @@ function groupKeysByLocation(
   const groups = new Map<string, LocationGroup>();
 
   for (const key of keys) {
-    const [latitudeStr, longitudeStr, date] = key.split(",");
-    const locKey = `${latitudeStr},${longitudeStr}`;
+    const [latitudeStr, longitudeStr, date, weatherHourStr] = key.split(",");
+    const weatherHour = Number(weatherHourStr);
+    const locKey = `${latitudeStr},${longitudeStr},${weatherHour}`;
     const existing = groups.get(locKey);
     if (existing) {
       existing.dates.add(date);
@@ -119,6 +127,7 @@ function groupKeysByLocation(
       groups.set(locKey, {
         latitude: Number(latitudeStr),
         longitude: Number(longitudeStr),
+        weatherHour,
         dates: new Set([date]),
       });
     }
@@ -132,24 +141,25 @@ export function fetchWeatherForRuns(
     eventId: number;
     eventDate: string;
     coordinates: LatLng | null;
+    weatherHour: number;
   }>,
 ): Promise<Map<string, Weather>> {
   const keys = runs
     .filter((r) => r.coordinates)
-    .map((r) => getWeatherKey(r.coordinates!, r.eventDate));
+    .map((r) => getWeatherKey(r.coordinates!, r.eventDate, r.weatherHour));
 
   return cache.resolve(keys, async (missing) => {
     const locationGroups = groupKeysByLocation(missing);
 
     console.log(
-      `Fetching weather for ${missing.length} runs across ${locationGroups.size} locations`,
+      `Fetching weather for ${missing.length} runs across ${locationGroups.size} location/start-time groups`,
     );
 
     const results = new Map<string, Weather>();
     const locations = [...locationGroups.entries()];
 
     for (let i = 0; i < locations.length; i++) {
-      const [locKey, { latitude, longitude, dates }] = locations[i];
+      const [, { latitude, longitude, weatherHour, dates }] = locations[i];
       const sortedDates = [...dates].sort();
 
       const weatherByDate = await fetchWeatherForLocation(
@@ -157,11 +167,17 @@ export function fetchWeatherForRuns(
         longitude,
         sortedDates[0],
         sortedDates[sortedDates.length - 1],
+        weatherHour,
       );
 
       for (const date of dates) {
         const weather = weatherByDate?.get(date);
-        if (weather) results.set(`${locKey},${date}`, weather);
+        if (weather) {
+          results.set(
+            getWeatherKey([latitude, longitude], date, weatherHour),
+            weather,
+          );
+        }
       }
 
       console.log(
@@ -176,8 +192,9 @@ export function fetchWeatherForRuns(
 export function getWeatherKey(
   coordinates: LatLng,
   eventDate: string,
+  weatherHour: number,
 ): string {
   const [latitude, longitude] = coordinates;
   const date = eventDate.split("T")[0];
-  return `${locationKey(latitude, longitude)},${date}`;
+  return `${locationKey(latitude, longitude)},${date},${weatherHour}`;
 }

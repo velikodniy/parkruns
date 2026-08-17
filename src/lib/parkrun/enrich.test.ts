@@ -65,6 +65,7 @@ function makeLookups(overrides: Partial<EventLookups> = {}): EventLookups {
     getShortName: () => "Brighton",
     getUrl: () => "https://parkrun.org.uk/brighton/",
     getResultsUrl: () => "https://parkrun.org.uk/brighton/results/100/",
+    getWeatherHour: () => 9,
     ...overrides,
   };
 }
@@ -77,7 +78,7 @@ Deno.test("enrichRuns - attaches weather, names, and urls", () => {
   const run = makeRun();
   const data: EnrichmentData = {
     weather: new Map([
-      [getWeatherKey(run.coordinates!, run.eventDate), SAMPLE_WEATHER],
+      [getWeatherKey(run.coordinates!, run.eventDate, 9), SAMPLE_WEATHER],
     ]),
     regions: new Map(),
   };
@@ -129,6 +130,24 @@ Deno.test("enrichRuns - leaves weather null when the run has no coordinates", ()
   );
   assertEquals(enriched.weather, null);
   assertEquals(enriched.coordinates, null);
+});
+
+Deno.test("enrichRuns - omits weather when the event schedule is unknown", () => {
+  const run = makeRun();
+  const data: EnrichmentData = {
+    weather: new Map([
+      [getWeatherKey(run.coordinates!, run.eventDate, 9), SAMPLE_WEATHER],
+    ]),
+    regions: new Map(),
+  };
+
+  const [enriched] = enrichRuns(
+    [run],
+    data,
+    makeLookups({ getWeatherHour: () => null }),
+  );
+
+  assertEquals(enriched.weather, null);
 });
 
 Deno.test("enrichRuns - falls back to the stripped long name when no short name", () => {

@@ -8,6 +8,7 @@ import {
   getEventResultsUrl,
   getEventShortName,
   getEventUrl,
+  getEventWeatherHour,
   getShortNameByLongName,
 } from "../src/lib/parkrun/index.ts";
 import { resolveRegions } from "../src/lib/parkrun/regions.ts";
@@ -55,12 +56,25 @@ async function downloadData(
     getShortName: getEventShortName,
     getUrl: getEventUrl,
     getResultsUrl: getEventResultsUrl,
+    getWeatherHour: getEventWeatherHour,
   };
 
   const runsWithCoordinates = attachCoordinates(runs, eventLookups);
 
   console.log("Fetching weather data...");
-  const weatherMap = await fetchWeatherForRuns(runsWithCoordinates);
+  const weatherRuns = runsWithCoordinates.flatMap((run) => {
+    const weatherHour = getEventWeatherHour(run.eventId, run.eventDate);
+    return weatherHour === null ? [] : [{ ...run, weatherHour }];
+  });
+  const omittedWeatherRuns = runsWithCoordinates.length - weatherRuns.length;
+  if (omittedWeatherRuns > 0) {
+    console.warn(
+      `Skipping weather for ${omittedWeatherRuns} runs with no verified event schedule`,
+    );
+  }
+  const weatherMap = await fetchWeatherForRuns(
+    weatherRuns,
+  );
 
   console.log("Resolving regions...");
   const ukEvents = runsWithCoordinates

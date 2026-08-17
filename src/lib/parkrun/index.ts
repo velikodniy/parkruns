@@ -19,5 +19,6 @@ export {
   getEventResultsUrl,
   getEventShortName,
   getEventUrl,
+  getEventWeatherHour,
   getShortNameByLongName,
 } from "./events.ts";

@@ -15,6 +15,7 @@ export interface EventLookups {
   getShortName(eventId: number): string | null;
   getUrl(eventId: number): string | null;
   getResultsUrl(eventId: number, edition: number): string | null;
+  getWeatherHour(eventId: number, eventDate: string): number | null;
 }
 
 /** Pre-fetched lookups keyed the same way enrichment reads them. */
@@ -47,8 +48,15 @@ function enrichRun(
   const { coordinates } = run;
 
   // Weather is keyed by the run's LatLng (Open-Meteo order).
-  const weather = coordinates
-    ? data.weather.get(getWeatherKey(coordinates, run.eventDate)) ?? null
+  const weatherHour = lookups.getWeatherHour(run.eventId, run.eventDate);
+  const weather = coordinates && weatherHour !== null
+    ? data.weather.get(
+      getWeatherKey(
+        coordinates,
+        run.eventDate,
+        weatherHour,
+      ),
+    ) ?? null
     : null;
 
   // For GB events, refine the country code to a region (e.g. "gb-sct"). The
