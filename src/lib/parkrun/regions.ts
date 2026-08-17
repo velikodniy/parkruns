@@ -4,7 +4,9 @@ import type { LngLat } from "./types.ts";
 const cache = new JsonCache<string>("regions.json");
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse";
 const USER_AGENT = "parkrun-dashboard/1.0";
-const RATE_LIMIT_MS = 1100;
+// Regularly-run scripts are limited to four requests per minute.
+// https://operations.osmfoundation.org/policies/nominatim/
+export const NOMINATIM_REQUEST_INTERVAL_MS = 15_000;
 
 function coordsKey(coordinates: LngLat): string {
   return `${coordinates[0]},${coordinates[1]}`;
@@ -54,7 +56,9 @@ export function resolveRegions(
     const results = new Map<string, string>();
     console.log(`Fetching ${missing.length} region(s) from Nominatim`);
     for (let i = 0; i < missing.length; i++) {
-      if (i > 0) await new Promise((r) => setTimeout(r, RATE_LIMIT_MS));
+      if (i > 0) {
+        await new Promise((r) => setTimeout(r, NOMINATIM_REQUEST_INTERVAL_MS));
+      }
       results.set(missing[i], await fetchRegion(keyToCoords.get(missing[i])!));
       console.log(`  Region progress: ${i + 1}/${missing.length}`);
     }
