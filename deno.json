@@ -2,7 +2,12 @@
   "tasks": {
     "dev": "deno run -A npm:@rsbuild/core/rsbuild dev",
     "build": "deno run -A npm:@rsbuild/core/rsbuild build",
-    "download": "deno run -A scripts/download-data.ts"
+    "download": "deno run -A scripts/download-data.ts",
+    "format:check": "deno fmt --check --ignore=src/lib/parkrun/events.json",
+    "lint": "deno lint",
+    "typecheck": "deno check src/index.tsx scripts/download-data.ts scripts/update-events-data.ts",
+    "test": "deno test -A",
+    "verify": "deno task format:check && deno task lint && deno task typecheck && deno task test"
   },
   "imports": {
     "@std/dotenv": "jsr:@std/dotenv@^0.225.7",
