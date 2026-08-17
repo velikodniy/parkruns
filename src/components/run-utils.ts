@@ -13,19 +13,6 @@ export function runKey(run: Run): string {
   return `${run.eventDate}-${run.eventId}`;
 }
 
-export function computeAllTimePBs(runs: Run[]): Set<string> {
-  const pbs = new Set<string>();
-  let bestTime = Number.POSITIVE_INFINITY;
-
-  for (let i = runs.length - 1; i >= 0; i--) {
-    if (runs[i].finishTimeSeconds < bestTime) {
-      bestTime = runs[i].finishTimeSeconds;
-      pbs.add(runKey(runs[i]));
-    }
-  }
-  return pbs;
-}
-
 export function formatDelta(
   current: number,
   previous: number | null,

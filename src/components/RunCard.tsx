@@ -1,24 +1,30 @@
-import { Anchor, Badge, Box, Group, Paper, Stack, Text } from "@mantine/core";
+import { Anchor, Box, Group, Paper, Stack, Text } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 import { WeatherBadge } from "./WeatherBadge.tsx";
+import { getMedalHighlightStyle, MedalIcon } from "./MedalIcon.tsx";
 import { DAYS, formatDelta, getGenderSymbol } from "./run-utils.ts";
 
 interface Props {
   run: Run;
-  isAllTimePB: boolean;
+  medalRank?: number;
   previousAgeGrade: number | null;
 }
 
-export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
+export function RunCard({ run, medalRank, previousAgeGrade }: Props) {
   const date = new Date(run.eventDate);
   const delta = formatDelta(run.ageGrade, previousAgeGrade);
   const topPercent = Math.round((run.position / run.totalFinishers) * 100);
   const genderSymbol = getGenderSymbol(run.ageCategory);
 
   return (
-    <Paper withBorder p="sm" radius="sm">
+    <Paper
+      withBorder
+      p="sm"
+      radius="sm"
+      style={getMedalHighlightStyle(medalRank)}
+    >
       <Box mb="xs">
         <Group gap={6} wrap="nowrap" align="center">
           {run.countryISO && (
@@ -82,26 +88,7 @@ export function RunCard({ run, isAllTimePB, previousAgeGrade }: Props) {
             >
               {formatTime(run.finishTimeSeconds)}
             </Text>
-            {run.wasPb && isAllTimePB && (
-              <Badge
-                color="blue"
-                size="xs"
-                variant="filled"
-                style={{ flexShrink: 0 }}
-              >
-                PB
-              </Badge>
-            )}
-            {run.wasPb && !isAllTimePB && (
-              <Badge
-                color="gray"
-                size="xs"
-                variant="light"
-                style={{ flexShrink: 0 }}
-              >
-                PB
-              </Badge>
-            )}
+            {medalRank && <MedalIcon rank={medalRank} />}
           </Box>
           <Text
             size="xs"

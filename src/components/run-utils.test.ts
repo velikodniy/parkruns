@@ -1,10 +1,5 @@
 import { assertEquals } from "@std/assert";
-import {
-  computeAllTimePBs,
-  formatDelta,
-  getGenderSymbol,
-  runKey,
-} from "./run-utils.ts";
+import { formatDelta, getGenderSymbol, runKey } from "./run-utils.ts";
 import type { Run } from "../types.ts";
 
 function createMockRun(overrides: Partial<Run> = {}): Run {
@@ -68,45 +63,4 @@ Deno.test("getGenderSymbol - junior categories fall back to the JM check", () =>
 Deno.test("runKey - combines event date and id so re-runs of an event differ", () => {
   const run = createMockRun({ eventDate: "2024-03-10T09:00:00Z", eventId: 42 });
   assertEquals(runKey(run), "2024-03-10T09:00:00Z-42");
-});
-
-// === computeAllTimePBs ===
-
-Deno.test("computeAllTimePBs - marks each run that beat all earlier runs", () => {
-  // Newest-first ordering (as the app stores runs). Walking oldest -> newest:
-  // 1300 (PB), 1200 (PB), 1000 (PB), 1100 (not a PB).
-  const newest = createMockRun({
-    finishTimeSeconds: 1100,
-    eventDate: "2024-04-01T09:00:00Z",
-    eventId: 4,
-  });
-  const best = createMockRun({
-    finishTimeSeconds: 1000,
-    eventDate: "2024-03-01T09:00:00Z",
-    eventId: 3,
-  });
-  const mid = createMockRun({
-    finishTimeSeconds: 1200,
-    eventDate: "2024-02-01T09:00:00Z",
-    eventId: 2,
-  });
-  const oldest = createMockRun({
-    finishTimeSeconds: 1300,
-    eventDate: "2024-01-01T09:00:00Z",
-    eventId: 1,
-  });
-  const runs = [newest, best, mid, oldest];
-
-  const pbs = computeAllTimePBs(runs);
-
-  assertEquals(pbs.size, 3);
-  assertEquals(pbs.has(runKey(oldest)), true);
-  assertEquals(pbs.has(runKey(mid)), true);
-  assertEquals(pbs.has(runKey(best)), true);
-  // The latest run was slower than the all-time best, so it is not a PB.
-  assertEquals(pbs.has(runKey(newest)), false);
-});
-
-Deno.test("computeAllTimePBs - handles an empty history", () => {
-  assertEquals(computeAllTimePBs([]).size, 0);
 });

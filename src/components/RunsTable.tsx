@@ -14,13 +14,13 @@ import { formatPace, formatTime } from "../format.ts";
 import { CountryFlag } from "./CountryFlag.tsx";
 import { WeatherBadge } from "./WeatherBadge.tsx";
 import { PaginationControls } from "./PaginationControls.tsx";
-import { PBBadge } from "./PBBadge.tsx";
+import { getMedalHighlightStyle, MedalIcon } from "./MedalIcon.tsx";
 import { useRunsList } from "../hooks/useRunsList.ts";
 import { DAYS, formatDelta, getGenderSymbol, runKey } from "./run-utils.ts";
 
 interface Props {
   runs: Run[];
-  pbRuns: Set<string>;
+  medalRanks: Map<string, number>;
 }
 
 interface CellProps {
@@ -98,16 +98,15 @@ function EventCell({
 
 interface TimeCellProps {
   finishTimeSeconds: number;
-  wasPb: boolean;
-  isAllTimePB: boolean;
+  medalRank?: number;
 }
 
-function TimeCell({ finishTimeSeconds, wasPb, isAllTimePB }: TimeCellProps) {
+function TimeCell({ finishTimeSeconds, medalRank }: TimeCellProps) {
   return (
     <div>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
         <span>{formatTime(finishTimeSeconds)}</span>
-        <PBBadge wasPb={wasPb} isAllTimePB={isAllTimePB} />
+        {medalRank && <MedalIcon rank={medalRank} />}
       </span>
       <Text size="xs" c="dimmed" style={{ lineHeight: 1.4 }}>
         {formatPace(finishTimeSeconds)}
@@ -116,7 +115,7 @@ function TimeCell({ finishTimeSeconds, wasPb, isAllTimePB }: TimeCellProps) {
   );
 }
 
-export function RunsTable({ runs, pbRuns }: Props) {
+export function RunsTable({ runs, medalRanks }: Props) {
   const { items, pagination, totalPages, rangeText } = useRunsList(runs);
 
   const controls = (
@@ -151,14 +150,17 @@ export function RunsTable({ runs, pbRuns }: Props) {
             <Table.Tbody>
               {items.map(({ run, previousRun }) => {
                 const date = new Date(run.eventDate);
-                const isAllTimePB = pbRuns.has(runKey(run));
+                const medalRank = medalRanks.get(runKey(run));
                 const delta = formatDelta(
                   run.ageGrade,
                   previousRun?.ageGrade ?? null,
                 );
 
                 return (
-                  <Table.Tr key={runKey(run)}>
+                  <Table.Tr
+                    key={runKey(run)}
+                    style={getMedalHighlightStyle(medalRank)}
+                  >
                     <Table.Td>
                       <Cell
                         primary={
@@ -205,8 +207,7 @@ export function RunsTable({ runs, pbRuns }: Props) {
                     <Table.Td style={{ fontVariantNumeric: "tabular-nums" }}>
                       <TimeCell
                         finishTimeSeconds={run.finishTimeSeconds}
-                        wasPb={run.wasPb}
-                        isAllTimePB={isAllTimePB}
+                        medalRank={medalRank}
                       />
                     </Table.Td>
 

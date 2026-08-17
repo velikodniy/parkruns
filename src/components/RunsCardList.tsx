@@ -7,10 +7,10 @@ import { runKey } from "./run-utils.ts";
 
 interface Props {
   runs: Run[];
-  pbRuns: Set<string>;
+  medalRanks: Map<string, number>;
 }
 
-export function RunsCardList({ runs, pbRuns }: Props) {
+export function RunsCardList({ runs, medalRanks }: Props) {
   const { items, pagination, totalPages, rangeText } = useRunsList(runs);
 
   const controls = (
@@ -34,7 +34,7 @@ export function RunsCardList({ runs, pbRuns }: Props) {
           <RunCard
             key={runKey(run)}
             run={run}
-            isAllTimePB={pbRuns.has(runKey(run))}
+            medalRank={medalRanks.get(runKey(run))}
             previousAgeGrade={previousRun?.ageGrade ?? null}
           />
         ))}
