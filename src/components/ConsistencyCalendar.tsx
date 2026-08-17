@@ -11,10 +11,52 @@ interface Props {
   width?: number;
 }
 
-interface WeekData {
+export interface WeekData {
   week: Date;
   runs: Run[];
   count: number;
+}
+
+export interface CalendarYearData {
+  year: number;
+  weeks: WeekData[];
+}
+
+function yearWeekKey(year: number, week: Date): string {
+  return `${year}:${week.getTime()}`;
+}
+
+export function buildCalendarYearData(runs: Run[]): CalendarYearData[] {
+  if (runs.length === 0) return [];
+
+  const dates = runs.map((run) => eventDateToDate(run.eventDate));
+  const minYear = d3.min(dates, (date: Date) => date.getUTCFullYear())!;
+  const maxYear = d3.max(dates, (date: Date) => date.getUTCFullYear())!;
+  const runsByYearWeek = new Map<string, Run[]>();
+
+  for (const run of runs) {
+    const date = eventDateToDate(run.eventDate);
+    const year = date.getUTCFullYear();
+    const week = d3.utcSunday.floor(date);
+    const key = yearWeekKey(year, week);
+    const weekRuns = runsByYearWeek.get(key) ?? [];
+    weekRuns.push(run);
+    runsByYearWeek.set(key, weekRuns);
+  }
+
+  return d3.range(minYear, maxYear + 1).map((year: number) => {
+    const firstWeek = d3.utcSunday.floor(new Date(Date.UTC(year, 0, 1)));
+    const lastWeek = d3.utcSunday.floor(new Date(Date.UTC(year, 11, 31)));
+    const weeks = d3.utcSunday.range(
+      firstWeek,
+      d3.utcSunday.offset(lastWeek, 1),
+    ).map((week: Date) => {
+      const weekRuns = runsByYearWeek.get(yearWeekKey(year, week)) ?? [];
+      return { week, runs: weekRuns, count: weekRuns.length };
+    });
+
+    return { year, weeks };
+  });
 }
 
 export function ConsistencyCalendar({ runs, width = 900 }: Props) {
@@ -45,21 +87,8 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
   useEffect(() => {
     if (!svgRef.current || runs.length === 0) return;
 
-    const dates = runs.map((r: Run) => eventDateToDate(r.eventDate));
-    const minYear = d3.min(dates, (d: Date) => d.getUTCFullYear()) ??
-      new Date().getUTCFullYear();
-    const maxYear = d3.max(dates, (d: Date) => d.getUTCFullYear()) ??
-      new Date().getUTCFullYear();
-    const years = d3.range(minYear, maxYear + 1);
-
-    const runsByWeek = new Map<string, Run[]>();
-    for (const run of runs) {
-      const weekStart = d3.utcSunday.floor(eventDateToDate(run.eventDate));
-      const weekKey = d3.utcFormat("%Y-%W")(weekStart);
-      const existing = runsByWeek.get(weekKey) ?? [];
-      existing.push(run);
-      runsByWeek.set(weekKey, existing);
-    }
+    const calendarYears = buildCalendarYearData(runs);
+    const maxYear = calendarYears[calendarYears.length - 1].year;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
@@ -85,9 +114,8 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     const refYear = maxYear;
     const refFirstDay = new Date(Date.UTC(refYear, 0, 1));
     const refLastDay = new Date(Date.UTC(refYear, 11, 31));
-    const refWeeks = d3.utcWeeks(
-      d3.utcSunday.floor(refFirstDay),
-      d3.utcSunday.ceil(refLastDay),
+    const refWeeks = calendarYears[calendarYears.length - 1].weeks.map(
+      ({ week }) => week,
     );
     const months = d3.utcMonths(refFirstDay, refLastDay);
 
@@ -110,29 +138,9 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
       }
     }
 
-    const getWeekYear = (weekStart: Date): number => {
-      const thursday = d3.utcDay.offset(weekStart, 4);
-      return thursday.getUTCFullYear();
-    };
-
     let currentY = 0;
 
-    years.forEach((year: number) => {
-      const firstDay = new Date(Date.UTC(year, 0, 1));
-      const lastDay = new Date(Date.UTC(year, 11, 31));
-      const weeks = d3.utcWeeks(
-        d3.utcSunday.floor(d3.utcDay.offset(firstDay, -6)),
-        d3.utcSunday.ceil(d3.utcDay.offset(lastDay, 6)),
-      );
-
-      const weekData: WeekData[] = weeks
-        .filter((week: Date) => getWeekYear(week) === year)
-        .map((week: Date) => {
-          const weekKey = d3.utcFormat("%Y-%W")(week);
-          const weekRuns = runsByWeek.get(weekKey) ?? [];
-          return { week, runs: weekRuns, count: weekRuns.length };
-        });
-
+    calendarYears.forEach(({ year, weeks: weekData }: CalendarYearData) => {
       g.append("text")
         .attr("x", -8)
         .attr("y", currentY + cellSize / 2)
