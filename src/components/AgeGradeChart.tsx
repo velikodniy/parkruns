@@ -13,6 +13,15 @@ import {
 } from "../d3-utils.ts";
 import { sortRunsByDateAsc } from "../stats.ts";
 
+export function getAgeGradeDomain(runs: Run[]): [number, number] {
+  const minimum = Math.min(
+    40,
+    d3.min(runs, (run: Run) => run.ageGrade) ?? 40,
+  );
+  const maximum = d3.max(runs, (run: Run) => run.ageGrade) ?? 100;
+  return [minimum - 5, maximum > 100 ? maximum + 5 : 100];
+}
+
 export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions, colors }) => {
@@ -47,13 +56,9 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
       ];
 
       const x = createTimeXScale(sortedRuns, innerWidth);
-      const minAgeGrade = Math.min(
-        40,
-        d3.min(sortedRuns, (d: Run) => d.ageGrade) ?? 40,
-      );
       const y = d3
         .scaleLinear()
-        .domain([minAgeGrade - 5, 100])
+        .domain(getAgeGradeDomain(sortedRuns))
         .range([innerHeight, 0]);
 
       const minHitboxHeight = 44;

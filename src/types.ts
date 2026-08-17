@@ -26,7 +26,7 @@ export const RunSchema = z.object({
   position: z.number().int().positive(),
   totalFinishers: z.number().int().positive(),
   genderPosition: z.number().int().positive(),
-  ageGrade: z.number().min(0).max(100),
+  ageGrade: z.number().min(0),
   ageCategory: z.string().min(1),
   wasPb: z.boolean(),
   wasFirstVisit: z.boolean(),
