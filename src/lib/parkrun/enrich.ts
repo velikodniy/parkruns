@@ -19,8 +19,8 @@ export interface EventLookups {
 
 /** Pre-fetched lookups keyed the same way enrichment reads them. */
 export interface EnrichmentData {
-  weather: Map<string, Weather | null>;
-  regions: Map<string, string>;
+  weather: ReadonlyMap<string, Weather>;
+  regions: ReadonlyMap<string, string>;
 }
 
 export type RunWithCoordinates = Run & { coordinates: LatLng | null };

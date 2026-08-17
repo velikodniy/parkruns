@@ -4,7 +4,6 @@ import { JsonCache } from "../cache.ts";
 import { fetchWithRetry } from "../http.ts";
 import type { LatLng } from "./types.ts";
 
-const cache = new JsonCache<Weather | null>("weather.json");
 const OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive";
 const PARKRUN_START_HOUR = 9;
 
@@ -14,6 +13,21 @@ export interface Weather {
   windSpeedMs: number;
   windDirectionDeg: number;
 }
+
+function isWeather(value: unknown): value is Weather {
+  if (typeof value !== "object" || value === null) return false;
+  const weather = value as Record<string, unknown>;
+  return typeof weather.temperatureC === "number" &&
+    Number.isFinite(weather.temperatureC) &&
+    typeof weather.weatherCode === "number" &&
+    Number.isFinite(weather.weatherCode) &&
+    typeof weather.windSpeedMs === "number" &&
+    Number.isFinite(weather.windSpeedMs) &&
+    typeof weather.windDirectionDeg === "number" &&
+    Number.isFinite(weather.windDirectionDeg);
+}
+
+const cache = new JsonCache<Weather>("weather.json", { isValid: isWeather });
 
 interface OpenMeteoResponse {
   hourly: {
@@ -119,7 +133,7 @@ export function fetchWeatherForRuns(
     eventDate: string;
     coordinates: LatLng | null;
   }>,
-): Promise<Map<string, Weather | null>> {
+): Promise<Map<string, Weather>> {
   const keys = runs
     .filter((r) => r.coordinates)
     .map((r) => getWeatherKey(r.coordinates!, r.eventDate));
@@ -131,7 +145,7 @@ export function fetchWeatherForRuns(
       `Fetching weather for ${missing.length} runs across ${locationGroups.size} locations`,
     );
 
-    const results = new Map<string, Weather | null>();
+    const results = new Map<string, Weather>();
     const locations = [...locationGroups.entries()];
 
     for (let i = 0; i < locations.length; i++) {
@@ -146,7 +160,8 @@ export function fetchWeatherForRuns(
       );
 
       for (const date of dates) {
-        results.set(`${locKey},${date}`, weatherByDate?.get(date) ?? null);
+        const weather = weatherByDate?.get(date);
+        if (weather) results.set(`${locKey},${date}`, weather);
       }
 
       console.log(

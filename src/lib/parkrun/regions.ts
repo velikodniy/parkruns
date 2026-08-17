@@ -1,31 +1,41 @@
 import { JsonCache } from "../cache.ts";
 import type { LngLat } from "./types.ts";
 
-const cache = new JsonCache<string>("regions.json");
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse";
 const USER_AGENT = "parkrun-dashboard/1.0";
 // Regularly-run scripts are limited to four requests per minute.
 // https://operations.osmfoundation.org/policies/nominatim/
 export const NOMINATIM_REQUEST_INTERVAL_MS = 15_000;
 
+function isResolvedRegion(value: unknown): value is string {
+  return typeof value === "string" && value !== "gb";
+}
+
+const cache = new JsonCache<string>("regions.json", {
+  isValid: isResolvedRegion,
+});
+
 function coordsKey(coordinates: LngLat): string {
   return `${coordinates[0]},${coordinates[1]}`;
 }
 
-async function fetchRegion(coordinates: LngLat): Promise<string> {
+export async function fetchRegion(
+  coordinates: LngLat,
+  fetchImpl: typeof fetch = fetch,
+): Promise<string | null> {
   const [longitude, latitude] = coordinates;
   const url =
     `${NOMINATIM_URL}?format=json&lat=${latitude}&lon=${longitude}&zoom=5`;
 
   try {
-    const resp = await fetch(url, {
+    const resp = await fetchImpl(url, {
       headers: { "User-Agent": USER_AGENT },
     });
     if (!resp.ok) {
       console.error(
         `Nominatim error: ${resp.status} for ${latitude},${longitude}`,
       );
-      return "gb";
+      return null;
     }
     const data = await resp.json();
 
@@ -33,15 +43,17 @@ async function fetchRegion(coordinates: LngLat): Promise<string> {
     if (iso2) return iso2.toLowerCase();
 
     const country = data.address?.country_code as string | undefined;
-    if (country) return country.toLowerCase();
+    if (country && country.toLowerCase() !== "gb") {
+      return country.toLowerCase();
+    }
 
-    return "gb";
+    return null;
   } catch (error) {
     console.error(
       `Failed to fetch region for ${latitude},${longitude}:`,
       error,
     );
-    return "gb";
+    return null;
   }
 }
 
@@ -59,7 +71,8 @@ export function resolveRegions(
       if (i > 0) {
         await new Promise((r) => setTimeout(r, NOMINATIM_REQUEST_INTERVAL_MS));
       }
-      results.set(missing[i], await fetchRegion(keyToCoords.get(missing[i])!));
+      const region = await fetchRegion(keyToCoords.get(missing[i])!);
+      if (region) results.set(missing[i], region);
       console.log(`  Region progress: ${i + 1}/${missing.length}`);
     }
     return results;

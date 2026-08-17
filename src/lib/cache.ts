@@ -2,11 +2,18 @@ import { writeTextFileAtomic } from "./fs.ts";
 
 const CACHE_DIR = ".cache";
 
+interface JsonCacheOptions<T> {
+  directory?: string;
+  isValid?: (value: unknown) => value is T;
+}
+
 export class JsonCache<T> {
   private path: string;
+  private isValid: (value: unknown) => value is T;
 
-  constructor(filename: string) {
-    this.path = `${CACHE_DIR}/${filename}`;
+  constructor(filename: string, options: JsonCacheOptions<T> = {}) {
+    this.path = `${options.directory ?? CACHE_DIR}/${filename}`;
+    this.isValid = options.isValid ?? ((_value): _value is T => true);
   }
 
   async load(): Promise<Map<string, T>> {
@@ -19,7 +26,21 @@ export class JsonCache<T> {
     }
 
     try {
-      return new Map(Object.entries(JSON.parse(text)));
+      const parsed: unknown = JSON.parse(text);
+      if (
+        typeof parsed !== "object" || parsed === null || Array.isArray(parsed)
+      ) {
+        console.warn(`Ignoring invalid cache ${this.path}; rebuilding.`);
+        return new Map();
+      }
+
+      const entries = Object.entries(parsed).filter(([, value]) =>
+        this.isValid(value)
+      ) as [string, T][];
+      if (entries.length !== Object.keys(parsed).length) {
+        console.warn(`Ignoring invalid entries in cache ${this.path}.`);
+      }
+      return new Map(entries);
     } catch (e) {
       // A corrupt cache shouldn't poison every future run — drop it and
       // rebuild. Atomic saves make this near-impossible going forward.
@@ -41,11 +62,13 @@ export class JsonCache<T> {
     fetchMissing: (keys: string[]) => Promise<Map<string, T>>,
   ): Promise<Map<string, T>> {
     const cached = await this.load();
-    const missing = keys.filter((k) => !cached.has(k));
+    const missing = [...new Set(keys)].filter((k) => !cached.has(k));
 
     if (missing.length > 0) {
       const fetched = await fetchMissing(missing);
-      for (const [k, v] of fetched) cached.set(k, v);
+      for (const [k, v] of fetched) {
+        if (this.isValid(v)) cached.set(k, v);
+      }
       await this.save(cached);
     }
 
