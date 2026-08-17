@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Group, SegmentedControl } from "@mantine/core";
+import { useId, useState } from "react";
+import { SegmentedControl } from "@mantine/core";
 import * as d3 from "d3";
 import type { ChartProps, Run } from "../types.ts";
 import { formatPace, formatTime } from "../format.ts";
@@ -37,19 +37,20 @@ type Metric = "time" | "pace";
 
 // Pace labels ("4:25/km") are wider than time labels ("22:05"), so the axis
 // gutters need extra room when pace is shown.
-const TIME_MARGIN = { top: 20, right: 36, bottom: 25, left: 45 };
-const PACE_MARGIN = { top: 20, right: 52, bottom: 25, left: 58 };
+const TIME_MARGIN = { top: 36, right: 36, bottom: 40, left: 45 };
+const PACE_MARGIN = { top: 36, right: 52, bottom: 40, left: 58 };
 
 export function FinishTimeChart(
   { runs, width = 600, height = 300 }: ChartProps,
 ) {
   const [metric, setMetric] = useState<Metric>("time");
+  const plotClipId = `finish-time-plot-${useId().replaceAll(":", "")}`;
   // The finish-time and pace lines are the same curve (every parkrun is 5km),
   // so the toggle only swaps how the y-axis and gutter labels are formatted.
   const formatMetric = metric === "pace" ? formatPace : formatTime;
 
   const svgRef = useD3Chart(
-    ({ g, tooltip, dimensions, colors }) => {
+    ({ svg, g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
       // Only the most recent runs are drawn; older history would make the chart
       // too dense. Best-time reference lines below still come from all of `runs`.
@@ -103,8 +104,18 @@ export function FinishTimeChart(
       });
       renderYAxis(g, y, colors, (d) => formatMetric(d as number));
 
+      svg
+        .append("defs")
+        .append("clipPath")
+        .attr("id", plotClipId)
+        .append("rect")
+        .attr("width", innerWidth)
+        .attr("height", innerHeight);
+
+      const plot = g.append("g").attr("clip-path", `url(#${plotClipId})`);
+
       renderRunLine(
-        g,
+        plot,
         visibleRuns,
         x,
         y,
@@ -119,7 +130,7 @@ export function FinishTimeChart(
           .y((d: number) => y(d))
           .curve(d3.curveMonotoneX);
 
-        g.append("path")
+        plot.append("path")
           .datum(rollingMedian)
           .attr("fill", "none")
           .attr("stroke", colors.warning)
@@ -135,7 +146,7 @@ export function FinishTimeChart(
         topFinishes.map((f) => [runKey(f.run), f.rank]),
       );
 
-      const points = renderJitteredPoints(g, visibleRuns, x, y, {
+      const points = renderJitteredPoints(plot, visibleRuns, x, y, {
         value: (d) => d.finishTimeSeconds,
         radius: (d) => (medalRankByRun.has(runKey(d)) || d.wasPb ? 6 : 3),
         fill: (d) => {
@@ -238,26 +249,25 @@ export function FinishTimeChart(
         ],
       );
     },
-    [runs, width, height, metric],
+    [runs, width, height, metric, plotClipId],
     width,
     height,
     metric === "pace" ? PACE_MARGIN : TIME_MARGIN,
   );
 
   return (
-    <div>
-      <Group justify="flex-end" mb="xs">
-        <SegmentedControl
-          size="xs"
-          value={metric}
-          onChange={(value) => setMetric(value as Metric)}
-          data={[
-            { label: "Time", value: "time" },
-            { label: "Pace", value: "pace" },
-          ]}
-          aria-label="Show finish time or pace on the y-axis"
-        />
-      </Group>
+    <div style={{ position: "relative" }}>
+      <SegmentedControl
+        size="xs"
+        value={metric}
+        onChange={(value) => setMetric(value as Metric)}
+        data={[
+          { label: "Time", value: "time" },
+          { label: "Pace", value: "pace" },
+        ]}
+        aria-label="Show finish time or pace on the y-axis"
+        style={{ position: "absolute", top: 0, right: 0, zIndex: 1 }}
+      />
       <svg
         ref={svgRef}
         width={width}
