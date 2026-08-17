@@ -1,8 +1,8 @@
 import eventsJson from "./events.json" with { type: "json" };
-import type { EventFeature, EventsData, LatLng } from "./types.ts";
+import { type EventFeature, EventsDataSchema, type LatLng } from "./types.ts";
 import { getCountryName, numericToISO } from "./countries.ts";
 
-const data = eventsJson as unknown as EventsData;
+const data = EventsDataSchema.parse(eventsJson);
 
 const eventById = new Map<number, EventFeature>(
   data.events.features.map((f) => [f.id, f]),

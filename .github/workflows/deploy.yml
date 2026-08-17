@@ -16,18 +16,21 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Update events data
-        run: curl -sSL --fail https://images.parkrun.com/events.json -o src/lib/parkrun/events.json
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Download events data
+        run: curl -sSL --fail https://images.parkrun.com/events.json -o /tmp/parkrun-events.json
+
+      - name: Validate and update events data
+        run: deno run -A scripts/update-events-data.ts /tmp/parkrun-events.json
 
       - name: Commit events.json if changed
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "chore: update parkrun events data [skip ci]"
           file_pattern: src/lib/parkrun/events.json
-
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
 
       - name: Restore data cache
         uses: actions/cache@v6
