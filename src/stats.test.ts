@@ -252,6 +252,28 @@ Deno.test("computeRunStats - streak spans 53-week year boundary", () => {
   assertEquals(stats.streak.best, 2);
 });
 
+Deno.test("computeRunStats - current streak ends after a missed Saturday", () => {
+  const runs = [
+    createMockRun({ eventDate: "2026-08-08T00:00:00.000Z" }),
+    createMockRun({ eventDate: "2026-08-01T00:00:00.000Z" }),
+  ];
+
+  const stats = computeRunStats(runs, new Date("2026-08-17T12:00:00.000Z"));
+
+  assertEquals(stats.streak, { current: 0, best: 2 });
+});
+
+Deno.test("computeRunStats - current streak remains active before Saturday", () => {
+  const runs = [
+    createMockRun({ eventDate: "2026-08-08T00:00:00.000Z" }),
+    createMockRun({ eventDate: "2026-08-01T00:00:00.000Z" }),
+  ];
+
+  const stats = computeRunStats(runs, new Date("2026-08-14T12:00:00.000Z"));
+
+  assertEquals(stats.streak, { current: 2, best: 2 });
+});
+
 Deno.test("computeRunStats - recentMedianTime uses 5 newest regardless of input order", () => {
   // Deliberately unsorted; computeRunStats must select the 5 newest by date
   // itself, excluding the oldest run (2000), rather than trusting input order.

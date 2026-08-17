@@ -1,4 +1,5 @@
 import type { Run } from "./types.ts";
+import { eventDateToDate } from "./event-date.ts";
 
 export function sortRunsByDateAsc(runs: Run[]): Run[] {
   return [...runs].sort(
@@ -61,27 +62,25 @@ function median(sorted: number[]): number {
 
 const MS_PER_DAY = 86400000;
 const MS_PER_WEEK = 7 * MS_PER_DAY;
+const SATURDAY_EPOCH = Date.UTC(1970, 0, 3);
 
 /**
- * Week bucket for a date: whole weeks since the Unix epoch, computed from the
- * UTC calendar date so the bucket is independent of the viewer's timezone.
- * parkruns are held on Saturdays, so consecutive events differ by exactly 1 —
- * which makes streak counting plain integer arithmetic with no year-boundary
- * special cases (53-week years included).
+ * Saturday-to-Friday parkrun week bucket, computed from the UTC calendar date
+ * so the result is independent of the viewer's timezone.
  */
-function weekIndex(date: Date): number {
+function parkrunWeekIndex(date: Date): number {
   const utcMidnight = Date.UTC(
     date.getUTCFullYear(),
     date.getUTCMonth(),
     date.getUTCDate(),
   );
-  return Math.floor(utcMidnight / MS_PER_WEEK);
+  return Math.floor((utcMidnight - SATURDAY_EPOCH) / MS_PER_WEEK);
 }
 
-/** Count consecutive weeks ending at (or just before) the current week. */
+/** Count consecutive weeks ending in the current Saturday-Friday week. */
 function countCurrentStreak(weeks: Set<number>, currentWeek: number): number {
   let streak = 0;
-  let week = weeks.has(currentWeek) ? currentWeek : currentWeek - 1;
+  let week = currentWeek;
   while (weeks.has(week)) {
     streak++;
     week--;
@@ -104,16 +103,19 @@ function countBestStreak(weeks: Set<number>): number {
   return best;
 }
 
-function computeStreak(runs: Run[]): { current: number; best: number } {
+function computeStreak(
+  runs: Run[],
+  today: Date,
+): { current: number; best: number } {
   if (runs.length === 0) return { current: 0, best: 0 };
 
   const weeks = new Set<number>();
   for (const run of runs) {
-    weeks.add(weekIndex(new Date(run.eventDate)));
+    weeks.add(parkrunWeekIndex(eventDateToDate(run.eventDate)));
   }
 
   return {
-    current: countCurrentStreak(weeks, weekIndex(new Date())),
+    current: countCurrentStreak(weeks, parkrunWeekIndex(today)),
     best: countBestStreak(weeks),
   };
 }
@@ -130,7 +132,7 @@ export interface RunStats {
   streak: { current: number; best: number };
 }
 
-export function computeRunStats(runs: Run[]): RunStats {
+export function computeRunStats(runs: Run[], today = new Date()): RunStats {
   if (runs.length === 0) {
     return {
       totalRuns: 0,
@@ -191,6 +193,6 @@ export function computeRunStats(runs: Run[]): RunStats {
     bestTopPercent,
     bestTopPercentRun,
     uniqueEvents: events.size,
-    streak: computeStreak(runs),
+    streak: computeStreak(runs, today),
   };
 }
