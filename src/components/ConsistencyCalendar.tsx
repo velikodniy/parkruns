@@ -45,6 +45,8 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
     if (!svgRef.current || runs.length === 0) return;
 
     const calendarYears = buildCalendarYearData(runs);
+    if (calendarYears.length === 0) return;
+
     const maxYear = calendarYears[calendarYears.length - 1].year;
 
     const svg = d3.select(svgRef.current);
@@ -65,7 +67,7 @@ export function ConsistencyCalendar({ runs, width = 900 }: Props) {
 
     const firstRunWeek = calendarYears
       .flatMap(({ weeks }) => weeks)
-      .find(({ count }) => count > 0)!.week.getTime();
+      .find(({ count }) => count > 0)?.week.getTime() ?? 0;
     const currentWeek = d3.utcSunday.floor(new Date()).getTime();
 
     const refYear = maxYear;
