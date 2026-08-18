@@ -2,16 +2,18 @@ import { Card, Group, Stack, Title } from "@mantine/core";
 import type { Run } from "../types.ts";
 import { RunCard } from "./RunCard.tsx";
 import { PaginationControls } from "./PaginationControls.tsx";
-import { useRunsList } from "../hooks/useRunsList.ts";
+import { useRunsList, type UseRunsListResult } from "../hooks/useRunsList.ts";
 import { runKey } from "./run-utils.ts";
 
 interface Props {
-  runs: Run[];
+  runs?: Run[];
+  runsList?: UseRunsListResult;
   medalRanks: Map<string, number>;
 }
 
-export function RunsCardList({ runs, medalRanks }: Props) {
-  const { items, pagination, totalPages, rangeText } = useRunsList(runs);
+export function RunsCardList({ runs, runsList, medalRanks }: Props) {
+  const internalList = useRunsList(runs ?? []);
+  const { items, pagination, totalPages, rangeText } = runsList ?? internalList;
 
   const controls = (
     <PaginationControls

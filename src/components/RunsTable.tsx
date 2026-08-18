@@ -15,12 +15,13 @@ import { CountryFlag } from "./CountryFlag.tsx";
 import { WeatherBadge } from "./WeatherBadge.tsx";
 import { PaginationControls } from "./PaginationControls.tsx";
 import { getMedalHighlightStyle, MedalIcon } from "./MedalIcon.tsx";
-import { useRunsList } from "../hooks/useRunsList.ts";
+import { useRunsList, type UseRunsListResult } from "../hooks/useRunsList.ts";
 import { formatDelta, getGenderSymbol, runKey } from "./run-utils.ts";
 import { formatEventDate, formatEventWeekday } from "../event-date.ts";
 
 interface Props {
-  runs: Run[];
+  runs?: Run[];
+  runsList?: UseRunsListResult;
   medalRanks: Map<string, number>;
 }
 
@@ -116,8 +117,9 @@ function TimeCell({ finishTimeSeconds, medalRank }: TimeCellProps) {
   );
 }
 
-export function RunsTable({ runs, medalRanks }: Props) {
-  const { items, pagination, totalPages, rangeText } = useRunsList(runs);
+export function RunsTable({ runs, runsList, medalRanks }: Props) {
+  const internalList = useRunsList(runs ?? []);
+  const { items, pagination, totalPages, rangeText } = runsList ?? internalList;
 
   const controls = (
     <PaginationControls
