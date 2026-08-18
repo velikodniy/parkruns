@@ -7,6 +7,7 @@ import {
   Title,
 } from "@mantine/core";
 import { IconHome, IconUsers } from "@tabler/icons-react";
+import { useState } from "react";
 import {
   AgeGradeChart,
   ChartCard,
@@ -33,6 +34,7 @@ import { useRunStats } from "./hooks/useRunStats.ts";
 export function App() {
   const { profile, loading, error } = useProfileData();
   const { sortedRuns, stats, visitedCountries } = useRunStats(profile);
+  const [showUnvisitedCountries, setShowUnvisitedCountries] = useState(false);
 
   if (loading) {
     return <LoadingState />;
@@ -93,28 +95,48 @@ export function App() {
       </Group>
 
       {visitedCountries.length > 0 && (
-        <Group gap="xs" mb="xl">
-          {visitedCountries.map((iso) => (
-            <CountryFlag
-              key={iso}
-              countryCode={iso}
-              size={18}
-              title={getCountryName(iso) ?? iso}
-            />
-          ))}
-          {unvisitedCountries.map((iso) => {
-            const countryName = getCountryName(iso) ?? iso;
-            return (
+        <button
+          type="button"
+          onClick={() => setShowUnvisitedCountries((visible) => !visible)}
+          aria-expanded={showUnvisitedCountries}
+          aria-label={showUnvisitedCountries
+            ? "Hide unvisited parkrun countries"
+            : "Show unvisited parkrun countries"}
+          title={showUnvisitedCountries
+            ? "Hide unvisited countries"
+            : "Show unvisited countries"}
+          style={{
+            display: "block",
+            marginBottom: "var(--mantine-spacing-xl)",
+            border: 0,
+            padding: 0,
+            background: "none",
+            cursor: "pointer",
+          }}
+        >
+          <Group gap="xs">
+            {visitedCountries.map((iso) => (
               <CountryFlag
                 key={iso}
                 countryCode={iso}
                 size={18}
-                title={`${countryName} (not visited)`}
-                dimmed
+                title={getCountryName(iso) ?? iso}
               />
-            );
-          })}
-        </Group>
+            ))}
+            {showUnvisitedCountries && unvisitedCountries.map((iso) => {
+              const countryName = getCountryName(iso) ?? iso;
+              return (
+                <CountryFlag
+                  key={iso}
+                  countryCode={iso}
+                  size={18}
+                  title={`${countryName} (not visited)`}
+                  dimmed
+                />
+              );
+            })}
+          </Group>
+        </button>
       )}
 
       <SimpleGrid cols={{ base: 2, sm: 3, md: 6 }} mb="xl">
