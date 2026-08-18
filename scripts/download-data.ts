@@ -2,23 +2,14 @@ import "@std/dotenv/load";
 import { authenticate, getAthlete, getRuns } from "../src/lib/parkrun/api.ts";
 import {
   getAllEventCountryISOs,
-  getEventById,
-  getEventCoordinates,
-  getEventCountryISO,
-  getEventResultsUrl,
-  getEventShortName,
-  getEventUrl,
-  getEventWeatherHour,
+  getRunEventContext,
   getShortNameByLongName,
 } from "../src/lib/parkrun/index.ts";
 import { resolveRegions } from "../src/lib/parkrun/regions.ts";
 import { writeTextFileAtomic } from "../src/lib/fs.ts";
 import { fetchWeatherForRuns } from "../src/lib/parkrun/weather.ts";
-import {
-  attachCoordinates,
-  enrichRuns,
-  type EventLookups,
-} from "../src/lib/parkrun/enrich.ts";
+import { enrichRuns } from "../src/lib/parkrun/enrich.ts";
+import { contextualizeRuns } from "../src/lib/parkrun/event-context.ts";
 import type { Profile } from "../src/types.ts";
 
 const ATHLETE_ID = Deno.env.get("PARKRUN_ATHLETE_ID");
@@ -49,24 +40,18 @@ async function downloadData(
   console.log("Fetching runs...");
   const runs = await getRuns(accessToken, numericId);
 
-  const eventLookups: EventLookups = {
-    getCoordinates: getEventCoordinates,
-    getCountryISO: getEventCountryISO,
-    getEvent: getEventById,
-    getShortName: getEventShortName,
-    getUrl: getEventUrl,
-    getResultsUrl: getEventResultsUrl,
-    getWeatherHour: getEventWeatherHour,
-  };
-
-  const runsWithCoordinates = attachCoordinates(runs, eventLookups);
+  const contextualRuns = contextualizeRuns(runs, getRunEventContext);
 
   console.log("Fetching weather data...");
-  const weatherRuns = runsWithCoordinates.flatMap((run) => {
-    const weatherHour = getEventWeatherHour(run.eventId, run.eventDate);
-    return weatherHour === null ? [] : [{ ...run, weatherHour }];
+  const weatherRuns = contextualRuns.flatMap(({ run, event }) => {
+    if (event.coordinates === null || event.weatherHour === null) return [];
+    return [{
+      eventDate: run.eventDate,
+      coordinates: event.coordinates,
+      weatherHour: event.weatherHour,
+    }];
   });
-  const omittedWeatherRuns = runsWithCoordinates.length - weatherRuns.length;
+  const omittedWeatherRuns = contextualRuns.length - weatherRuns.length;
   if (omittedWeatherRuns > 0) {
     console.warn(
       `Skipping weather for ${omittedWeatherRuns} runs with no verified event schedule`,
@@ -77,17 +62,16 @@ async function downloadData(
   );
 
   console.log("Resolving regions...");
-  const ukEvents = runsWithCoordinates
-    .filter((r) => getEventCountryISO(r.eventId) === "gb" && r.coordinates)
-    .map((r) => ({
-      coordinates: getEventById(r.eventId)!.geometry.coordinates,
-    }));
+  const ukEvents = contextualRuns.flatMap(({ event }) =>
+    event.countryISO === "gb" && event.regionCoordinates
+      ? [{ coordinates: event.regionCoordinates }]
+      : []
+  );
   const regionMap = await resolveRegions(ukEvents);
 
   const enrichedRuns = enrichRuns(
-    runsWithCoordinates,
+    contextualRuns,
     { weather: weatherMap, regions: regionMap },
-    eventLookups,
   );
 
   const profile: Profile = {

@@ -1,15 +1,9 @@
 import { assertEquals } from "@std/assert";
-import {
-  attachCoordinates,
-  type EnrichmentData,
-  enrichRuns,
-  type EventLookups,
-  type RunWithCoordinates,
-} from "./enrich.ts";
-import { getWeatherKey } from "./weather.ts";
-import { getRegionKey } from "./regions.ts";
 import type { Run, Weather } from "../../types.ts";
-import type { EventFeature, LatLng, LngLat } from "./types.ts";
+import type { ContextualRun, EventContext } from "./event-context.ts";
+import { type EnrichmentData, enrichRuns } from "./enrich.ts";
+import { getRegionKey } from "./regions.ts";
+import { getWeatherKey } from "./weather.ts";
 
 const SAMPLE_WEATHER: Weather = {
   temperatureC: 9,
@@ -18,9 +12,7 @@ const SAMPLE_WEATHER: Weather = {
   windDirectionDeg: 180,
 };
 
-function makeRun(
-  overrides: Partial<RunWithCoordinates> = {},
-): RunWithCoordinates {
+function makeRun(overrides: Partial<Run> = {}): Run {
   return {
     eventName: "Brighton parkrun",
     eventId: 1,
@@ -35,38 +27,30 @@ function makeRun(
     ageCategory: "VM35-39",
     wasPb: false,
     wasFirstVisit: false,
+    ...overrides,
+  };
+}
+
+function makeEvent(overrides: Partial<EventContext> = {}): EventContext {
+  return {
     coordinates: [50.8, -0.1],
+    regionCoordinates: [-0.1, 50.8],
+    countryISO: "fr",
+    displayName: "Brighton",
+    eventUrl: "https://parkrun.org.uk/brighton/",
+    resultsUrl: "https://parkrun.org.uk/brighton/results/100/",
+    weatherHour: 9,
     ...overrides,
   };
 }
 
-function makeEvent(coordinates: LngLat): EventFeature {
+function contextualRun(
+  runOverrides: Partial<Run> = {},
+  eventOverrides: Partial<EventContext> = {},
+): ContextualRun {
   return {
-    id: 1,
-    type: "Feature",
-    geometry: { type: "Point", coordinates },
-    properties: {
-      eventname: "brighton",
-      EventLongName: "Brighton parkrun",
-      EventShortName: "Brighton",
-      LocalisedEventLongName: null,
-      countrycode: 97,
-      seriesid: 1,
-      EventLocation: "",
-    },
-  };
-}
-
-function makeLookups(overrides: Partial<EventLookups> = {}): EventLookups {
-  return {
-    getCoordinates: () => [50.8, -0.1] as LatLng,
-    getCountryISO: () => "fr",
-    getEvent: () => makeEvent([-0.1, 50.8]),
-    getShortName: () => "Brighton",
-    getUrl: () => "https://parkrun.org.uk/brighton/",
-    getResultsUrl: () => "https://parkrun.org.uk/brighton/results/100/",
-    getWeatherHour: () => 9,
-    ...overrides,
+    run: makeRun(runOverrides),
+    event: makeEvent(eventOverrides),
   };
 }
 
@@ -74,16 +58,23 @@ function emptyData(): EnrichmentData {
   return { weather: new Map(), regions: new Map() };
 }
 
-Deno.test("enrichRuns - attaches weather, names, and urls", () => {
-  const run = makeRun();
+Deno.test("enrichRuns - attaches weather and normalized event metadata", () => {
+  const contextual = contextualRun();
   const data: EnrichmentData = {
     weather: new Map([
-      [getWeatherKey(run.coordinates!, run.eventDate, 9), SAMPLE_WEATHER],
+      [
+        getWeatherKey(
+          contextual.event.coordinates!,
+          contextual.run.eventDate,
+          contextual.event.weatherHour!,
+        ),
+        SAMPLE_WEATHER,
+      ],
     ]),
     regions: new Map(),
   };
 
-  const [enriched] = enrichRuns([run], data, makeLookups());
+  const [enriched] = enrichRuns([contextual], data);
 
   assertEquals(enriched.weather, SAMPLE_WEATHER);
   assertEquals(enriched.countryISO, "fr");
@@ -97,72 +88,58 @@ Deno.test("enrichRuns - attaches weather, names, and urls", () => {
 });
 
 Deno.test("enrichRuns - refines a GB country to its region", () => {
-  const run = makeRun();
-  const event = makeEvent([-0.1, 50.8]);
+  const contextual = contextualRun({}, { countryISO: "gb" });
   const data: EnrichmentData = {
     weather: new Map(),
-    regions: new Map([[getRegionKey(event.geometry.coordinates), "gb-sct"]]),
+    regions: new Map([
+      [getRegionKey(contextual.event.regionCoordinates!), "gb-sct"],
+    ]),
   };
 
-  const [enriched] = enrichRuns(
-    [run],
-    data,
-    makeLookups({ getCountryISO: () => "gb", getEvent: () => event }),
-  );
+  const [enriched] = enrichRuns([contextual], data);
 
   assertEquals(enriched.countryISO, "gb-sct");
 });
 
 Deno.test("enrichRuns - keeps 'gb' when no region match exists", () => {
   const [enriched] = enrichRuns(
-    [makeRun()],
+    [contextualRun({}, { countryISO: "gb" })],
     emptyData(),
-    makeLookups({ getCountryISO: () => "gb" }),
   );
   assertEquals(enriched.countryISO, "gb");
 });
 
-Deno.test("enrichRuns - leaves weather null when the run has no coordinates", () => {
+Deno.test("enrichRuns - leaves weather null when coordinates are missing", () => {
   const [enriched] = enrichRuns(
-    [makeRun({ coordinates: null })],
+    [
+      contextualRun({}, {
+        coordinates: null,
+        regionCoordinates: null,
+      }),
+    ],
     emptyData(),
-    makeLookups(),
   );
   assertEquals(enriched.weather, null);
   assertEquals(enriched.coordinates, null);
 });
 
 Deno.test("enrichRuns - omits weather when the event schedule is unknown", () => {
-  const run = makeRun();
+  const contextual = contextualRun({}, { weatherHour: null });
   const data: EnrichmentData = {
     weather: new Map([
-      [getWeatherKey(run.coordinates!, run.eventDate, 9), SAMPLE_WEATHER],
+      [
+        getWeatherKey(
+          contextual.event.coordinates!,
+          contextual.run.eventDate,
+          9,
+        ),
+        SAMPLE_WEATHER,
+      ],
     ]),
     regions: new Map(),
   };
 
-  const [enriched] = enrichRuns(
-    [run],
-    data,
-    makeLookups({ getWeatherHour: () => null }),
-  );
+  const [enriched] = enrichRuns([contextual], data);
 
   assertEquals(enriched.weather, null);
-});
-
-Deno.test("enrichRuns - falls back to the stripped long name when no short name", () => {
-  const [enriched] = enrichRuns(
-    [makeRun({ eventName: "Hove Promenade parkrun" })],
-    emptyData(),
-    makeLookups({ getShortName: () => null }),
-  );
-  assertEquals(enriched.eventName, "Hove Promenade");
-});
-
-Deno.test("attachCoordinates - maps event coordinates onto each run", () => {
-  const base = makeRun({ coordinates: undefined as unknown as LatLng });
-  const result = attachCoordinates([base as Run], {
-    getCoordinates: () => [1, 2] as LatLng,
-  });
-  assertEquals(result[0].coordinates, [1, 2]);
 });

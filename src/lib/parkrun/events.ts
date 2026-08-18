@@ -1,5 +1,6 @@
 import eventsJson from "./events.json" with { type: "json" };
-import { type EventFeature, EventsDataSchema, type LatLng } from "./types.ts";
+import { type EventFeature, EventsDataSchema } from "./types.ts";
+import type { EventContext, EventContextInput } from "./event-context.ts";
 import { getCountryName, numericToISO } from "./countries.ts";
 
 const data = EventsDataSchema.parse(eventsJson);
@@ -112,28 +113,9 @@ const eventWeatherHours: Readonly<Record<number, WeatherHourRule>> = {
   3745: northernSummerHour, // Budapest Park
 };
 
-export function getEventById(id: number): EventFeature | undefined {
-  return eventById.get(id);
-}
-
-export function getEventShortName(id: number): string | null {
-  return eventById.get(id)?.properties.EventShortName ?? null;
-}
-
 export function getShortNameByLongName(longName: string): string | null {
   return eventByLongName.get(longName.toLowerCase())?.properties
     .EventShortName ?? null;
-}
-
-export function getEventCoordinates(id: number): LatLng | null {
-  const event = eventById.get(id);
-  if (!event) return null;
-  const [longitude, latitude] = event.geometry.coordinates;
-  return [latitude, longitude];
-}
-
-export function getEventCountryISO(id: number): string | null {
-  return eventISO.get(id) ?? null;
 }
 
 export function getEventWeatherHour(
@@ -158,23 +140,36 @@ export function getAllEventCountryISOs(): string[] {
   return eventCountryISOs;
 }
 
-function getEventBaseUrl(id: number): string | null {
-  const event = eventById.get(id);
-  if (!event) return null;
+function getEventBaseUrl(event: EventFeature): string | null {
   const countryUrl = data.countries[event.properties.countrycode]?.url;
   if (!countryUrl) return null;
   return `https://${countryUrl}/${event.properties.eventname}`;
 }
 
-export function getEventUrl(id: number): string | null {
-  const base = getEventBaseUrl(id);
-  return base ? `${base}/` : null;
-}
+export function getRunEventContext(input: EventContextInput): EventContext {
+  const event = eventById.get(input.eventId);
+  if (!event) {
+    return {
+      coordinates: null,
+      regionCoordinates: null,
+      countryISO: null,
+      displayName: input.eventName.replace(/ parkrun$/i, ""),
+      eventUrl: null,
+      resultsUrl: null,
+      weatherHour: null,
+    };
+  }
 
-export function getEventResultsUrl(
-  id: number,
-  edition: number,
-): string | null {
-  const base = getEventBaseUrl(id);
-  return base ? `${base}/results/${edition}/` : null;
+  const [longitude, latitude] = event.geometry.coordinates;
+  const baseUrl = getEventBaseUrl(event);
+
+  return {
+    coordinates: [latitude, longitude],
+    regionCoordinates: event.geometry.coordinates,
+    countryISO: eventISO.get(event.id) ?? null,
+    displayName: event.properties.EventShortName,
+    eventUrl: baseUrl ? `${baseUrl}/` : null,
+    resultsUrl: baseUrl ? `${baseUrl}/results/${input.eventEdition}/` : null,
+    weatherHour: getEventWeatherHour(event.id, input.eventDate),
+  };
 }

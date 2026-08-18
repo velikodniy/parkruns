@@ -88,6 +88,12 @@ interface LocationGroup {
   dates: Set<string>;
 }
 
+export interface WeatherRun {
+  eventDate: string;
+  coordinates: LatLng;
+  weatherHour: number;
+}
+
 export function weatherByDateAtHour(
   data: OpenMeteoResponse,
   weatherHour: number,
@@ -137,16 +143,11 @@ function groupKeysByLocation(
 }
 
 export function fetchWeatherForRuns(
-  runs: Array<{
-    eventId: number;
-    eventDate: string;
-    coordinates: LatLng | null;
-    weatherHour: number;
-  }>,
+  runs: readonly WeatherRun[],
 ): Promise<Map<string, Weather>> {
-  const keys = runs
-    .filter((r) => r.coordinates)
-    .map((r) => getWeatherKey(r.coordinates!, r.eventDate, r.weatherHour));
+  const keys = runs.map((run) =>
+    getWeatherKey(run.coordinates, run.eventDate, run.weatherHour)
+  );
 
   return cache.resolve(keys, async (missing) => {
     const locationGroups = groupKeysByLocation(missing);

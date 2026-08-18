@@ -7,18 +7,19 @@ export type {
   LngLat,
   PointGeometry,
 } from "./types.ts";
+export type {
+  ContextualRun,
+  EventContext,
+  EventContextInput,
+  EventContextResolver,
+} from "./event-context.ts";
 
 export { getCountryName } from "./countries.ts";
 
 export {
   getAllEventCountryISOs,
   getAllEvents,
-  getEventById,
-  getEventCoordinates,
-  getEventCountryISO,
-  getEventResultsUrl,
-  getEventShortName,
-  getEventUrl,
   getEventWeatherHour,
+  getRunEventContext,
   getShortNameByLongName,
 } from "./events.ts";
