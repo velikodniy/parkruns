@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import type { ChartProps } from "../types.ts";
 import { formatTime } from "../format.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
-import { hideTooltip, renderYAxis, showTooltip } from "../d3-utils.ts";
+import { attachTooltipHandlers, renderYAxis } from "../d3-utils.ts";
 import {
   buildMonthlyFinishTimeData,
   type MonthlyFinishTimeData,
@@ -59,69 +59,79 @@ export function FinishTimeDistribution({
       renderYAxis(g, y, colors, (d) => formatTime(d as number));
 
       const boxWidth = x.bandwidth();
+      const narrowWidth = boxWidth * 0.5;
+      const narrowOffset = (boxWidth - narrowWidth) / 2;
 
-      for (const d of monthlyData) {
-        const xPos = x(d.month) ?? 0;
-        const centerX = xPos + boxWidth / 2;
-        const narrowWidth = boxWidth * 0.5;
-        const narrowOffset = (boxWidth - narrowWidth) / 2;
-
-        g.append("line")
-          .attr("x1", centerX)
-          .attr("x2", centerX)
-          .attr("y1", y(d.min))
-          .attr("y2", y(d.q1))
-          .attr("stroke", colors.boxStroke)
-          .attr("stroke-width", 1);
-
-        g.append("line")
-          .attr("x1", centerX)
-          .attr("x2", centerX)
-          .attr("y1", y(d.q3))
-          .attr("y2", y(d.max))
-          .attr("stroke", colors.boxStroke)
-          .attr("stroke-width", 1);
-
-        g.append("rect")
-          .attr("x", xPos + narrowOffset)
-          .attr("y", y(d.q3))
-          .attr("width", narrowWidth)
-          .attr("height", Math.abs(y(d.q1) - y(d.q3)))
-          .attr("fill", colors.box)
-          .attr("opacity", 0.8)
-          .attr("stroke", colors.boxStroke)
-          .attr("stroke-width", 1);
-
-        g.append("line")
-          .attr("x1", xPos + narrowOffset)
-          .attr("x2", xPos + narrowOffset + narrowWidth)
-          .attr("y1", y(d.median))
-          .attr("y2", y(d.median))
-          .attr("stroke", colors.text)
-          .attr("stroke-width", 2);
-      }
-
-      g.selectAll("rect").on("mouseover", (event: MouseEvent) => {
-        const target = event.target as SVGRectElement;
-        const xVal = Number.parseFloat(target.getAttribute("x") ?? "0");
-        const narrowOffset = boxWidth * 0.25;
-        const monthData = monthlyData.find(
-          (d) => Math.abs((x(d.month) ?? 0) + narrowOffset - xVal) < 1,
+      const boxes = g
+        .selectAll<SVGGElement, MonthlyFinishTimeData>(".box-group")
+        .data(monthlyData)
+        .enter()
+        .append("g")
+        .attr("class", "box-group")
+        .attr(
+          "transform",
+          (d: MonthlyFinishTimeData) => `translate(${x(d.month) ?? 0},0)`,
         );
-        if (monthData) {
-          showTooltip(tooltip, event, [
-            { text: monthData.month, bold: true },
-            { text: `Runs: ${monthData.count}` },
-            { text: `Best: ${formatTime(monthData.min)}` },
-            { text: `Q1: ${formatTime(monthData.q1)}` },
-            { text: `Median: ${formatTime(monthData.median)}` },
-            { text: `Q3: ${formatTime(monthData.q3)}` },
-            { text: `Worst: ${formatTime(monthData.max)}` },
-          ]);
-        }
-      });
 
-      g.selectAll("rect").on("mouseout", () => hideTooltip(tooltip));
+      // Lower whisker (min to q1)
+      boxes
+        .append("line")
+        .attr("x1", boxWidth / 2)
+        .attr("x2", boxWidth / 2)
+        .attr("y1", (d: MonthlyFinishTimeData) => y(d.min))
+        .attr("y2", (d: MonthlyFinishTimeData) => y(d.q1))
+        .attr("stroke", colors.boxStroke)
+        .attr("stroke-width", 1);
+
+      // Upper whisker (q3 to max)
+      boxes
+        .append("line")
+        .attr("x1", boxWidth / 2)
+        .attr("x2", boxWidth / 2)
+        .attr("y1", (d: MonthlyFinishTimeData) => y(d.q3))
+        .attr("y2", (d: MonthlyFinishTimeData) => y(d.max))
+        .attr("stroke", colors.boxStroke)
+        .attr("stroke-width", 1);
+
+      // IQR Box (q1 to q3)
+      const rects = boxes
+        .append("rect")
+        .attr("x", narrowOffset)
+        .attr("y", (d: MonthlyFinishTimeData) => y(d.q3))
+        .attr("width", narrowWidth)
+        .attr(
+          "height",
+          (d: MonthlyFinishTimeData) => Math.abs(y(d.q1) - y(d.q3)),
+        )
+        .attr("fill", colors.box)
+        .attr("opacity", 0.8)
+        .attr("stroke", colors.boxStroke)
+        .attr("stroke-width", 1)
+        .style("cursor", "pointer");
+
+      // Median line
+      boxes
+        .append("line")
+        .attr("x1", narrowOffset)
+        .attr("x2", narrowOffset + narrowWidth)
+        .attr("y1", (d: MonthlyFinishTimeData) => y(d.median))
+        .attr("y2", (d: MonthlyFinishTimeData) => y(d.median))
+        .attr("stroke", colors.text)
+        .attr("stroke-width", 2);
+
+      attachTooltipHandlers<MonthlyFinishTimeData>(
+        rects,
+        tooltip,
+        (d) => [
+          { text: d.month, bold: true },
+          { text: `Runs: ${d.count}` },
+          { text: `Best: ${formatTime(d.min)}` },
+          { text: `Q1: ${formatTime(d.q1)}` },
+          { text: `Median: ${formatTime(d.median)}` },
+          { text: `Q3: ${formatTime(d.q3)}` },
+          { text: `Worst: ${formatTime(d.max)}` },
+        ],
+      );
     },
     [runs, width, height],
     width,
@@ -129,5 +139,13 @@ export function FinishTimeDistribution({
     DISTRIBUTION_MARGIN,
   );
 
-  return <svg ref={svgRef} width={width} height={height} />;
+  return (
+    <svg
+      ref={svgRef}
+      width={width}
+      height={height}
+      role="img"
+      aria-label="Box plot showing monthly finish time distribution"
+    />
+  );
 }
