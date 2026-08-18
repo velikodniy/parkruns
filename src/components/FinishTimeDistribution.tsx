@@ -1,37 +1,12 @@
 import * as d3 from "d3";
-import type { ChartProps, Run } from "../types.ts";
+import type { ChartProps } from "../types.ts";
 import { formatTime } from "../format.ts";
 import { useD3Chart } from "../hooks/useD3Chart.ts";
 import { hideTooltip, renderYAxis, showTooltip } from "../d3-utils.ts";
-import { eventMonthKey } from "../event-date.ts";
-
-export interface FinishTimeSummary {
-  min: number;
-  q1: number;
-  median: number;
-  q3: number;
-  max: number;
-  count: number;
-}
-
-interface MonthData extends FinishTimeSummary {
-  month: string;
-}
-
-export function summarizeFinishTimes(
-  sortedTimes: number[],
-): FinishTimeSummary | null {
-  if (sortedTimes.length === 0) return null;
-
-  return {
-    min: sortedTimes[0],
-    q1: Math.round(d3.quantileSorted(sortedTimes, 0.25)!),
-    median: Math.round(d3.quantileSorted(sortedTimes, 0.5)!),
-    q3: Math.round(d3.quantileSorted(sortedTimes, 0.75)!),
-    max: sortedTimes[sortedTimes.length - 1],
-    count: sortedTimes.length,
-  };
-}
+import {
+  buildMonthlyFinishTimeData,
+  type MonthlyFinishTimeData,
+} from "../chart-data.ts";
 
 const DISTRIBUTION_MARGIN = { top: 20, right: 30, bottom: 60, left: 50 };
 
@@ -44,23 +19,11 @@ export function FinishTimeDistribution({
     ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
 
-      const byMonth = d3.rollups(
-        runs,
-        (v: Run[]) => v.map((r) => r.finishTimeSeconds).sort(d3.ascending),
-        (d: Run) => eventMonthKey(d.eventDate),
-      );
-
-      const monthlyData: MonthData[] = byMonth
-        .map(([month, times]: [string, number[]]) => {
-          const summary = summarizeFinishTimes(times);
-          return summary ? { month, ...summary } : null;
-        })
-        .filter((d: MonthData | null): d is MonthData => d !== null)
-        .sort((a: MonthData, b: MonthData) => a.month.localeCompare(b.month));
+      const monthlyData = buildMonthlyFinishTimeData(runs);
 
       const x = d3
         .scaleBand()
-        .domain(monthlyData.map((d: MonthData) => d.month))
+        .domain(monthlyData.map((d: MonthlyFinishTimeData) => d.month))
         .range([0, innerWidth])
         .padding(0.3);
 
@@ -75,8 +38,8 @@ export function FinishTimeDistribution({
       const maxTicks = Math.max(2, Math.floor(innerWidth / 50));
       const tickStep = Math.max(1, Math.ceil(monthlyData.length / maxTicks));
       const tickValues = monthlyData
-        .filter((_: MonthData, i: number) => i % tickStep === 0)
-        .map((d: MonthData) => d.month);
+        .filter((_: MonthlyFinishTimeData, i: number) => i % tickStep === 0)
+        .map((d: MonthlyFinishTimeData) => d.month);
 
       g.append("g")
         .attr("transform", `translate(0,${innerHeight})`)

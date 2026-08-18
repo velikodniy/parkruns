@@ -11,23 +11,14 @@ import {
   renderYAxis,
   showTooltip,
 } from "../d3-utils.ts";
-import { sortRunsByDateAsc } from "../stats.ts";
 import { formatEventDate } from "../event-date.ts";
-
-export function getAgeGradeDomain(runs: Run[]): [number, number] {
-  const minimum = Math.min(
-    40,
-    d3.min(runs, (run: Run) => run.ageGrade) ?? 40,
-  );
-  const maximum = d3.max(runs, (run: Run) => run.ageGrade) ?? 100;
-  return [minimum - 5, maximum > 100 ? maximum + 5 : 100];
-}
+import { buildAgeGradeChartData } from "../chart-data.ts";
 
 export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
   const svgRef = useD3Chart(
     ({ g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
-      const sortedRuns = sortRunsByDateAsc(runs);
+      const chartData = buildAgeGradeChartData(runs);
 
       const ageGradeBands = [
         {
@@ -56,10 +47,10 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
         },
       ];
 
-      const x = createTimeXScale(sortedRuns, innerWidth);
+      const x = createTimeXScale(chartData.runs, innerWidth);
       const y = d3
         .scaleLinear()
-        .domain(getAgeGradeDomain(sortedRuns))
+        .domain(chartData.domain)
         .range([innerHeight, 0]);
 
       const minHitboxHeight = 44;
@@ -132,9 +123,16 @@ export function AgeGradeChart({ runs, width = 600, height = 300 }: ChartProps) {
       });
       renderYAxis(g, y, colors, (d) => `${d}%`);
 
-      renderRunLine(g, sortedRuns, x, y, (d) => d.ageGrade, colors.primary);
+      renderRunLine(
+        g,
+        chartData.runs,
+        x,
+        y,
+        (d) => d.ageGrade,
+        colors.primary,
+      );
 
-      const points = renderJitteredPoints(g, sortedRuns, x, y, {
+      const points = renderJitteredPoints(g, chartData.runs, x, y, {
         value: (d) => d.ageGrade,
         fill: () => colors.primary,
       });

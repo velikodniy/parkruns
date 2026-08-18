@@ -12,14 +12,13 @@ import {
   renderXAxis,
   renderYAxis,
 } from "../d3-utils.ts";
-import { getTopFinishes, sortRunsByDateAsc, type TopFinish } from "../stats.ts";
+import type { TopFinish } from "../stats.ts";
 import { runKey } from "./run-utils.ts";
 import { eventDateToDate, formatEventDate } from "../event-date.ts";
-
-const AXIS_GAP_SECONDS = 15;
-const MAX_TIME_SECONDS = 3600;
-const MAX_VISIBLE_RUNS = 25;
-const MEDAL_COUNT = 3;
+import {
+  buildFinishTimeChartData,
+  FINISH_TIME_RUN_LIMIT,
+} from "../chart-data.ts";
 // Minimum vertical spacing between right-end time labels when best times cluster.
 const MEDAL_LABEL_MIN_GAP = 12;
 
@@ -31,30 +30,6 @@ const MEDAL_ORDINALS = ["1st", "2nd", "3rd"];
 interface MedalLabel {
   finish: TopFinish;
   labelY: number;
-}
-
-export function getFinishTimeDomain(
-  visibleRuns: Run[],
-  topFinishes: TopFinish[],
-): [number, number] {
-  const minTime = d3.min(
-    visibleRuns,
-    (run: Run) => run.finishTimeSeconds,
-  ) ?? 0;
-  const maxTime = d3.max(
-    visibleRuns,
-    (run: Run) => run.finishTimeSeconds,
-  ) ??
-    MAX_TIME_SECONDS;
-  const medalMin = d3.min(
-    topFinishes,
-    (finish: TopFinish) => finish.finishTimeSeconds,
-  ) ?? minTime;
-
-  return [
-    Math.min(minTime, medalMin) - AXIS_GAP_SECONDS,
-    maxTime + AXIS_GAP_SECONDS,
-  ];
 }
 
 /** Which value the y-axis (and its gutter labels) display. */
@@ -77,10 +52,8 @@ export function FinishTimeChart(
   const svgRef = useD3Chart(
     ({ svg, g, tooltip, dimensions, colors }) => {
       const { innerWidth, innerHeight } = dimensions;
-      // Only the most recent runs are drawn; older history would make the chart
-      // too dense. Best-time reference lines below still come from all of `runs`.
-      const visibleRuns = sortRunsByDateAsc(runs).slice(-MAX_VISIBLE_RUNS);
-      const topFinishes = getTopFinishes(runs, MEDAL_COUNT);
+      const { visibleRuns, topFinishes, domain, rollingMedian } =
+        buildFinishTimeChartData(runs);
       const medalColor = (rank: number) =>
         [colors.medal.gold, colors.medal.silver, colors.medal.bronze][rank - 1];
 
@@ -88,15 +61,8 @@ export function FinishTimeChart(
 
       const y = d3
         .scaleLinear()
-        .domain(getFinishTimeDomain(visibleRuns, topFinishes))
+        .domain(domain)
         .range([innerHeight, 0]);
-
-      const windowSize = Math.min(7, Math.floor(visibleRuns.length / 3));
-      const rollingMedian = visibleRuns.map((_: Run, i: number) => {
-        const start = Math.max(0, i - windowSize + 1);
-        const window = visibleRuns.slice(start, i + 1);
-        return d3.median(window, (d: Run) => d.finishTimeSeconds) ?? 0;
-      });
 
       renderXAxis(g, x, innerHeight, innerWidth, colors, {
         tickFormat: d3.utcFormat("%b '%y"),
@@ -122,7 +88,7 @@ export function FinishTimeChart(
         colors.primary,
       );
 
-      if (windowSize > 1) {
+      if (rollingMedian) {
         const medianLine = d3
           .line<number>()
           .x((_: number, i: number) =>
@@ -276,7 +242,7 @@ export function FinishTimeChart(
         role="img"
         aria-label={`Line chart of finish ${
           metric === "pace" ? "pace" : "times"
-        } for the last 25 runs, with gold, silver and bronze reference lines for the three fastest finishes overall`}
+        } for the last ${FINISH_TIME_RUN_LIMIT} runs, with gold, silver and bronze reference lines for the three fastest finishes overall`}
       />
     </div>
   );
