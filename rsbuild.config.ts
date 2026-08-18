@@ -19,7 +19,7 @@ const themeInitScript = `
 let athleteName = "";
 try {
   const data = JSON.parse(fs.readFileSync("./public/data.json", "utf-8"));
-  athleteName = data.athlete.fullName;
+  athleteName = data?.athlete?.fullName ?? "";
 } catch (e) {
   console.warn("Could not read athlete name from data.json", e);
 }

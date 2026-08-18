@@ -17,9 +17,14 @@ export type AccessToken = string;
  * (CI/CD or local development), not in the browser runtime.
  */
 const API_BASE = "https://api.parkrun.com";
-const CLIENT_ID = Deno.env.get("PARKRUN_CLIENT_ID") ?? "";
-const CLIENT_SECRET = Deno.env.get("PARKRUN_CLIENT_SECRET") ?? "";
 const USER_AGENT = "parkrun/1.2.7 CFNetwork/1121.2.2 Darwin/19.3.0";
+
+function getClientCredentials(): { user: string; pass: string } {
+  return {
+    user: Deno.env.get("PARKRUN_CLIENT_ID") ?? "",
+    pass: Deno.env.get("PARKRUN_CLIENT_SECRET") ?? "",
+  };
+}
 
 const PositiveIntegerStringSchema = z.string().refine((value) => {
   if (!/^\d+$/.test(value)) return false;
@@ -235,6 +240,7 @@ async function apiRequest(
 export async function authenticate(
   athleteId: string,
   password: string,
+  credentials = getClientCredentials(),
 ): Promise<AccessToken> {
   const params = new URLSearchParams({
     username: athleteId,
@@ -245,7 +251,7 @@ export async function authenticate(
 
   const response = await apiRequest("/user_auth.php", {
     method: "POST",
-    auth: { user: CLIENT_ID, pass: CLIENT_SECRET },
+    auth: credentials,
     body: params.toString(),
     contentType: "application/x-www-form-urlencoded",
   });
