@@ -1,8 +1,6 @@
 import { useElementSize } from "@mantine/hooks";
 import { ChartCard } from "./ChartCard.tsx";
 
-/** Mantine Card's default horizontal padding (16px each side) to subtract. */
-const CARD_HORIZONTAL_PADDING = 32;
 /** Floor so charts stay legible inside a narrow column before scrolling. */
 const MIN_CHART_WIDTH = 280;
 
@@ -15,7 +13,7 @@ export function ResponsiveChartCard(
   { title, children }: ResponsiveChartCardProps,
 ) {
   const { ref, width } = useElementSize();
-  const chartWidth = Math.max(width - CARD_HORIZONTAL_PADDING, MIN_CHART_WIDTH);
+  const chartWidth = Math.max(width, MIN_CHART_WIDTH);
 
   return (
     <ChartCard title={title}>
