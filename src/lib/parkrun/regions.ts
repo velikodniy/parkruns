@@ -58,10 +58,10 @@ export async function fetchRegion(
 }
 
 export function resolveRegions(
-  events: ReadonlyArray<{ coordinates: LngLat }>,
+  coordinates: readonly LngLat[],
 ): Promise<Map<string, string>> {
   const keyToCoords = new Map(
-    events.map((e) => [coordsKey(e.coordinates), e.coordinates]),
+    coordinates.map((value) => [coordsKey(value), value]),
   );
 
   return cache.resolve([...keyToCoords.keys()], async (missing) => {

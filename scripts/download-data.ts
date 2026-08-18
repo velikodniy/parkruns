@@ -8,9 +8,7 @@ import {
 import { resolveRegions } from "../src/lib/parkrun/regions.ts";
 import { writeTextFileAtomic } from "../src/lib/fs.ts";
 import { fetchWeatherForRuns } from "../src/lib/parkrun/weather.ts";
-import { enrichRuns } from "../src/lib/parkrun/enrich.ts";
-import { contextualizeRuns } from "../src/lib/parkrun/event-context.ts";
-import type { Profile } from "../src/types.ts";
+import { buildProfile } from "../src/lib/parkrun/profile.ts";
 
 const ATHLETE_ID = Deno.env.get("PARKRUN_ATHLETE_ID");
 const PASSWORD = Deno.env.get("PARKRUN_PASSWORD");
@@ -20,10 +18,6 @@ if (!ATHLETE_ID || !PASSWORD) {
     "PARKRUN_ATHLETE_ID and PARKRUN_PASSWORD environment variables are required",
   );
   Deno.exit(1);
-}
-
-function capitalize(str: string): string {
-  return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 async function downloadData(
@@ -40,57 +34,18 @@ async function downloadData(
   console.log("Fetching runs...");
   const runs = await getRuns(accessToken, numericId);
 
-  const contextualRuns = contextualizeRuns(runs, getRunEventContext);
-
-  console.log("Fetching weather data...");
-  const weatherRuns = contextualRuns.flatMap(({ run, event }) => {
-    if (event.coordinates === null || event.weatherHour === null) return [];
-    return [{
-      eventDate: run.eventDate,
-      coordinates: event.coordinates,
-      weatherHour: event.weatherHour,
-    }];
-  });
-  const omittedWeatherRuns = contextualRuns.length - weatherRuns.length;
-  if (omittedWeatherRuns > 0) {
-    console.warn(
-      `Skipping weather for ${omittedWeatherRuns} runs with no verified event schedule`,
-    );
-  }
-  const weatherMap = await fetchWeatherForRuns(
-    weatherRuns,
-  );
-
-  console.log("Resolving regions...");
-  const ukEvents = contextualRuns.flatMap(({ event }) =>
-    event.countryISO === "gb" && event.regionCoordinates
-      ? [{ coordinates: event.regionCoordinates }]
-      : []
-  );
-  const regionMap = await resolveRegions(ukEvents);
-
-  const enrichedRuns = enrichRuns(
-    contextualRuns,
-    { weather: weatherMap, regions: regionMap },
-  );
-
-  const profile: Profile = {
-    schemaVersion: 1,
-    generatedAt: new Date().toISOString(),
+  const profile = await buildProfile({
+    athlete,
+    runs,
     eventCountries: getAllEventCountryISOs(),
-    athlete: {
-      id: athlete.id,
-      fullName: `${capitalize(athlete.firstName)} ${
-        capitalize(athlete.lastName)
-      }`,
-      clubName: athlete.clubName,
-      homeRun: athlete.homeRun,
-      homeRunShortName: athlete.homeRun
-        ? getShortNameByLongName(athlete.homeRun)
-        : null,
-    },
-    runs: enrichedRuns,
-  };
+    resolveEventContext: getRunEventContext,
+    getShortNameByLongName,
+    fetchWeather: fetchWeatherForRuns,
+    resolveRegions,
+    now: () => new Date(),
+    log: console.log,
+    warn: console.warn,
+  });
 
   const outputPath = "public/data.json";
   await writeTextFileAtomic(outputPath, JSON.stringify(profile));
