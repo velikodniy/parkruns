@@ -129,22 +129,69 @@ export function weatherByDateAt9am(
   return weatherByDate;
 }
 
+const MAX_DATE_GAP_DAYS = 30;
+const MS_PER_DAY = 86_400_000;
+
+export interface WeatherKeyComponents {
+  latitude: number;
+  longitude: number;
+  date: string;
+  hour: number;
+}
+
+export function parseWeatherKey(key: string): WeatherKeyComponents | null {
+  const parts = key.split(",");
+  if (parts.length < 3) return null;
+  const latitude = Number(parts[0]);
+  const longitude = Number(parts[1]);
+  const date = parts[2];
+  const hour = parts.length > 3 ? Number(parts[3]) : WEATHER_SAMPLE_HOUR;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !date) {
+    return null;
+  }
+  return { latitude, longitude, date, hour };
+}
+
+export function clusterDates(
+  sortedDates: string[],
+  maxGapDays = MAX_DATE_GAP_DAYS,
+): string[][] {
+  if (sortedDates.length === 0) return [];
+
+  const clusters: string[][] = [[sortedDates[0]]];
+
+  for (let i = 1; i < sortedDates.length; i++) {
+    const prevDate = new Date(`${sortedDates[i - 1]}T00:00:00.000Z`).getTime();
+    const currDate = new Date(`${sortedDates[i]}T00:00:00.000Z`).getTime();
+    const gapDays = (currDate - prevDate) / MS_PER_DAY;
+
+    if (gapDays <= maxGapDays) {
+      clusters[clusters.length - 1].push(sortedDates[i]);
+    } else {
+      clusters.push([sortedDates[i]]);
+    }
+  }
+
+  return clusters;
+}
+
 function groupKeysByLocation(
   keys: string[],
 ): Map<string, LocationGroup> {
   const groups = new Map<string, LocationGroup>();
 
   for (const key of keys) {
-    const [latitudeStr, longitudeStr, date] = key.split(",");
-    const locKey = `${latitudeStr},${longitudeStr}`;
+    const parsed = parseWeatherKey(key);
+    if (!parsed) continue;
+    const locKey = locationKey(parsed.latitude, parsed.longitude);
     const existing = groups.get(locKey);
     if (existing) {
-      existing.dates.add(date);
+      existing.dates.add(parsed.date);
     } else {
       groups.set(locKey, {
-        latitude: Number(latitudeStr),
-        longitude: Number(longitudeStr),
-        dates: new Set([date]),
+        latitude: parsed.latitude,
+        longitude: parsed.longitude,
+        dates: new Set([parsed.date]),
       });
     }
   }
@@ -170,21 +217,24 @@ export function fetchWeatherForRuns(
     for (let i = 0; i < locations.length; i++) {
       const [, { latitude, longitude, dates }] = locations[i];
       const sortedDates = [...dates].sort();
+      const dateClusters = clusterDates(sortedDates);
 
-      const weatherByDate = await fetchWeatherForLocation(
-        latitude,
-        longitude,
-        sortedDates[0],
-        sortedDates[sortedDates.length - 1],
-      );
+      for (const cluster of dateClusters) {
+        const weatherByDate = await fetchWeatherForLocation(
+          latitude,
+          longitude,
+          cluster[0],
+          cluster[cluster.length - 1],
+        );
 
-      for (const date of dates) {
-        const weather = weatherByDate?.get(date);
-        if (weather) {
-          results.set(
-            getWeatherKey([latitude, longitude], date),
-            weather,
-          );
+        for (const date of cluster) {
+          const weather = weatherByDate?.get(date);
+          if (weather) {
+            results.set(
+              getWeatherKey([latitude, longitude], date),
+              weather,
+            );
+          }
         }
       }
 
