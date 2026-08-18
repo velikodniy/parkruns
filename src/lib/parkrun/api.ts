@@ -1,6 +1,7 @@
 import type { Athlete, Run } from "../../types.ts";
 import { eventDateToISOString } from "../../event-date.ts";
 import { fetchWithRetry } from "../http.ts";
+import { z } from "zod";
 
 export type AccessToken = string;
 
@@ -20,33 +21,110 @@ const CLIENT_ID = Deno.env.get("PARKRUN_CLIENT_ID") ?? "";
 const CLIENT_SECRET = Deno.env.get("PARKRUN_CLIENT_SECRET") ?? "";
 const USER_AGENT = "parkrun/1.2.7 CFNetwork/1121.2.2 Darwin/19.3.0";
 
-interface AuthResponse {
-  access_token: string;
+const PositiveIntegerStringSchema = z.string().refine((value) => {
+  if (!/^\d+$/.test(value)) return false;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0;
+});
+
+const NonNegativeNumberStringSchema = z.string().refine((value) =>
+  /^\d+(?:\.\d+)?$/.test(value) && Number.isFinite(Number(value))
+);
+
+const EventDateSchema = z.string().refine((value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) &&
+    date.toISOString().slice(0, value.length) === value;
+});
+
+const FinishTimeSchema = z.string()
+  .regex(/^\d{1,2}:[0-5]\d(?::[0-5]\d)?$/)
+  .refine((value) => value.split(":").some((part) => Number(part) > 0));
+
+const AuthResponseSchema = z.object({
+  access_token: z.string().min(1),
+});
+
+const AthleteResponseSchema = z.object({
+  data: z.object({
+    Athletes: z.array(z.object({
+      AthleteID: PositiveIntegerStringSchema,
+      FirstName: z.string(),
+      LastName: z.string(),
+      ClubName: z.string().nullish(),
+      HomeRunName: z.string().nullish(),
+    })).min(1),
+  }),
+});
+
+const RunResultResponseSchema = z.object({
+  AgeCategory: z.string().min(1),
+  AgeGrading: NonNegativeNumberStringSchema,
+  EventDate: EventDateSchema,
+  EventLongName: z.string().min(1),
+  EventNumber: PositiveIntegerStringSchema,
+  FinishPosition: PositiveIntegerStringSchema,
+  FirstTimer: z.enum(["0", "1"]),
+  GenderPosition: PositiveIntegerStringSchema,
+  RunTime: FinishTimeSchema,
+  WasPbRun: z.enum(["0", "1"]),
+  abstractId: PositiveIntegerStringSchema,
+});
+
+const ResultsResponseSchema = z.object({
+  data: z.object({
+    // The API omits this field, or returns null, after the final page.
+    Results: z.array(RunResultResponseSchema).nullish(),
+  }),
+});
+
+type RunResultResponse = z.infer<typeof RunResultResponseSchema>;
+
+function parseResponse<T>(
+  schema: z.ZodType<T>,
+  json: unknown,
+  errorMessage: string,
+): T {
+  const result = schema.safeParse(json);
+  if (!result.success) {
+    // Athlete responses can contain PII, so never include the payload or Zod's
+    // value-bearing diagnostics in errors that may be written to CI logs.
+    throw new Error(errorMessage);
+  }
+  return result.data;
 }
 
-interface AthleteResponse {
-  AthleteID: string;
-  FirstName: string;
-  LastName: string;
-  ClubName: string;
-  HomeRunID: string;
-  HomeRunLocation: string;
-  HomeRunName: string;
+export function parseAuthenticationResponse(json: unknown): AccessToken {
+  return parseResponse(
+    AuthResponseSchema,
+    json,
+    "Unexpected authentication response",
+  ).access_token;
 }
 
-interface RunResultResponse {
-  AgeCategory: string;
-  AgeGrading: string;
-  AthleteID: string;
-  EventDate: string;
-  EventLongName: string;
-  EventNumber: string;
-  FinishPosition: string;
-  FirstTimer: "0" | "1";
-  GenderPosition: string;
-  RunTime: string;
-  WasPbRun: "0" | "1";
-  abstractId: string;
+export function parseAthleteResponse(json: unknown): Athlete {
+  const data = parseResponse(
+    AthleteResponseSchema,
+    json,
+    "Unexpected athlete response",
+  ).data.Athletes[0];
+
+  return {
+    id: Number(data.AthleteID),
+    firstName: data.FirstName,
+    lastName: data.LastName,
+    clubName: data.ClubName || null,
+    homeRun: data.HomeRunName || null,
+  };
+}
+
+export function parseResultsResponse(json: unknown): RunResultResponse[] {
+  return parseResponse(
+    ResultsResponseSchema,
+    json,
+    "Unexpected runs response",
+  ).data.Results ?? [];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -172,8 +250,7 @@ export async function authenticate(
     contentType: "application/x-www-form-urlencoded",
   });
 
-  const data: AuthResponse = await response.json();
-  return data.access_token;
+  return parseAuthenticationResponse(await response.json());
 }
 
 export async function getAthlete(
@@ -188,20 +265,7 @@ export async function getAthlete(
     },
   });
 
-  const json = await response.json();
-  const athletes = json?.data?.Athletes;
-  if (!Array.isArray(athletes) || athletes.length === 0) {
-    throw new Error("Unexpected athlete response: missing data.Athletes");
-  }
-  const data: AthleteResponse = athletes[0];
-
-  return {
-    id: Number.parseInt(data.AthleteID),
-    firstName: data.FirstName,
-    lastName: data.LastName,
-    clubName: data.ClubName || null,
-    homeRun: data.HomeRunName || null,
-  };
+  return parseAthleteResponse(await response.json());
 }
 
 async function getRunStats(
@@ -243,15 +307,9 @@ export async function getRuns(
       },
     });
 
-    const json = await response.json();
-    // Fail loud on a malformed envelope (e.g. a 200 with an error body) rather
-    // than letting a missing `data` look like the end of pagination and
-    // silently truncate the run history. An empty/absent Results array is the
-    // normal end-of-pages signal.
-    if (!json?.data) {
-      throw new Error("Unexpected runs response: missing data");
-    }
-    const results: RunResultResponse[] = json.data.Results ?? [];
+    // Fail loud on malformed envelopes or rows rather than treating them as
+    // the end of pagination and silently truncating the run history.
+    const results = parseResultsResponse(await response.json());
 
     if (results.length === 0) break;
 
