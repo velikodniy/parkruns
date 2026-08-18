@@ -1,5 +1,6 @@
 import { JsonCache } from "../cache.ts";
 import type { LngLat } from "./types.ts";
+import { z } from "zod";
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse";
 const USER_AGENT = "parkrun-dashboard/1.0";
@@ -7,12 +8,12 @@ const USER_AGENT = "parkrun-dashboard/1.0";
 // https://operations.osmfoundation.org/policies/nominatim/
 export const NOMINATIM_REQUEST_INTERVAL_MS = 15_000;
 
-function isResolvedRegion(value: unknown): value is string {
-  return typeof value === "string" && value !== "gb";
-}
+const ResolvedRegionSchema = z.string().min(1).refine((value) =>
+  value !== "gb"
+);
 
 const cache = new JsonCache<string>("regions.json", {
-  isValid: isResolvedRegion,
+  schema: ResolvedRegionSchema,
 });
 
 function coordsKey(coordinates: LngLat): string {

@@ -8,7 +8,7 @@ import type { LatLng } from "./types.ts";
 const OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive";
 
 const cache = new JsonCache<Weather>("weather.json", {
-  isValid: (value): value is Weather => WeatherSchema.safeParse(value).success,
+  schema: WeatherSchema,
 });
 
 export interface OpenMeteoResponse {

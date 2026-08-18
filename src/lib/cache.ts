@@ -2,18 +2,24 @@ import { writeTextFileAtomic } from "./fs.ts";
 
 const CACHE_DIR = ".cache";
 
+interface CacheSchema<T> {
+  safeParse(value: unknown):
+    | { success: true; data: T }
+    | { success: false };
+}
+
 interface JsonCacheOptions<T> {
   directory?: string;
-  isValid?: (value: unknown) => value is T;
+  schema: CacheSchema<T>;
 }
 
 export class JsonCache<T> {
   private path: string;
-  private isValid: (value: unknown) => value is T;
+  private schema: CacheSchema<T>;
 
-  constructor(filename: string, options: JsonCacheOptions<T> = {}) {
+  constructor(filename: string, options: JsonCacheOptions<T>) {
     this.path = `${options.directory ?? CACHE_DIR}/${filename}`;
-    this.isValid = options.isValid ?? ((_value): _value is T => true);
+    this.schema = options.schema;
   }
 
   async load(): Promise<Map<string, T>> {
@@ -34,9 +40,11 @@ export class JsonCache<T> {
         return new Map();
       }
 
-      const entries = Object.entries(parsed).filter(([, value]) =>
-        this.isValid(value)
-      ) as [string, T][];
+      const entries: [string, T][] = [];
+      for (const [key, value] of Object.entries(parsed)) {
+        const result = this.schema.safeParse(value);
+        if (result.success) entries.push([key, result.data]);
+      }
       if (entries.length !== Object.keys(parsed).length) {
         console.warn(`Ignoring invalid entries in cache ${this.path}.`);
       }
@@ -67,7 +75,8 @@ export class JsonCache<T> {
     if (missing.length > 0) {
       const fetched = await fetchMissing(missing);
       for (const [k, v] of fetched) {
-        if (this.isValid(v)) cached.set(k, v);
+        const result = this.schema.safeParse(v);
+        if (result.success) cached.set(k, result.data);
       }
       await this.save(cached);
     }

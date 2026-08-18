@@ -1,4 +1,5 @@
 import { assertEquals } from "@std/assert";
+import { z } from "zod";
 import { JsonCache } from "./cache.ts";
 
 async function withTempDir(fn: (dir: string) => Promise<void>): Promise<void> {
@@ -18,7 +19,7 @@ Deno.test("JsonCache ignores invalid cached values", async () => {
     );
     const cache = new JsonCache<string>("values.json", {
       directory,
-      isValid: (value): value is string => typeof value === "string",
+      schema: z.string(),
     });
 
     assertEquals(await cache.load(), new Map([["valid", "value"]]));
@@ -27,7 +28,10 @@ Deno.test("JsonCache ignores invalid cached values", async () => {
 
 Deno.test("JsonCache retries keys omitted after a transient failure", async () => {
   await withTempDir(async (directory) => {
-    const cache = new JsonCache<string>("values.json", { directory });
+    const cache = new JsonCache<string>("values.json", {
+      directory,
+      schema: z.string(),
+    });
     let fetches = 0;
 
     await cache.resolve(["missing"], () => {
@@ -41,5 +45,20 @@ Deno.test("JsonCache retries keys omitted after a transient failure", async () =
 
     assertEquals(fetches, 2);
     assertEquals(resolved.get("missing"), "recovered");
+  });
+});
+
+Deno.test("JsonCache retains parsed schema output", async () => {
+  await withTempDir(async (directory) => {
+    await Deno.writeTextFile(
+      `${directory}/values.json`,
+      JSON.stringify({ key: " value " }),
+    );
+    const cache = new JsonCache<string>("values.json", {
+      directory,
+      schema: z.string().transform((value) => value.trim()),
+    });
+
+    assertEquals(await cache.load(), new Map([["key", "value"]]));
   });
 });
