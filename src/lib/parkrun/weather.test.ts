@@ -1,9 +1,9 @@
-import { assertEquals, assertNotEquals } from "@std/assert";
+import { assertEquals } from "@std/assert";
 import {
   getWeatherKey,
   type OpenMeteoResponse,
   OpenMeteoResponseSchema,
-  weatherByDateAtHour,
+  weatherByDateAt9am,
 } from "./weather.ts";
 
 const RESPONSE: OpenMeteoResponse = {
@@ -16,27 +16,27 @@ const RESPONSE: OpenMeteoResponse = {
   },
 };
 
-Deno.test("getWeatherKey - distinguishes different event start hours", () => {
+Deno.test("getWeatherKey - identifies the 9am sample by location and date", () => {
   const coordinates: [number, number] = [51.5, -0.1];
-  const atEight = getWeatherKey(coordinates, "2026-05-09T00:00:00.000Z", 8);
-  const atNine = getWeatherKey(coordinates, "2026-05-09T00:00:00.000Z", 9);
-
-  assertNotEquals(atEight, atNine);
+  assertEquals(
+    getWeatherKey(coordinates, "2026-05-09T00:00:00.000Z"),
+    "51.5000,-0.1000,2026-05-09,9",
+  );
 });
 
-Deno.test("weatherByDateAtHour - selects the local requested hour", () => {
-  assertEquals(weatherByDateAtHour(RESPONSE, 8).get("2026-05-09"), {
-    temperatureC: 8,
-    weatherCode: 2,
-    windSpeedMs: 4,
-    windDirectionDeg: 180,
+Deno.test("weatherByDateAt9am - selects 9am local time", () => {
+  assertEquals(weatherByDateAt9am(RESPONSE).get("2026-05-09"), {
+    temperatureC: 9,
+    weatherCode: 3,
+    windSpeedMs: 5,
+    windDirectionDeg: 190,
   });
 });
 
-Deno.test("weatherByDateAtHour - skips nullable observations", () => {
+Deno.test("weatherByDateAt9am - skips nullable observations", () => {
   const response = OpenMeteoResponseSchema.parse({
     hourly: {
-      time: ["2026-05-09T08:00", "2026-05-10T08:00"],
+      time: ["2026-05-09T09:00", "2026-05-10T09:00"],
       temperature_2m: [8, null],
       weather_code: [2, 3],
       wind_speed_10m: [4, 5],
@@ -45,7 +45,7 @@ Deno.test("weatherByDateAtHour - skips nullable observations", () => {
   });
 
   assertEquals(
-    weatherByDateAtHour(response, 8),
+    weatherByDateAt9am(response),
     new Map([["2026-05-09", {
       temperatureC: 8,
       weatherCode: 2,

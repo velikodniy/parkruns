@@ -37,24 +37,22 @@ const runs = [
   run(2, "2026-08-15T00:00:00.000Z"),
 ];
 
-const scheduledEvent: EventContext = {
+const knownEvent: EventContext = {
   coordinates: [51.4, -0.3],
   regionCoordinates: [-0.3, 51.4],
   countryISO: "gb",
   displayName: "Scheduled",
   eventUrl: "https://example.com/scheduled/",
   resultsUrl: "https://example.com/scheduled/results/1/",
-  weatherHour: 9,
 };
 
-const unknownScheduleEvent: EventContext = {
-  coordinates: [48.8, 2.3],
-  regionCoordinates: [2.3, 48.8],
+const unknownEvent: EventContext = {
+  coordinates: null,
+  regionCoordinates: null,
   countryISO: "fr",
-  displayName: "Unknown schedule",
+  displayName: "Unknown event",
   eventUrl: null,
   resultsUrl: null,
-  weatherHour: null,
 };
 
 const weather: Weather = {
@@ -76,7 +74,7 @@ Deno.test("buildProfile orchestrates context and enrichment once per run", async
     eventCountries: ["fr", "gb"],
     resolveEventContext: ({ eventId }) => {
       contextCalls++;
-      return eventId === 1 ? scheduledEvent : unknownScheduleEvent;
+      return eventId === 1 ? knownEvent : unknownEvent;
     },
     getShortNameByLongName: () => "Home",
     fetchWeather: (requests) => {
@@ -85,9 +83,8 @@ Deno.test("buildProfile orchestrates context and enrichment once per run", async
         new Map([
           [
             getWeatherKey(
-              scheduledEvent.coordinates!,
+              knownEvent.coordinates!,
               runs[0].eventDate,
-              scheduledEvent.weatherHour!,
             ),
             weather,
           ],
@@ -98,7 +95,7 @@ Deno.test("buildProfile orchestrates context and enrichment once per run", async
       regionRequests = coordinates;
       return Promise.resolve(
         new Map([
-          [getRegionKey(scheduledEvent.regionCoordinates!), "gb-eng"],
+          [getRegionKey(knownEvent.regionCoordinates!), "gb-eng"],
         ]),
       );
     },
@@ -109,12 +106,11 @@ Deno.test("buildProfile orchestrates context and enrichment once per run", async
   assertEquals(contextCalls, 2);
   assertEquals(weatherRequests, [{
     eventDate: runs[0].eventDate,
-    coordinates: scheduledEvent.coordinates!,
-    weatherHour: 9,
+    coordinates: knownEvent.coordinates!,
   }]);
-  assertEquals(regionRequests, [scheduledEvent.regionCoordinates!]);
+  assertEquals(regionRequests, [knownEvent.regionCoordinates!]);
   assertEquals(warnings, [
-    "Skipping weather for 1 runs with no verified event schedule",
+    "Skipping weather for 1 runs with no event coordinates",
   ]);
   assertEquals(profile.generatedAt, "2026-08-18T12:00:00.000Z");
   assertEquals(profile.eventCountries, ["fr", "gb"]);
@@ -129,7 +125,6 @@ Deno.test("buildProfile orchestrates context and enrichment once per run", async
   assertEquals(profile.runs[0].weather, weather);
   assertEquals(profile.runs[1].countryISO, "fr");
   assertEquals(profile.runs[1].weather, null);
-  assert(!Object.hasOwn(profile.runs[0], "weatherHour"));
   assert(!Object.hasOwn(profile.runs[0], "regionCoordinates"));
 });
 
@@ -140,7 +135,7 @@ Deno.test("buildProfile skips the home-run lookup when it is absent", async () =
     athlete: { ...athlete, homeRun: null },
     runs: [],
     eventCountries: [],
-    resolveEventContext: () => scheduledEvent,
+    resolveEventContext: () => knownEvent,
     getShortNameByLongName: () => {
       homeRunLookups++;
       return "unused";

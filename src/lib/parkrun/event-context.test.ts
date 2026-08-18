@@ -26,7 +26,6 @@ Deno.test("contextualizeRuns resolves each run once", () => {
     displayName: "Test",
     eventUrl: null,
     resultsUrl: null,
-    weatherHour: 9,
   };
   let calls = 0;
 

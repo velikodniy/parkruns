@@ -16,12 +16,11 @@ function enrichRun(
   const { run, event } = contextualRun;
 
   // Weather is keyed by the run's LatLng (Open-Meteo order).
-  const weather = event.coordinates && event.weatherHour !== null
+  const weather = event.coordinates
     ? data.weather.get(
       getWeatherKey(
         event.coordinates,
         run.eventDate,
-        event.weatherHour,
       ),
     ) ?? null
     : null;

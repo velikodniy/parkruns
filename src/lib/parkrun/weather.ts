@@ -7,6 +7,8 @@ import type { LatLng } from "./types.ts";
 import { z } from "zod";
 
 const OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive";
+// Open-Meteo returns local timestamps because requests use `timezone=auto`.
+const WEATHER_SAMPLE_HOUR = 9;
 
 const cache = new JsonCache<Weather>("weather.json", {
   schema: WeatherSchema,
@@ -58,7 +60,6 @@ async function fetchWeatherForLocation(
   longitude: number,
   startDate: string,
   endDate: string,
-  weatherHour: number,
 ): Promise<Map<string, Weather> | null> {
   const url = new URL(OPEN_METEO_URL);
   url.searchParams.set("latitude", latitude.toString());
@@ -82,7 +83,7 @@ async function fetchWeatherForLocation(
     }
 
     const data = OpenMeteoResponseSchema.parse(await response.json());
-    return weatherByDateAtHour(data, weatherHour);
+    return weatherByDateAt9am(data);
   } catch (error) {
     console.error(
       `Failed to fetch weather for ${startDate}-${endDate}:`,
@@ -95,19 +96,16 @@ async function fetchWeatherForLocation(
 interface LocationGroup {
   latitude: number;
   longitude: number;
-  weatherHour: number;
   dates: Set<string>;
 }
 
 export interface WeatherRun {
   eventDate: string;
   coordinates: LatLng;
-  weatherHour: number;
 }
 
-export function weatherByDateAtHour(
+export function weatherByDateAt9am(
   data: OpenMeteoResponse,
-  weatherHour: number,
 ): Map<string, Weather> {
   const weatherByDate = new Map<string, Weather>();
 
@@ -115,7 +113,7 @@ export function weatherByDateAtHour(
     const timestamp = data.hourly.time[i];
     const hour = Number(timestamp.slice(11, 13));
 
-    if (hour === weatherHour) {
+    if (hour === WEATHER_SAMPLE_HOUR) {
       const weather = WeatherSchema.safeParse({
         temperatureC: data.hourly.temperature_2m[i],
         weatherCode: data.hourly.weather_code[i],
@@ -137,9 +135,8 @@ function groupKeysByLocation(
   const groups = new Map<string, LocationGroup>();
 
   for (const key of keys) {
-    const [latitudeStr, longitudeStr, date, weatherHourStr] = key.split(",");
-    const weatherHour = Number(weatherHourStr);
-    const locKey = `${latitudeStr},${longitudeStr},${weatherHour}`;
+    const [latitudeStr, longitudeStr, date] = key.split(",");
+    const locKey = `${latitudeStr},${longitudeStr}`;
     const existing = groups.get(locKey);
     if (existing) {
       existing.dates.add(date);
@@ -147,7 +144,6 @@ function groupKeysByLocation(
       groups.set(locKey, {
         latitude: Number(latitudeStr),
         longitude: Number(longitudeStr),
-        weatherHour,
         dates: new Set([date]),
       });
     }
@@ -159,22 +155,20 @@ function groupKeysByLocation(
 export function fetchWeatherForRuns(
   runs: readonly WeatherRun[],
 ): Promise<Map<string, Weather>> {
-  const keys = runs.map((run) =>
-    getWeatherKey(run.coordinates, run.eventDate, run.weatherHour)
-  );
+  const keys = runs.map((run) => getWeatherKey(run.coordinates, run.eventDate));
 
   return cache.resolve(keys, async (missing) => {
     const locationGroups = groupKeysByLocation(missing);
 
     console.log(
-      `Fetching weather for ${missing.length} runs across ${locationGroups.size} location/start-time groups`,
+      `Fetching weather for ${missing.length} runs across ${locationGroups.size} locations`,
     );
 
     const results = new Map<string, Weather>();
     const locations = [...locationGroups.entries()];
 
     for (let i = 0; i < locations.length; i++) {
-      const [, { latitude, longitude, weatherHour, dates }] = locations[i];
+      const [, { latitude, longitude, dates }] = locations[i];
       const sortedDates = [...dates].sort();
 
       const weatherByDate = await fetchWeatherForLocation(
@@ -182,14 +176,13 @@ export function fetchWeatherForRuns(
         longitude,
         sortedDates[0],
         sortedDates[sortedDates.length - 1],
-        weatherHour,
       );
 
       for (const date of dates) {
         const weather = weatherByDate?.get(date);
         if (weather) {
           results.set(
-            getWeatherKey([latitude, longitude], date, weatherHour),
+            getWeatherKey([latitude, longitude], date),
             weather,
           );
         }
@@ -207,9 +200,8 @@ export function fetchWeatherForRuns(
 export function getWeatherKey(
   coordinates: LatLng,
   eventDate: string,
-  weatherHour: number,
 ): string {
   const [latitude, longitude] = coordinates;
   const date = eventDate.split("T")[0];
-  return `${locationKey(latitude, longitude)},${date},${weatherHour}`;
+  return `${locationKey(latitude, longitude)},${date},${WEATHER_SAMPLE_HOUR}`;
 }

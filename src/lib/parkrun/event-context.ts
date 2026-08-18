@@ -3,7 +3,7 @@ import type { LatLng, LngLat } from "./types.ts";
 
 export type EventContextInput = Pick<
   Run,
-  "eventId" | "eventEdition" | "eventDate" | "eventName"
+  "eventId" | "eventEdition" | "eventName"
 >;
 
 export interface EventContext {
@@ -13,7 +13,6 @@ export interface EventContext {
   displayName: string;
   eventUrl: string | null;
   resultsUrl: string | null;
-  weatherHour: number | null;
 }
 
 export interface ContextualRun {

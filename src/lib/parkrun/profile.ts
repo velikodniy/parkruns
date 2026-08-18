@@ -46,17 +46,16 @@ export async function buildProfile(
   );
 
   const weatherRuns = contextualRuns.flatMap(({ run, event }) => {
-    if (event.coordinates === null || event.weatherHour === null) return [];
+    if (event.coordinates === null) return [];
     return [{
       eventDate: run.eventDate,
       coordinates: event.coordinates,
-      weatherHour: event.weatherHour,
     }];
   });
   const omittedWeatherRuns = contextualRuns.length - weatherRuns.length;
   if (omittedWeatherRuns > 0) {
     dependencies.warn?.(
-      `Skipping weather for ${omittedWeatherRuns} runs with no verified event schedule`,
+      `Skipping weather for ${omittedWeatherRuns} runs with no event coordinates`,
     );
   }
 

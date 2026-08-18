@@ -39,7 +39,6 @@ function makeEvent(overrides: Partial<EventContext> = {}): EventContext {
     displayName: "Brighton",
     eventUrl: "https://parkrun.org.uk/brighton/",
     resultsUrl: "https://parkrun.org.uk/brighton/results/100/",
-    weatherHour: 9,
     ...overrides,
   };
 }
@@ -66,7 +65,6 @@ Deno.test("enrichRuns - attaches weather and normalized event metadata", () => {
         getWeatherKey(
           contextual.event.coordinates!,
           contextual.run.eventDate,
-          contextual.event.weatherHour!,
         ),
         SAMPLE_WEATHER,
       ],
@@ -123,23 +121,7 @@ Deno.test("enrichRuns - leaves weather null when coordinates are missing", () =>
   assertEquals(enriched.coordinates, null);
 });
 
-Deno.test("enrichRuns - omits weather when the event schedule is unknown", () => {
-  const contextual = contextualRun({}, { weatherHour: null });
-  const data: EnrichmentData = {
-    weather: new Map([
-      [
-        getWeatherKey(
-          contextual.event.coordinates!,
-          contextual.run.eventDate,
-          9,
-        ),
-        SAMPLE_WEATHER,
-      ],
-    ]),
-    regions: new Map(),
-  };
-
-  const [enriched] = enrichRuns([contextual], data);
-
+Deno.test("enrichRuns - leaves weather null when the lookup is missing", () => {
+  const [enriched] = enrichRuns([contextualRun()], emptyData());
   assertEquals(enriched.weather, null);
 });

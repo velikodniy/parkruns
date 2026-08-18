@@ -19,7 +19,6 @@ export { getCountryName } from "./countries.ts";
 export {
   getAllEventCountryISOs,
   getAllEvents,
-  getEventWeatherHour,
   getRunEventContext,
   getShortNameByLongName,
 } from "./events.ts";
