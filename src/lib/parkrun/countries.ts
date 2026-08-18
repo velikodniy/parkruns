@@ -53,6 +53,23 @@ const NAMES: Record<string, string> = {
   fk: "Falkland Islands",
 };
 
+const GB_REGIONS = new Set([
+  "gb-eng",
+  "gb-sct",
+  "gb-wls",
+  "gb-nir",
+  "je",
+  "gg",
+  "im",
+  "gi",
+  "fk",
+]);
+
+export function isGbRegion(iso: string): boolean {
+  const lower = iso.toLowerCase();
+  return lower.startsWith("gb-") || GB_REGIONS.has(lower);
+}
+
 export function numericToISO(code: number): string | null {
   return NUMERIC_TO_ISO[code] ?? null;
 }
@@ -67,10 +84,15 @@ export function getUnvisitedEventCountryISOs(
 ): string[] {
   const eventCountrySet = new Set(eventCountries);
   // GB runs are refined to home-nation or territory codes during enrichment.
-  // Those codes are absent from the top-level event-country list.
-  const visitedEventCountries = new Set(
-    visitedCountries.map((iso) => eventCountrySet.has(iso) ? iso : "gb"),
-  );
+  // Map those codes to "gb" if "gb" is in the event country list.
+  const visitedEventCountries = new Set<string>();
+  for (const iso of visitedCountries) {
+    if (eventCountrySet.has(iso)) {
+      visitedEventCountries.add(iso);
+    } else if (isGbRegion(iso) && eventCountrySet.has("gb")) {
+      visitedEventCountries.add("gb");
+    }
+  }
 
   return eventCountries.filter((iso) => !visitedEventCountries.has(iso));
 }
