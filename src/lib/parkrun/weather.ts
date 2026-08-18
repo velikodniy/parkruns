@@ -4,6 +4,7 @@ import { JsonCache } from "../cache.ts";
 import { fetchWithRetry } from "../http.ts";
 import { type Weather, WeatherSchema } from "../../types.ts";
 import type { LatLng } from "./types.ts";
+import { z } from "zod";
 
 const OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive";
 
@@ -11,15 +12,42 @@ const cache = new JsonCache<Weather>("weather.json", {
   schema: WeatherSchema,
 });
 
-export interface OpenMeteoResponse {
-  hourly: {
-    time: string[];
-    temperature_2m: number[];
-    weather_code: number[];
-    wind_speed_10m: number[];
-    wind_direction_10m: number[];
-  };
-}
+const LocalHourlyTimestampSchema = z.string().regex(
+  /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/,
+  "Expected a local hourly timestamp",
+);
+const NullableObservationSchema = z.number().finite().nullable();
+const OBSERVATION_FIELDS = [
+  "temperature_2m",
+  "weather_code",
+  "wind_speed_10m",
+  "wind_direction_10m",
+] as const;
+
+export const OpenMeteoResponseSchema = z.object({
+  hourly: z.object({
+    time: z.array(LocalHourlyTimestampSchema),
+    temperature_2m: z.array(NullableObservationSchema),
+    weather_code: z.array(NullableObservationSchema),
+    wind_speed_10m: z.array(NullableObservationSchema),
+    wind_direction_10m: z.array(NullableObservationSchema),
+  }),
+}).superRefine((data, ctx) => {
+  const expectedLength = data.hourly.time.length;
+  for (const field of OBSERVATION_FIELDS) {
+    const actualLength = data.hourly[field].length;
+    if (actualLength !== expectedLength) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["hourly", field],
+        message:
+          `Expected ${expectedLength} observations, received ${actualLength}`,
+      });
+    }
+  }
+});
+
+export type OpenMeteoResponse = z.infer<typeof OpenMeteoResponseSchema>;
 
 function locationKey(latitude: number, longitude: number): string {
   return `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
@@ -53,7 +81,7 @@ async function fetchWeatherForLocation(
       return null;
     }
 
-    const data: OpenMeteoResponse = await response.json();
+    const data = OpenMeteoResponseSchema.parse(await response.json());
     return weatherByDateAtHour(data, weatherHour);
   } catch (error) {
     console.error(
@@ -88,12 +116,15 @@ export function weatherByDateAtHour(
     const hour = Number(timestamp.slice(11, 13));
 
     if (hour === weatherHour) {
-      weatherByDate.set(timestamp.slice(0, 10), {
+      const weather = WeatherSchema.safeParse({
         temperatureC: data.hourly.temperature_2m[i],
         weatherCode: data.hourly.weather_code[i],
         windSpeedMs: data.hourly.wind_speed_10m[i],
         windDirectionDeg: data.hourly.wind_direction_10m[i],
       });
+      if (weather.success) {
+        weatherByDate.set(timestamp.slice(0, 10), weather.data);
+      }
     }
   }
 
