@@ -5,47 +5,12 @@ export type LngLat = [longitude: number, latitude: number];
 /** Map/API coordinate order (Leaflet, Open-Meteo, Nominatim) */
 export type LatLng = [latitude: number, longitude: number];
 
-export interface PointGeometry {
-  type: "Point";
-  coordinates: LngLat;
-}
-
-export interface EventProperties {
-  eventname: string;
-  EventLongName: string;
-  EventShortName: string;
-  LocalisedEventLongName: string | null;
-  countrycode: number;
-  seriesid: number;
-  EventLocation: string;
-}
-
-export interface EventFeature {
-  id: number;
-  type: "Feature";
-  geometry: PointGeometry;
-  properties: EventProperties;
-}
-
-export interface CountryInfo {
-  url: string | null;
-  bounds: [number, number, number, number];
-}
-
-export interface EventsData {
-  countries: Record<string, CountryInfo>;
-  events: {
-    type: "FeatureCollection";
-    features: EventFeature[];
-  };
-}
-
-const PointGeometrySchema = z.object({
+export const PointGeometrySchema = z.object({
   type: z.literal("Point"),
   coordinates: z.tuple([z.number().finite(), z.number().finite()]),
 });
 
-const EventPropertiesSchema = z.object({
+export const EventPropertiesSchema = z.object({
   eventname: z.string().min(1),
   EventLongName: z.string().min(1),
   EventShortName: z.string().min(1),
@@ -55,25 +20,27 @@ const EventPropertiesSchema = z.object({
   EventLocation: z.string(),
 });
 
-const EventFeatureSchema = z.object({
+export const EventFeatureSchema = z.object({
   id: z.number().int().positive(),
   type: z.literal("Feature"),
   geometry: PointGeometrySchema,
   properties: EventPropertiesSchema,
 });
 
+export const CountryInfoSchema = z.object({
+  url: z.string().nullable(),
+  bounds: z.tuple([
+    z.number().finite(),
+    z.number().finite(),
+    z.number().finite(),
+    z.number().finite(),
+  ]),
+});
+
 export const EventsDataSchema = z.object({
   countries: z.record(
     z.string(),
-    z.object({
-      url: z.string().nullable(),
-      bounds: z.tuple([
-        z.number().finite(),
-        z.number().finite(),
-        z.number().finite(),
-        z.number().finite(),
-      ]),
-    }),
+    CountryInfoSchema,
   ).refine((countries) => Object.keys(countries).length > 0, {
     message: "At least one country is required",
   }),
@@ -102,6 +69,12 @@ export const EventsDataSchema = z.object({
     }
   }
 });
+
+export type PointGeometry = z.infer<typeof PointGeometrySchema>;
+export type EventProperties = z.infer<typeof EventPropertiesSchema>;
+export type EventFeature = z.infer<typeof EventFeatureSchema>;
+export type CountryInfo = z.infer<typeof CountryInfoSchema>;
+export type EventsData = z.infer<typeof EventsDataSchema>;
 
 const MINIMUM_EVENT_RETENTION = 0.9;
 
