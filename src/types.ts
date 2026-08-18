@@ -10,10 +10,10 @@ export const AthleteSchema = z.object({
 });
 
 export const WeatherSchema = z.object({
-  temperatureC: z.number(),
-  weatherCode: z.number(),
-  windSpeedMs: z.number(),
-  windDirectionDeg: z.number(),
+  temperatureC: z.number().finite(),
+  weatherCode: z.number().finite(),
+  windSpeedMs: z.number().finite(),
+  windDirectionDeg: z.number().finite(),
 });
 
 export const RunSchema = z.object({

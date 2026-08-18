@@ -2,31 +2,14 @@
 
 import { JsonCache } from "../cache.ts";
 import { fetchWithRetry } from "../http.ts";
+import { type Weather, WeatherSchema } from "../../types.ts";
 import type { LatLng } from "./types.ts";
 
 const OPEN_METEO_URL = "https://archive-api.open-meteo.com/v1/archive";
 
-export interface Weather {
-  temperatureC: number;
-  weatherCode: number;
-  windSpeedMs: number;
-  windDirectionDeg: number;
-}
-
-function isWeather(value: unknown): value is Weather {
-  if (typeof value !== "object" || value === null) return false;
-  const weather = value as Record<string, unknown>;
-  return typeof weather.temperatureC === "number" &&
-    Number.isFinite(weather.temperatureC) &&
-    typeof weather.weatherCode === "number" &&
-    Number.isFinite(weather.weatherCode) &&
-    typeof weather.windSpeedMs === "number" &&
-    Number.isFinite(weather.windSpeedMs) &&
-    typeof weather.windDirectionDeg === "number" &&
-    Number.isFinite(weather.windDirectionDeg);
-}
-
-const cache = new JsonCache<Weather>("weather.json", { isValid: isWeather });
+const cache = new JsonCache<Weather>("weather.json", {
+  isValid: (value): value is Weather => WeatherSchema.safeParse(value).success,
+});
 
 export interface OpenMeteoResponse {
   hourly: {

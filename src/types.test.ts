@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { RunSchema } from "./types.ts";
+import { RunSchema, WeatherSchema } from "./types.ts";
 
 const validRun = {
   eventName: "Test parkrun",
@@ -27,6 +27,18 @@ Deno.test("RunSchema accepts record-setting age grades above 100%", () => {
 Deno.test("RunSchema still rejects negative age grades", () => {
   assertEquals(
     RunSchema.safeParse({ ...validRun, ageGrade: -0.1 }).success,
+    false,
+  );
+});
+
+Deno.test("WeatherSchema rejects non-finite observations", () => {
+  assertEquals(
+    WeatherSchema.safeParse({
+      temperatureC: Number.POSITIVE_INFINITY,
+      weatherCode: 1,
+      windSpeedMs: 2,
+      windDirectionDeg: 180,
+    }).success,
     false,
   );
 });
